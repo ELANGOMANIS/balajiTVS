@@ -64,12 +64,10 @@ class _HomeState extends State<Home> {
 
   void fetchData() async {
     try {
-      final url = Uri.parse('http://mybudgetbook.in/attendance/attendance_report.php?endpoint=attendance_report');
-      print(url);
+      final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
       final response = await http.get(url);
+
       if (response.statusCode == 200) {
-        print("res body" + response.body);
-        print("res s" + response.statusCode.toString());
         final responseData = json.decode(response.body);
         final List<dynamic> itemGroups = responseData;
         Set<String> uniqueCustNames = Set();
