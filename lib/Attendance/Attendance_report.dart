@@ -64,7 +64,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
 
   void fetchData() async {
     try {
-      final url = Uri.parse('http://mybudgetbook.in/attendance/attendance_report.php?endpoint=attendance_report');
+      final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
