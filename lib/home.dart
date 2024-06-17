@@ -305,15 +305,42 @@ class _HomeState extends State<Home> {
           child: Center(
             child: Column(
               children: [
-
                 Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Wrap(
+
+                    children: [
+                      AttendanceCard(
+                        color: Colors.green,
+                        icon: Icons.check_circle_outline,
+                        title: 'Present',
+                        count: 10, // Example count
+                      ),
+                      SizedBox(height: 16),
+                      AttendanceCard(
+                        color: Colors.red,
+                        icon: Icons.cancel_outlined,
+                        title: 'Absent',
+                        count: 2, // Example count
+                      ),
+                      SizedBox(height: 16),
+                      AttendanceCard(
+                        color: Colors.orange,
+                        icon: Icons.info_outline,
+                        title: 'Leave',
+                        count: 3, // Example count
+                      ),
+                    ],
+                  ),
+                ),
+                /*Padding(
                   padding: const EdgeInsets.all(3.0),
                   child: SingleChildScrollView(
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
-                       // color: Colors.blue.shade100,
+                        // color: Colors.blue.shade100,
                         border: Border.all(color: Colors.grey),
                         // borderRadius: BorderRadius.circular(10.0),
                       ),
@@ -321,7 +348,7 @@ class _HomeState extends State<Home> {
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
                           children: [
-                             Align(
+                            Align(
                                 alignment:Alignment.topLeft,
                                 child: Padding(
                                   padding: EdgeInsets.only(left: 5),
@@ -346,7 +373,7 @@ class _HomeState extends State<Home> {
                                           Checkbox(value: true, onChanged: (value){}),
                                         ],
                                       ),
-                                      
+
 
 
                                     ],
@@ -363,8 +390,8 @@ class _HomeState extends State<Home> {
                                 DataColumn(label: Center(child: Text("Name",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Shift",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Check-in",style: TextStyle(fontWeight: FontWeight.bold),))),
-                               // DataColumn(label: Center(child: Text("Lunch-out",style: TextStyle(fontWeight: FontWeight.bold),))),
-                               // DataColumn(label: Center(child: Text("Lunch-in",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                // DataColumn(label: Center(child: Text("Lunch-out",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                // DataColumn(label: Center(child: Text("Lunch-in",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Check-out",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Total Hrs",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Remark",style: TextStyle(fontWeight: FontWeight.bold),))),
@@ -438,7 +465,7 @@ class _HomeState extends State<Home> {
 
                     ],
                   ),
-                )
+                )*/
               ],
             ),
           ),
@@ -478,7 +505,7 @@ class _YourDataTableSource extends DataTableSource {
         DataCell(Center(child: Text("${row["first_name"]}"))),
         DataCell(Center(child: Text("${row["shiftType"]}"))),
         DataCell(Center(child: Text(formatTime(row["check_in"])))),
-       /* DataCell(
+        /* DataCell(
           Center(
             child: Text(
               formatTimeOrZero(
@@ -674,5 +701,71 @@ class _YourDataTableSource extends DataTableSource {
   @override
   int get selectedRowCount => 0;
 }
+
+
+
+class AttendanceCard extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final String title;
+  final int count;
+
+  AttendanceCard({
+    required this.color,
+    required this.icon,
+    required this.title,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+            SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '$count students',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 
