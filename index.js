@@ -6361,7 +6361,6 @@ app.put('/employee/update/:emp_code', (req, res) => {
   }
   console.log('Values before update:', employeeData);
   const sql = 'UPDATE employee SET ? WHERE emp_code=?';
-  // Use the spread operator to include all properties of employeeData
   const values = [{...employeeData}, emp_code];
 
   db.query(sql, values, (err, result) => {
