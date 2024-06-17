@@ -1,0 +1,222 @@
+name: vinayaga_project
+description: A new Flutter project.
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.19.6 <3.0.0'
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  image_picker: ^0.8.7+5
+  google_fonts: ^6.1.0
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.2
+  flutter_admin_scaffold: ^1.2.0
+  http: ^1.1.0
+  intl: ^0.18.1
+  shared_preferences: ^2.2.1
+  sqflite: ^2.3.0
+  pdf: ^3.10.4
+  printing: ^5.11.0
+  flutter_typeahead: ^4.8.0
+  math_expressions: ^2.4.0
+  autocomplete_textfield: ^2.0.1
+  file_picker: ^6.1.1
+  csv: ^5.1.1
+  path_provider: ^2.1.1
+  open_file: ^3.3.2
+  file_saver: ^0.2.9
+  number_to_words: ^1.0.0
+  flutter_launcher_icons: ^0.13.1
+
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^2.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  fonts:
+    - family: Algerian
+      fonts:
+        - asset: assets/fonts/Algerian_Regular.ttf
+
+
+
+  # To add assets to your application, add an assets section, like this:
+
+
+
+  assets:
+   - assets/god1.jpg
+   - assets/god2.jpg
+   - assets/god3.jpg
+   - assets/bg21.jpg
+   - assets/1.png
+   - assets/bg_1.jpg
+   - assets/bg22.svg
+   - assets/bg_2.jpg
+   - assets/bg_3.jpg
+   - assets/bg_4.jpg
+   - assets/bg_5.jpg
+   - assets/bg_7.jpg
+   - assets/bg_8.jpg
+   - assets/bg_9.jpg
+   - assets/bg_10.jpg
+   - assets/bg_11.jpg
+   - assets/bg_12.jpg
+   - assets/bg_13.jpg
+   - assets/bg_14.png
+   - assets/bg_15.jpg
+   - assets/bg_16.png
+   - assets/bg_17.png
+   - assets/bg_18.jpg
+   - assets/bg_19.jpg
+   - assets/bg_20.jpg
+   - assets/bg_21.jpg
+   - assets/bg_22.jpg
+   - assets/bg_23.png
+   - assets/ad_im1.png
+   - assets/ad_im2.png
+   - assets/ad_im3.png
+   - assets/ad_im4.png
+   - assets/ad_im5.png
+   - assets/ad_im6.jpg
+   - assets/ad_im7.jpg
+   - assets/ad_im8.jpg
+   - assets/ad_im10.jpg
+   - assets/ad_im11.jpg
+   - assets/ad_im12.png
+   - assets/ad_im13.png
+   - assets/ad_im14.jpg
+   - assets/ad_im15.jpg
+   - assets/ad_im16.png
+   - assets/ad_im17.jpg
+   - assets/ad_im18.jpg
+   - assets/ad_im19.jpg
+   - assets/attendance.png
+   - assets/sale1.png
+   - assets/purchase1.png
+   - assets/pocreate1.png
+   - assets/fingerprint.png
+   - assets/ewaybill1.png
+   - assets/employee1.png
+   - assets/delivery.png
+   - assets/1.png
+   - assets/image_2023_10_11T05_53_27_876Z.png
+   - assets/4_db_deliverychallen.png
+   - assets/11_db_attendance.png
+   - assets/3_db_shiftentry.png
+   - assets/9_db_rawmaterial.jpg
+   - assets/2_db_pocreate.png
+   - assets/1_db_sales.png
+   - assets/6_db_productionstock.png
+   - assets/10_db_purchase.png
+   - assets/image_2023_10_11T05_48_45_102Z.png
+   - assets/image_2023_10_11T05_48_45_099Z.png
+   - assets/image_2023_10_11T05_48_45_096Z.png
+   - assets/12_db_dailywork.png
+   - assets/5_db_employee.png
+   - assets/8_db_fingerprint.png
+   - assets/2_db_pocreate.png
+   - assets/6_db_productionstock.png
+   - assets/2_db_pocreate.png
+   - assets/ganpati_images.jpg
+   - assets/cutomer_order.jpg
+   - assets/sales.JPEG
+   - assets/dailyworkstatus.JPEG
+   - assets/rawmaterial.JPEG
+   - assets/employee.JPEG
+   - assets/shiftentry.JPEG
+   - assets/fb.JPEG
+   - assets/production.JPEG
+   - assets/purchaeorder.JPEG
+   - assets/deliverycha.JPEG
+   - assets/customerorder.JPEG
+   - assets/purchaeentry.JPEG
+   - assets/purchaseentry2.JPEG
+   - assets/custorder.JPEG
+   - assets/sales.JPEG
+   - assets/sarswathi.png
+   - assets/pillaiyar.png
+   - assets/fonts/Algerian_Regular.ttf
+   - assets/icon/icon.png
+   - assets/TVS_Motor_Company-Logo.wine.png
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+
+
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/custom-fonts/#from-packages
