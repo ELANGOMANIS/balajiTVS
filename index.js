@@ -9921,8 +9921,8 @@ app.delete('/shift_tvs_delete/:id', (req, res) => {
 });
 
 
-app.get('/get_attendance_overallold', (req, res) => {
-  const sql = 'SELECT * from attendance'; // Assuming id is the primary key of the attendance table
+app.get('/get_employee', (req, res) => {
+  const sql = 'SELECT * from employee'; // Assuming id is the primary key of the attendance table
   db.query(sql, (err, result) => {
     if (err) {
       console.error('Error fetching data:', err);

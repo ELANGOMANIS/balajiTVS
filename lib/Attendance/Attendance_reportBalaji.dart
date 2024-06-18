@@ -1,47 +1,31 @@
 import 'dart:convert';
-import 'dart:html';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_file/open_file.dart';
 import 'package:printing/printing.dart';
 import '../../main.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pdfWidgets;
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:pdf/widgets.dart' as pw;
-
-
-
 class AttendanceBalaji extends StatefulWidget {
   const AttendanceBalaji({Key? key}) : super(key: key);
 
   @override
   State<AttendanceBalaji> createState() => _AttendanceBalajiState();
 }
-
 class _AttendanceBalajiState extends State<AttendanceBalaji> {
   late Future<List<Map<String, dynamic>>> attendanceDetailsFuture;
   final TextEditingController fromDateController = TextEditingController();
   final TextEditingController toDateController = TextEditingController();
   final TextEditingController empCodeController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
     attendanceDetailsFuture = fetchAttendanceBalaji();
   }
-
   void _applyFilters() {
     setState(() {
       attendanceDetailsFuture = fetchAttendanceBalaji(
@@ -52,7 +36,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       );
     });
   }
-
   Future<List<Map<String, dynamic>>> fetchAttendanceBalaji({String? fromDate, String? toDate, String? empCode, String? firstName,}) async {
     try {
       final queryParameters = {
@@ -82,13 +65,12 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       throw Exception('Failed to load attendance summary');
     }
   }
-
   Future<List<String>> getSuggestions(String field, String pattern) async {
     final List<String> suggestions = [];
 
     try {
       final response = await http.get(
-        Uri.http('localhost:3309', '/get_attendance_overallold', {'field': field, 'pattern': pattern}),
+        Uri.http('localhost:3309', '/get_employee', {'field': field, 'pattern': pattern}),
       );
 
       if (response.statusCode == 200) {
@@ -107,11 +89,27 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
     return suggestions;
   }
 
+
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
-    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check-in', 'Check-out', 'Total Hrs', 'Remark'];
+    final columnWidths = <int, pw.TableColumnWidth>{
+      0: pw.FixedColumnWidth(40),
+      1: pw.FixedColumnWidth(90),
+      2: pw.FixedColumnWidth(80),
+      3: pw.FixedColumnWidth(90),
+      4: pw.FixedColumnWidth(80),
+      5: pw.FixedColumnWidth(75),
+      6: pw.FixedColumnWidth(75),
+      7: pw.FixedColumnWidth(80),
+      8: pw.FixedColumnWidth(75),
 
-    const int rowsPerPage = 18; // Define the number of rows per page
+    };
+   // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
+   // final imageBytes = imageData.buffer.asUint8List();
+
+    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Total Hrs', 'Remark'];
+
+    const int rowsPerPage = 20; // Define the number of rows per page
     int totalPages = (data.length / rowsPerPage).ceil();
 
     for (int page = 0; page < totalPages; page++) {
@@ -119,25 +117,55 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       final endRow = (startRow + rowsPerPage) > data.length ? data.length : (startRow + rowsPerPage);
       final pageData = data.sublist(startRow, endRow);
 
+
       pdf.addPage(
-        pw.Page(
-          build: (pw.Context context) {
-            return pw.Table.fromTextArray(
-              headers: headers,
-              data: pageData.map((attendance) {
-                return [
-                  '${data.indexOf(attendance) + 1}',
-                  attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
-                  attendance['emp_code'] ?? '',
-                  attendance['first_name'] ?? '',
-                  attendance['shiftType'] ?? '',
-                  attendance['check_in'] ?? '',
-                  attendance['check_out'] ?? '',
-                  attendance['act_time'] ?? '',
-                  attendance['remark'] ?? '',
-                ];
-              }).toList(),
+        pw.MultiPage(
+          header: (pw.Context context) {
+            return pw.Container(
+                alignment: pw.Alignment.center,
+                padding: pw.EdgeInsets.all(10),
+                child: pw.Column(
+                  children: [
+                    pw.Row(
+                      children: [
+                        pw.Text('Attendance Report', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                        pw.Spacer(),
+                      //  pw.Image(pw.MemoryImage(imageBytes), width: 50, height: 50)
+
+
+                      ],
+
+                    ),
+
+                    pw.Divider(),
+                  ],
+
+                )
+
             );
+          },
+          build: (pw.Context context) {
+            return [
+              pw.Table.fromTextArray(
+                columnWidths: columnWidths,
+                headers: headers,
+                cellStyle: pw.TextStyle(fontSize: 10),
+                headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+                data: pageData.map((attendance) {
+                  return [
+                    '${data.indexOf(attendance) + 1}',
+                    attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
+                    attendance['emp_code'] ?? '',
+                    attendance['first_name'] ?? '',
+                    attendance['shiftType'] ?? '',
+                    attendance['check_in'] ?? '',
+                    attendance['check_out'] ?? '',
+                    attendance['act_time'] ?? '',
+                    attendance['remark'] ?? '',
+                  ];
+                }).toList(),
+              )
+            ];
           },
         ),
       );
@@ -411,7 +439,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                           } else {
                             return PaginatedDataTable(
                               columnSpacing: 52.5,
-                              rowsPerPage: 18,
+                              rowsPerPage: 20,
                               columns: const [
                                 DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("In Date", style: TextStyle(fontWeight: FontWeight.bold),))),
@@ -439,7 +467,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
     );
   }
 }
-
 class AttendanceDataSource extends DataTableSource {
   final List<Map<String, dynamic>> _data;
 
