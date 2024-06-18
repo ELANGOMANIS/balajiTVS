@@ -9979,7 +9979,8 @@ app.get('/get_attendance_overall', (req, res) => {
                     inDate: date,
                     check_in: attendance ? attendance.check_in : '',
                     check_out: attendance ? attendance.check_out : '',
-                    total_hrs: attendance ? attendance.total_hrs : '',
+                    act_time: attendance ? attendance.act_time : '',
+                    shiftType: attendance ? attendance.shiftType : '',
                     remark: attendance ? 'Present' : 'Absent'
                   });
                 });
