@@ -21,8 +21,12 @@ class _SettingsState extends State<Settings> {
   List time2 = [];
   bool isLoading = true;
   bool showLunchOutRows = false; // Initially hide the Lunch Out rows
+  bool isAddingShift = false; // Control the visibility of the add shift form
 
   String? selectedShiftType ;
+  String newShiftType = '';
+  String newStartTime = '';
+  String newEndTime = '';
   @override
   void initState() {
     super.initState();
@@ -30,6 +34,38 @@ class _SettingsState extends State<Settings> {
     selectedShiftType = 'shift1'; // Initially select 'shift1'
     timeFetch(selectedShiftType!);
   }
+
+  Future<void> addShift() async {
+    final newShift = {
+      'shiftType': newShiftType,
+      'startTime': newStartTime,
+      'endTime': newEndTime,
+    };
+
+    final response = await http.post(
+      Uri.parse('http://localhost:3309/shift_insert_tvs'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(newShift),
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text('Shift added'),
+        ),
+      );
+      setState(() {
+        shifts.add(json.decode(response.body));
+        isAddingShift = false;
+      });
+    } else {
+      throw Exception('Failed to add shift');
+    }
+  }
+
 
   fetchShifts() async {
     final response = await http.get(Uri.parse('http://localhost:3309/shift_tvs'));
@@ -75,7 +111,12 @@ class _SettingsState extends State<Settings> {
     );
 
     if (response.statusCode == 200) {
-      print('Shift updated successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text('Shift updated'),
+        ),
+      );
     } else {
       throw Exception('Failed to update shift');
     }
@@ -91,7 +132,12 @@ class _SettingsState extends State<Settings> {
     );
 
     if (response.statusCode == 200) {
-      print('Shift updated successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text('Time updated'),
+        ),
+      );
     } else {
       throw Exception('Failed to update shift');
     }
@@ -148,55 +194,133 @@ class _SettingsState extends State<Settings> {
     return MyScaffold(
       route: 'settings',
       backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          children: [
-            Text("Settings", style: TextStyle(fontSize: 18)),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(3.0),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
+      body: Column(
+        children: [
+          Text("Settings", style: TextStyle(fontSize: 18)),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(3.0),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                      ),
+                      child: const Column(
+                        children: [
+                          Text(
+                            "Shift Management",
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: MaterialButton(
+                          color: Colors.blue.shade900,
+                          onPressed: () {
+                            setState(() {
+                              isAddingShift = true;
+                            });
+                          },
+                          child: Text("Add Shift +", style: TextStyle(color: Colors.white)),
                         ),
-                        child: const Column(
+                      ),
+                    ),
+                    if (isAddingShift)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "Shift Management",
-                              style: TextStyle(
-                                fontSize: 16,
+                            SizedBox(
+                              width: 200,
+
+                              child: TextField(
+                                style: TextStyle(fontSize: 12),
+
+                                decoration: InputDecoration(labelText: 'Shift Type'),
+                                onChanged: (value) {
+                                  setState(() {
+                                    newShiftType = value;
+                                  });
+                                },
                               ),
                             ),
+                            SizedBox(height: 10),
+                            SizedBox(
+                              width: 200,
+                              child: TextField(
+                                style: TextStyle(fontSize: 12),
+
+                                decoration: InputDecoration(labelText: 'Start Time (HH:MM:SS)'),
+                                onChanged: (value) {
+                                  setState(() {
+                                    newStartTime = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            SizedBox(
+                              width: 200,
+
+                              child: TextField(
+                                style: TextStyle(fontSize: 12),
+                                decoration: InputDecoration(labelText: 'End Time (HH:MM:SS)',),
+                                onChanged: (value) {
+                                  setState(() {
+                                    newEndTime = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                MaterialButton(
+                                  color: Colors.green,
+                                  onPressed: () {
+                                    addShift();
+                                  },
+                                  child: Text('Save', style: TextStyle(color: Colors.white)),
+                                ),
+                                SizedBox(width: 10),
+                                MaterialButton(
+                                  color: Colors.red,
+                                  onPressed: () {
+                                    setState(() {
+                                      isAddingShift = false;
+                                    });
+                                  },
+                                  child: Text('Cancel', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+
                           ],
                         ),
                       ),
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: MaterialButton(
-                            color: Colors.blue.shade900,
-                            onPressed: () {},
-                            child: Text("Add Shift +", style: TextStyle(color: Colors.white)),
-                          ),
-                        ),
-                      ),
-                      isLoading
-                          ? Center(child: CircularProgressIndicator())
-                          : Align(
-                        alignment: Alignment.topLeft,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
+                    isLoading
+                        ? Center(child: CircularProgressIndicator())
+                        : SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             DataTable(
                               columns: [
@@ -285,28 +409,30 @@ class _SettingsState extends State<Settings> {
                               }),
                             ),
                           ],
+                                                  ),
                         ),
+                    SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(3.0),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
                       ),
-                      SizedBox(height: 20),
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(3.0),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              "Time Management",
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Time Management",
+                            style: TextStyle(
+                              fontSize: 16,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      Padding(
-                        padding: EdgeInsets.all(8.0),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
                         child: Column(
                           children: [
                             Align(
@@ -614,13 +740,13 @@ class _SettingsState extends State<Settings> {
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            )
-          ],
-        ),
+            ),
+          )
+        ],
       ),
     );
   }
