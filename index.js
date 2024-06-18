@@ -9900,7 +9900,26 @@ app.get('/absent-employees', (req, res) => {
   });
 });
 
-/// 18-06-2024 gowtham done for present and absent home page work
+
+app.delete('/shift_tvs_delete/:id', (req, res) => {
+  const { id } = req.params;
+
+  const sql = 'DELETE FROM shift WHERE id = ?';
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Error deleting shift from database');
+      return;
+    }
+
+    if (result.affectedRows === 0) {
+      res.status(404).send('Shift not found');
+    } else {
+      res.status(200).send('Shift deleted successfully');
+    }
+  });
+});
+
 
 app.get('/get_attendance_overallold', (req, res) => {
   const sql = 'SELECT * from attendance'; // Assuming id is the primary key of the attendance table
@@ -9994,9 +10013,6 @@ app.get('/get_attendance_overall', (req, res) => {
     }
   });
 });
-
-
-
 
 
 

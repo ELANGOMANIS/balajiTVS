@@ -22,11 +22,19 @@ class _SettingsState extends State<Settings> {
   bool isLoading = true;
   bool showLunchOutRows = false; // Initially hide the Lunch Out rows
   bool isAddingShift = false; // Control the visibility of the add shift form
+  int? selectedRowIndex;
 
   String? selectedShiftType ;
   String newShiftType = '';
   String newStartTime = '';
   String newEndTime = '';
+
+
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _shiftTypeController = TextEditingController();
+  final TextEditingController _startTimeController = TextEditingController();
+  final TextEditingController _endTimeController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -34,12 +42,160 @@ class _SettingsState extends State<Settings> {
     selectedShiftType = 'shift1'; // Initially select 'shift1'
     timeFetch(selectedShiftType!);
   }
+  Future<void> _selectTime(BuildContext context, TextEditingController controller) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      // Manually input the seconds
+      String? seconds = await _selectSeconds(context);
+      if (seconds != null) {
+        setState(() {
+          final localizations = MaterialLocalizations.of(context);
+          controller.text = localizations.formatTimeOfDay(picked, alwaysUse24HourFormat: true) + ':$seconds';
+        });
+      }
+    }
+  }
 
+  Future<String?> _selectSeconds(BuildContext context) async {
+    String? selectedSeconds;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController secondsController = TextEditingController();
+        return AlertDialog(
+          title: Text('Enter Seconds'),
+          content: TextField(
+            controller: secondsController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Seconds'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                selectedSeconds = secondsController.text;
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+    return selectedSeconds;
+  }
+
+  void _showAddShiftDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Shift Details', style: TextStyle(fontSize: 12)),
+          contentPadding: EdgeInsets.all(8.0),
+          content: Form(
+            key: _formKey,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: TextFormField(
+                      style: TextStyle(fontSize: 12),
+                      decoration: InputDecoration(labelText: 'Shift Type', labelStyle: TextStyle(fontSize: 12)),
+                      controller: _shiftTypeController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter shift type';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  SizedBox(
+                    width: 200,
+                    child: TextFormField(
+                      style: TextStyle(fontSize: 12),
+                      decoration: InputDecoration(labelText: 'Start Time (HH:MM:SS)', labelStyle: TextStyle(fontSize: 12)),
+                      controller: _startTimeController,
+                      readOnly: true,
+                      onTap: () => _selectTime(context, _startTimeController),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select start time';
+                        }
+                        // Validate time format
+                        if (!RegExp(r'^\d{2}:\d{2}:\d{2}$').hasMatch(value)) {
+                          return 'Please enter time in HH:MM:SS format';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  SizedBox(
+                    width: 200,
+                    child: TextFormField(
+                      style: TextStyle(fontSize: 12),
+                      decoration: InputDecoration(labelText: 'End Time (HH:MM:SS)', labelStyle: TextStyle(fontSize: 12)),
+                      controller: _endTimeController,
+                      readOnly: true,
+                      onTap: () => _selectTime(context, _endTimeController),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select end time';
+                        }
+                        // Validate time format
+                        if (!RegExp(r'^\d{2}:\d{2}:\d{2}$').hasMatch(value)) {
+                          return 'Please enter time in HH:MM:SS format';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isAddingShift = false;
+                          });
+                          Navigator.of(context).pop();
+                        },
+                        icon: Icon(Icons.close_outlined, color: Colors.red),
+                      ),
+                      SizedBox(width: 5),
+                      IconButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            addShift();
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        icon: Icon(Icons.check_circle_outline, color: Colors.green),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
   Future<void> addShift() async {
     final newShift = {
-      'shiftType': newShiftType,
-      'startTime': newStartTime,
-      'endTime': newEndTime,
+      'shiftType': _shiftTypeController.text,
+      'startTime': _startTimeController.text,
+      'endTime': _endTimeController.text,
     };
 
     final response = await http.post(
@@ -60,13 +216,14 @@ class _SettingsState extends State<Settings> {
       setState(() {
         shifts.add(json.decode(response.body));
         isAddingShift = false;
+        _shiftTypeController.clear();
+        _startTimeController.clear();
+        _endTimeController.clear();
       });
     } else {
       throw Exception('Failed to add shift');
     }
   }
-
-
   fetchShifts() async {
     final response = await http.get(Uri.parse('http://localhost:3309/shift_tvs'));
     if (response.statusCode == 200) {
@@ -78,6 +235,24 @@ class _SettingsState extends State<Settings> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+  Future<void> deleteShift(int id) async {
+    final response = await http.delete(
+      Uri.parse('http://localhost:3309/shift_tvs_delete/$id'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        shifts.removeWhere((shift) => shift['id'] == id);
+      });
+    } else if (response.statusCode == 404) {
+      throw Exception('Shift not found');
+    } else {
+      throw Exception('Failed to delete shift');
     }
   }
 
@@ -233,184 +408,135 @@ class _SettingsState extends State<Settings> {
                           color: Colors.blue.shade900,
                           onPressed: () {
                             setState(() {
-                              isAddingShift = true;
+                              _showAddShiftDialog(context);
                             });
                           },
                           child: Text("Add Shift +", style: TextStyle(color: Colors.white)),
                         ),
                       ),
                     ),
-                    if (isAddingShift)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 200,
 
-                              child: TextField(
-                                style: TextStyle(fontSize: 12),
-
-                                decoration: InputDecoration(labelText: 'Shift Type'),
-                                onChanged: (value) {
-                                  setState(() {
-                                    newShiftType = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            SizedBox(
-                              width: 200,
-                              child: TextField(
-                                style: TextStyle(fontSize: 12),
-
-                                decoration: InputDecoration(labelText: 'Start Time (HH:MM:SS)'),
-                                onChanged: (value) {
-                                  setState(() {
-                                    newStartTime = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            SizedBox(
-                              width: 200,
-
-                              child: TextField(
-                                style: TextStyle(fontSize: 12),
-                                decoration: InputDecoration(labelText: 'End Time (HH:MM:SS)',),
-                                onChanged: (value) {
-                                  setState(() {
-                                    newEndTime = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                MaterialButton(
-                                  color: Colors.green,
-                                  onPressed: () {
-                                    addShift();
-                                  },
-                                  child: Text('Save', style: TextStyle(color: Colors.white)),
-                                ),
-                                SizedBox(width: 10),
-                                MaterialButton(
-                                  color: Colors.red,
-                                  onPressed: () {
-                                    setState(() {
-                                      isAddingShift = false;
-                                    });
-                                  },
-                                  child: Text('Cancel', style: TextStyle(color: Colors.white)),
-                                ),
-                              ],
-                            ),
-
-                          ],
-                        ),
-                      ),
                     isLoading
                         ? Center(child: CircularProgressIndicator())
-                        : SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            DataTable(
-                              columns: [
-                                DataColumn(label: Text('S.No')),
-                                DataColumn(label: Text('Shift Type')),
-                                DataColumn(label: Text('Start Time')),
-                                DataColumn(label: Text('End Time')),
-                                DataColumn(label: Text('Actions')),
-                              ],
-                              rows: List.generate(shifts.length, (index) {
-                                var shift = shifts[index];
-                                var time = time2.isNotEmpty && index < time2.length ? time2[index] : null;
-                                bool isEditing = editingIndex == index;
-                                return DataRow(cells: [
-                                  DataCell(Text((index + 1).toString())),
-                                  DataCell(Text(shift['shiftType'])),
-                                  DataCell(
-                                    isEditing
-                                        ? Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_up),
-                                          onPressed: () => incrementTime(shift, 'startTime'),
-                                        ),
-                                        Expanded(
-                                          child: TextField(
-                                            controller: TextEditingController(text: shift['startTime']),
-                                            onChanged: (value) {
-                                              shift['startTime'] = value;
-                                            },
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_down),
-                                          onPressed: () => decrementTime(shift, 'startTime'),
-                                        ),
-                                      ],
-                                    )
-                                        : Text(shift['startTime']),
-                                  ),
-                                  DataCell(
-                                    isEditing
-                                        ? Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_up),
-                                          onPressed: () => incrementTime(shift, 'endTime'),
-                                        ),
-                                        Expanded(
-                                          child: TextField(
-                                            controller: TextEditingController(text: shift['endTime']),
-                                            onChanged: (value) {
-                                              shift['endTime'] = value;
-                                            },
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_down),
-                                          onPressed: () => decrementTime(shift, 'endTime'),
-                                        ),
-                                      ],
-                                    )
-                                        : Text(shift['endTime']),
-                                  ),
-                                  DataCell(
-                                    IconButton(
-                                      icon: Icon(isEditing ? Icons.check : Icons.edit),
-                                      onPressed: () {
-                                        setState(() {
-                                          if (isEditing) {
-                                            // Save changes
-                                            updateShift(shift['id'], {
-                                              'shiftType': shift['shiftType'],
-                                              'startTime': shift['startTime'],
-                                              'endTime': shift['endTime'],
-                                            });
-                                            editingIndex = null;
-                                          } else {
-                                            editingIndex = index;
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ]);
-                              }),
-                            ),
+                        : Align(
+                      alignment: Alignment.topLeft,
+                      child: Card(
+                        child: DataTable(
+                          columns: [
+                            DataColumn(label: Text('S.No')),
+                            DataColumn(label: Text('Shift Type')),
+                            DataColumn(label: Text('Start Time')),
+                            DataColumn(label: Text('End Time')),
+                            DataColumn(label: Text('Actions')),
                           ],
-                                                  ),
+                          rows: List.generate(shifts.length, (index) {
+                            var shift = shifts[index];
+                            var time = time2.isNotEmpty && index < time2.length ? time2[index] : null;
+                            bool isEditing = editingIndex == index;
+                            bool isSelected = selectedRowIndex == index;
+                            return DataRow(
+                              selected: isSelected,
+                              color: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                                if (states.contains(MaterialState.selected)) {
+                                  return Colors.grey.withOpacity(0.5);
+                                }
+                                return null; // Use default value.
+                              }),
+                              onSelectChanged: (selected) {
+                                setState(() {
+                                  selectedRowIndex = selected! ? index : null;
+                                });
+                              },
+                              cells: [
+                                DataCell(Text((index + 1).toString())),
+                                DataCell(Text(shift['shiftType'])),
+                                DataCell(
+                                  isEditing
+                                      ? Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.arrow_drop_up),
+                                        onPressed: () => incrementTime(shift, 'startTime'),
+                                      ),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: TextEditingController(text: shift['startTime']),
+                                          onChanged: (value) {
+                                            shift['startTime'] = value;
+                                          },
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.arrow_drop_down),
+                                        onPressed: () => decrementTime(shift, 'startTime'),
+                                      ),
+                                    ],
+                                  )
+                                      : Text(shift['startTime']),
+                                ),
+                                DataCell(
+                                  isEditing
+                                      ? Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.arrow_drop_up),
+                                        onPressed: () => incrementTime(shift, 'endTime'),
+                                      ),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: TextEditingController(text: shift['endTime']),
+                                          onChanged: (value) {
+                                            shift['endTime'] = value;
+                                          },
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.arrow_drop_down),
+                                        onPressed: () => decrementTime(shift, 'endTime'),
+                                      ),
+                                    ],
+                                  )
+                                      : Text(shift['endTime']),
+                                ),
+                                DataCell(
+                                  isSelected
+                                      ? Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(isEditing ? Icons.check : Icons.edit),
+                                        onPressed: () {
+                                          setState(() {
+                                            if (isEditing) {
+                        // Save changes
+                                              updateShift(shift['id'], {
+                                                'shiftType': shift['shiftType'],
+                                                'startTime': shift['startTime'],
+                                                'endTime': shift['endTime'],
+                                              });
+                                              editingIndex = null;
+                                            } else {
+                                              editingIndex = index;
+                                            }
+                                          });
+                                        },
+                                      ),
+                        
+                                      IconButton(
+                                        icon: Icon(Icons.delete),
+                                        onPressed: () {
+                                          deleteShift(shift['id']);
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                      : Container(),
+                                ),
+                              ],
+                            );
+                          }),
                         ),
+                      ),
+                    ),
                     SizedBox(height: 20),
                     Container(
                       width: double.infinity,
@@ -418,7 +544,7 @@ class _SettingsState extends State<Settings> {
                       decoration: BoxDecoration(
                         color: Colors.orange.shade50,
                       ),
-                      child: Column(
+                      child: const Column(
                         children: [
                           Text(
                             "Time Management",
@@ -429,32 +555,60 @@ class _SettingsState extends State<Settings> {
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: Column(
                           children: [
-                            Align(
-                              alignment: Alignment.topLeft,
-                              child: DropdownButton<String>(
-                                hint: const Text("Shift Type"),
-                                value: selectedShiftType,
-                                items: shifts.map<DropdownMenuItem<String>>((shift) {
-                                  return DropdownMenuItem<String>(
-                                    value: shift['shiftType'],
-                                    child: Text(shift['shiftType']),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  if (value != null) {
-                                    setState(() {
-                                      selectedShiftType = value;
-                                    });
-                                    timeFetch(value);
-                                  }
-                                },
-                              ),
+                            Row(
+                              children: [
+                                Align(
+                                  alignment: Alignment.topLeft,
+                                  child: DropdownButton<String>(
+                                    hint: const Text("Shift Type"),
+                                    value: selectedShiftType,
+                                    items: shifts.map<DropdownMenuItem<String>>((shift) {
+                                      return DropdownMenuItem<String>(
+                                        value: shift['shiftType'],
+                                        child: Text(shift['shiftType']),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      if (value != null) {
+                                        setState(() {
+                                          selectedShiftType = value;
+                                        });
+                                        timeFetch(value);
+                                      }
+                                    },
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Align(
+                                  alignment: Alignment.topLeft,
+                                  child: MaterialButton(
+                                    color: Colors.blue.shade900,
+                                    onPressed: () {
+                                      // Prepare updated data
+                                      final updatedData = {
+                                        'shiftType': selectedShiftType,
+                                        'checkin_start': time2.isNotEmpty ? time2[0]['checkin_start'] : '',
+                                        'checkin_end': time2.isNotEmpty ? time2[0]['checkin_end'] : '',
+                                        'checkout_start': time2.isNotEmpty ? time2[0]['checkout_start'] : '',
+                                        'checkout_end': time2.isNotEmpty ? time2[0]['checkout_end'] : '',
+                                        'lunchout_start': time2.isNotEmpty ? time2[0]['lunchout_start'] : '',
+                                        'lunchout_end': time2.isNotEmpty ? time2[0]['lunchout_end'] : '',
+                                        'lunchin_start': time2.isNotEmpty ? time2[0]['lunchin_start'] : '',
+                                        'lunchin_end': time2.isNotEmpty ? time2[0]['lunchin_end'] : '',
+                                      };
+
+                                      // Update time data
+                                      updateTime(time2.isNotEmpty ? time2[0]['id'] : 0, updatedData); // Replace with actual ID
+                                    },
+                                    child: Text("Save", style: TextStyle(color: Colors.white)),
+                                  ),
+                                ),
+                              ],
                             ),
                             /*Align(
                               alignment: Alignment.topLeft,
@@ -712,31 +866,6 @@ class _SettingsState extends State<Settings> {
                               ],
                             ),
 
-                            SizedBox(height: 20),
-                            Align(
-                              alignment: Alignment.topLeft,
-                              child: MaterialButton(
-                                color: Colors.blue.shade900,
-                                onPressed: () {
-                                  // Prepare updated data
-                                  final updatedData = {
-                                    'shiftType': selectedShiftType,
-                                    'checkin_start': time2.isNotEmpty ? time2[0]['checkin_start'] : '',
-                                    'checkin_end': time2.isNotEmpty ? time2[0]['checkin_end'] : '',
-                                    'checkout_start': time2.isNotEmpty ? time2[0]['checkout_start'] : '',
-                                    'checkout_end': time2.isNotEmpty ? time2[0]['checkout_end'] : '',
-                                    'lunchout_start': time2.isNotEmpty ? time2[0]['lunchout_start'] : '',
-                                    'lunchout_end': time2.isNotEmpty ? time2[0]['lunchout_end'] : '',
-                                    'lunchin_start': time2.isNotEmpty ? time2[0]['lunchin_start'] : '',
-                                    'lunchin_end': time2.isNotEmpty ? time2[0]['lunchin_end'] : '',
-                                  };
-
-                                  // Update time data
-                                  updateTime(time2.isNotEmpty ? time2[0]['id'] : 0, updatedData); // Replace with actual ID
-                                },
-                                child: Text("Save", style: TextStyle(color: Colors.white)),
-                              ),
-                            ),
                           ],
                         ),
                       ),
