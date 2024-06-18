@@ -9911,6 +9911,26 @@ app.get('/absent-employees', (req, res) => {
   });
 });
 
+
+app.delete('/shift_tvs_delete/:id', (req, res) => {
+  const { id } = req.params;
+
+  const sql = 'DELETE FROM shift WHERE id = ?';
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Error deleting shift from database');
+      return;
+    }
+
+    if (result.affectedRows === 0) {
+      res.status(404).send('Shift not found');
+    } else {
+      res.status(200).send('Shift deleted successfully');
+    }
+  });
+});
+
 app.post('/shift_insert_tvs', (req, res) => {
   const { shiftType, startTime, endTime } = req.body;
 
