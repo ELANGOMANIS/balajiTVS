@@ -241,6 +241,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                     },
                                     decoration: InputDecoration(
                                       labelText: 'From Date (YYYY-MM-DD)',
+                                      labelStyle: TextStyle(fontSize: 12),
                                       suffixIcon: IconButton(
                                         icon: Icon(Icons.date_range),
                                         onPressed: () async {
@@ -283,6 +284,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                     },
                                     decoration: InputDecoration(
                                       labelText: 'To Date (YYYY-MM-DD)',
+                                      labelStyle: TextStyle(fontSize: 12),
                                       suffixIcon: IconButton(
                                         icon: Icon(Icons.date_range),
                                         onPressed: () async {
@@ -310,7 +312,8 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
                                       controller: empCodeController,
-                                      decoration: InputDecoration(labelText: 'Employee Code'),
+                                      decoration: InputDecoration(labelText: 'Employee Code',                                      labelStyle: TextStyle(fontSize: 12),
+                                      ),
                                     ),
                                     suggestionsCallback: (pattern) async {
                                       return getSuggestions('emp_code', pattern);
@@ -333,7 +336,9 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
                                       controller: firstNameController,
-                                      decoration: InputDecoration(labelText: 'First Name'),
+                                      decoration: InputDecoration(labelText: 'First Name',
+                                        labelStyle: TextStyle(fontSize: 12),
+                                      ),
                                     ),
                                     suggestionsCallback: (pattern) async {
                                       return getSuggestions('first_name', pattern);
@@ -431,7 +436,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                         future: attendanceDetailsFuture,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
-                            return CircularProgressIndicator();
+                            return Center(child: CircularProgressIndicator());
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');
                           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {

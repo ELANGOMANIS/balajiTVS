@@ -230,7 +230,6 @@ class _MyScaffoldState extends State<MyScaffold> {
                   _buildHoverButton('Attendance', Icons.punch_clock_rounded),
                   _buildHoverButton('Salary', Icons.monetization_on),
                   _buildHoverButton('Settings', Icons.settings),
-                  _buildHoverButton('Attendance Balaji', Icons.settings),
                 ],
               ),
             ),
@@ -289,7 +288,7 @@ class _MyScaffoldState extends State<MyScaffold> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => const EmployeeProfileUpdate()));
         break;
       case 'Attendance':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const AttendanceReport()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const AttendanceBalaji()));
         break;
       case 'Salary':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const CumulativeSalaryCalculation()));
@@ -297,9 +296,7 @@ class _MyScaffoldState extends State<MyScaffold> {
       case 'Settings':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const Settings()));
         break;
-        case 'Attendance Balaji':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const AttendanceBalaji()));
-        break;
+
     }
   }
 }
