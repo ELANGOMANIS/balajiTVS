@@ -25,13 +25,6 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 
-// MySQL connection
-//const db = mysql.createConnection({
-//   host: '207.174.212.202',
-//   user: 'kanin7w7_vkc',
-//   password: 'vkcones@123',
-//   database: 'kanin7w7_vkc',
-//});
 const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
@@ -50,6 +43,7 @@ db.connect((err) => {
 
 
 //end morning auto save
+//General auto save
 async function insertDatacustomer(dataToInsertcustomer) {
   const apiUrl = 'http://localhost:3309/attandance_entry';
 
@@ -73,102 +67,7 @@ async function insertDatacustomer(dataToInsertcustomer) {
     throw new Error('Error:', error);
   }
 }
-function calculateLate(punches) {
-  if (punches.length < 1) {
-    return ''; // No check-in data
-  }
 
-  const checkInTime = moment(punches[0]['punch_time']);
-  const shiftStart = moment(`${checkInTime.format('YYYY-MM-DD')} 08:00:00`);
-  const lateMinutes = Math.max(0, checkInTime.diff(shiftStart, 'minutes'));
-  return lateMinutes.toString();
-}
-function calculateEarlyLeave(punches) {
-  if (punches.length < 4) {
-    return '';
-  }
-
-  const checkOutTime = moment(punches[3]['punch_time']);
-  let shiftEnd;
-
-  switch (punches[0]['shiftType']) {
-    case 'Morning':
-      shiftEnd = moment(`${checkOutTime.format('YYYY-MM-DD')} 20:00:00`);
-      break;
-    case 'Night':
-      shiftEnd = moment(`${checkOutTime.format('YYYY-MM-DD')} 08:00:00`);
-      break;
-    case 'General':
-      shiftEnd = moment(`${checkOutTime.format('YYYY-MM-DD')} 18:00:00`);
-      break;
-    default:
-      return '';
-  }
-
-  // Calculate early leave minutes
-  const earlyLeaveMinutes = Math.max(0, shiftEnd.diff(checkOutTime, 'minutes'));
-
-  return earlyLeaveMinutes.toString();
-}
-function calculateLateLunch(entries) {
-  if (entries.length < 1 || entries.length < 2 || entries.length < 3) {
-    return '';
-  }
-
-  const lunchOut = moment(entries[1]['punch_time']).local();
-  const lunchIn = moment(entries[2]['punch_time']).local();
-
-  const lateMinutes = Math.max(0, lunchIn.diff(lunchOut, 'minutes') - 30); // Subtract default lunch time
-
-  return lateMinutes.toString();
-}
-function calculateActTime(entries) {
-  if (entries.length % 2 !== 0) {
-    entries.pop();
-  }
-
-  let actTime = 0;
-
-  for (let i = 0; i < entries.length; i += 2) {
-    const checkIn = moment(entries[i]['punch_time']);
-    const lunchOut = moment(entries[i + 1]['punch_time']);
-
-    actTime += Math.max(0, lunchOut.diff(checkIn, 'minutes'));
-  }
-
-  return actTime;
-}
-//General auto save
-function calculateActTimeGeneral(entries) {
-  if (entries.length % 2 != 0) {
-    entries.pop(); // Remove the last entry if the length is odd
-  }
-
-  let actTime = 0;
-
-  for (let i = 0; i < entries.length; i += 2) {
-    const checkIn = moment(entries[i]['punch_time']);
-    const lunchOut = moment(entries[i + 1]['punch_time']);
-
-    // Calculate the time difference in minutes
-    const diffMinutes = lunchOut.diff(checkIn, 'minutes');
-
-    // Ensure the calculated time is positive
-    actTime += Math.max(0, diffMinutes);
-  }
-  actTime -= 30;
-  return actTime;
-}
-function calculateLateCheck(punches) {
-  if (punches.length < 1) {
-    return ''; // No check-in data
-  }
-
-  const checkInTime = moment(punches[0]['punch_time']);
-  const shiftStart = moment(`${checkInTime.format('YYYY-MM-DD')} 09:00:00`);
-  const lateMinutes = Math.max(0, checkInTime.diff(shiftStart, 'minutes'));
-  return lateMinutes.toString();
-}
 async function fetchUnitEntriesGeneral() {
   try {
     const response = await axios.get('http://localhost:3309/attendance_view_general');
@@ -187,6 +86,47 @@ async function fetchUnitEntriesGeneral() {
     throw new Error(`Failed to load unit entries: ${error.message}`);
   }
 }
+app.get('/attendance_view_general', (req, res) => {
+    const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
+
+    const sql = `
+        SELECT
+            e.emp_code,
+            e.first_name,
+            e.salary,
+            e.salaryType,
+            it.punch_time,
+            s.shiftType,
+            t.checkin_start,
+            t.checkin_end,
+            t.checkout_start,
+            t.checkout_end,
+            t.lunchout_start,
+            t.lunchout_end,
+            t.lunchin_start,
+            t.lunchin_end
+        FROM
+            employee e
+        LEFT JOIN
+            iclock_transaction it ON e.emp_code = it.emp_code
+        LEFT JOIN
+            shift s ON e.shift = s.shiftType
+        LEFT JOIN
+            time t ON s.shiftType = t.shiftType
+        WHERE
+            (DATE(it.punch_time) = ? OR DATE(it.punch_time) IS NULL)
+    `;
+
+    db.query(sql, [currentDate], (err, result) => {
+        if (err) {
+            console.error('Error fetching data:', err);
+            res.status(500).json({ error: 'Error fetching data' });
+        } else {
+            res.json(result);
+        }
+    });
+});
+
 cron.schedule('*/1 * * * *', async () => {
     console.log('Automated task started at', new Date());
 
@@ -206,77 +146,46 @@ cron.schedule('*/1 * * * *', async () => {
 
         for (const empEntry of Object.entries(groupedEntries)) {
             const empData = empEntry[1];
+
+            // Define moment objects for time ranges
+            const checkinStart = moment(empData[0]['checkin_start'], 'HH:mm:ss');
+            const checkinEnd = moment(empData[0]['checkin_end'], 'HH:mm:ss');
+            const checkoutStart = moment(empData[0]['checkout_start'], 'HH:mm:ss');
+            const checkoutEnd = moment(empData[0]['checkout_end'], 'HH:mm:ss');
+            const shiftEndTime = moment(empData[0]['endTime'], 'HH:mm:ss'); // Assuming endTime is fetched from shift data
+
             const checkInTime = empData.length >= 1 ? moment(empData[0]['punch_time']) : null;
-            let lunchOutTime = empData.length >= 2 ? moment(empData[1]['punch_time']) : null;
-            let lunchInTime = empData.length >= 3 ? moment(empData[2]['punch_time']) : null;
-            // const checkOutTime = empData.length >= 4 ? moment(empData[3]['punch_time']) : null;
-            const isSalary = empEntry[1].length > 1;
+            const checkOutTime = empData.length >= 2 ? moment(empData[1]['punch_time']) : null;
 
-            let checkOutTime;
-            if (empData.length >= 4) {
-                const tempCheckOutTime = moment(empData[3]['punch_time']);
-                if (tempCheckOutTime.isSameOrAfter(moment().set({ hour: 16, minute: 0, second: 0 })) &&
-                    tempCheckOutTime.isBefore(moment().set({ hour: 23, minute: 59, second: 50 }))) {
-                    checkOutTime = tempCheckOutTime.format('HH:mm:ss');
-                } else {
-                    checkOutTime = '0';
-                }
-            } else if (empData.length >= 3) {
-                const tempLunchInTime = moment(empData[2]['punch_time']);
-                if (tempLunchInTime.isSameOrAfter(moment().set({ hour: 16, minute: 0, second: 0 })) &&
-                    tempLunchInTime.isBefore(moment().set({ hour: 23, minute: 59, second: 50 }))) {
-                    checkOutTime = tempLunchInTime.format('HH:mm:ss');
-                    lunchInTime = null;
-                } else {
-                    checkOutTime = '0';
-                }
-            } else if (empData.length >= 2) {
-                // Check for lunchOutTime
-                const tempLunchOutTime = moment(empData[1]['punch_time']);
-                if (tempLunchOutTime.isSameOrAfter(moment().set({ hour: 16, minute: 0, second: 0 })) &&
-                    tempLunchOutTime.isBefore(moment().set({ hour: 23, minute: 59, second: 50 }))) {
-                    // If lunchOutTime meets the condition, insert it as check_out
-                    checkOutTime = tempLunchOutTime.format('HH:mm:ss');
-                    // Set lunchOutTime to null to prevent it from being inserted
-                    lunchOutTime = null;
-                } else {
-                    // If lunchOutTime doesn't meet the condition, insert it as lunch_out
-                    checkOutTime = '0';
-                }
-            } else {
-                checkOutTime = '0';
+            let remark = '';
+            let lateCheckInMinutes = 0;
+            let earlyCheckOutMinutes = 0;
+
+            // Calculate late check-in minutes
+            if (checkInTime && checkInTime.isValid() && checkInTime.isAfter(checkinEnd)) {
+                const difference = checkInTime.diff(checkinEnd, 'minutes');
+                lateCheckInMinutes = difference;
             }
-                let remark = '';
 
-               if (empData.length >= 1) {
-                   // If only check_in is present
-                   if (empData.length === 1) {
-                       remark = 'A';
-                   } else {
-                       const checkInTime = moment(empData[0]['punch_time']);
-                       const lunchOutTime = moment(empData[1]['punch_time']);
+            // Calculate early check-out minutes
+            if (checkOutTime && checkOutTime.isValid() && checkOutTime.isBefore(checkoutStart)) {
+                const difference = checkoutStart.diff(checkOutTime, 'minutes');
+                earlyCheckOutMinutes = difference;
+            }
 
-                       if (lunchOutTime.isBetween(moment('11:00:00', 'HH:mm:ss'), moment('16:00:00', 'HH:mm:ss'))) {
-                           remark = 'HD';
-                       } else if (lunchOutTime.isBetween(moment('16:00:00', 'HH:mm:ss'), moment('23:59:59', 'HH:mm:ss'))) {
-                           remark = 'P';
-                       }
+            // Determine remark
+            if (empData.length === 1) {
+                remark = 'A';
+            } else {
+                remark = 'P';
+            }
 
-                       if (empData.length >= 3) {
-                           const lunchInTime = moment(empData[2]['punch_time']);
-
-                           if (remark === 'HD') {
-                               remark = 'HD';
-                           } else {
-                               remark = 'P';
-                           }
-                           if (empData.length >= 4) {
-                               remark = 'P';
-                           }
-                       }
-                   }
-               }
-
+            // Prepare data for insertion
+            console.log('checkInTime:', checkInTime ? checkInTime.format('HH:mm:ss') : 'null');
+            console.log('checkOutTime:', checkOutTime ? checkOutTime.format('HH:mm:ss') : 'null');
+            console.log('shiftEndTime:', shiftEndTime.format('HH:mm:ss'));
+            console.log('lateCheckInMinutes:', lateCheckInMinutes);
+            console.log('earlyCheckOutMinutes:', earlyCheckOutMinutes);
 
             const dataToInsertcustomer = {
                 "emp_code": empEntry[0],
@@ -285,15 +194,11 @@ cron.schedule('*/1 * * * *', async () => {
                 "salaryType": empData[0]['salaryType'].toString(),
                 'inDate': moment(empData[0]['punch_time']).format('YYYY-MM-DD'),
                 'shiftType': empData[0]['shiftType'],
-                'check_in': checkInTime ? checkInTime.format('HH:mm:ss') : '',
-                'lunch_out': lunchOutTime ? lunchOutTime.format('HH:mm:ss') : '',
-                'lunch_in': lunchInTime ? lunchInTime.format('HH:mm:ss') : '',
-                'check_out': checkOutTime,
-                'latecheck_in': calculateLateCheck(empEntry[1]),
-                'late_lunch': calculateLateLunch(empEntry[1]),
-                'earlycheck_out': calculateEarlyLeave(empEntry[1]),
-                'req_time': '510',
-                'act_time': isSalary ? calculateActTimeGeneral(empEntry[1]).toString() : '0',
+                'check_in': checkInTime && (checkInTime.isBetween(checkinStart, checkinEnd) || checkInTime.isSameOrAfter(checkinStart)) ? checkInTime.format('HH:mm:ss') : '',
+                 'check_out': checkOutTime && checkOutTime.isValid() ? checkOutTime.format('HH:mm:ss') : '',
+                //'check_out': checkOutTime && (checkOutTime.isBetween(checkoutStart, checkoutEnd) || checkOutTime.isSameOrAfter(checkoutStart)) ? checkOutTime.format('HH:mm:ss') : '',
+                'latecheck_in': lateCheckInMinutes,
+                'earlycheck_out': earlyCheckOutMinutes,
                 'remark': remark,
             };
 
@@ -310,30 +215,8 @@ cron.schedule('*/1 * * * *', async () => {
 });
 
 
+
 //end General auto save
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //24/11/2023
@@ -3725,6 +3608,10 @@ app.get('/attendance_view_morning', (req, res) => {
     }
   });
 });
+
+
+
+/*
 app.get('/attendance_view_general', (req, res) => {
   const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
   const sql = `
@@ -3754,6 +3641,7 @@ app.get('/attendance_view_general', (req, res) => {
     }
   });
 });
+*/
 
 
 /*app.get('/attendance_view_general', (req, res) => {

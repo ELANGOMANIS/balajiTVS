@@ -330,7 +330,7 @@ class _SettingsState extends State<Settings> {
                                 },
                               ),
                             ),
-                            Align(
+                            /*Align(
                               alignment: Alignment.topLeft,
                               child: Row(
                                 children: [
@@ -350,7 +350,7 @@ class _SettingsState extends State<Settings> {
                                   ),
                                 ],
                               ),
-                            ),
+                            ),*/
                             SizedBox(height: 20),
                             Row(
                               children: [
