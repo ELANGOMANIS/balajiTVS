@@ -111,28 +111,37 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
     final pdf = pw.Document();
     final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check-in', 'Check-out', 'Total Hrs', 'Remark'];
 
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) {
-          return pw.Table.fromTextArray(
-            headers: headers,
-            data: data.map((attendance) {
-              return [
-                '${data.indexOf(attendance) + 1}',
-                attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
-                attendance['emp_code'] ?? '',
-                attendance['first_name'] ?? '',
-                attendance['shiftType'] ?? '',
-                attendance['check_in'] ?? '',
-                attendance['check_out'] ?? '',
-                attendance['total_hrs'] ?? '',
-                attendance['remark'] ?? '',
-              ];
-            }).toList(),
-          );
-        },
-      ),
-    );
+    const int rowsPerPage = 18; // Define the number of rows per page
+    int totalPages = (data.length / rowsPerPage).ceil();
+
+    for (int page = 0; page < totalPages; page++) {
+      final startRow = page * rowsPerPage;
+      final endRow = (startRow + rowsPerPage) > data.length ? data.length : (startRow + rowsPerPage);
+      final pageData = data.sublist(startRow, endRow);
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Table.fromTextArray(
+              headers: headers,
+              data: pageData.map((attendance) {
+                return [
+                  '${data.indexOf(attendance) + 1}',
+                  attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
+                  attendance['emp_code'] ?? '',
+                  attendance['first_name'] ?? '',
+                  attendance['shiftType'] ?? '',
+                  attendance['check_in'] ?? '',
+                  attendance['check_out'] ?? '',
+                  attendance['act_time'] ?? '',
+                  attendance['remark'] ?? '',
+                ];
+              }).toList(),
+            );
+          },
+        ),
+      );
+    }
 
     final Uint8List bytes = await pdf.save();
     await Printing.sharePdf(bytes: bytes, filename: 'attendance_report.pdf');
@@ -407,7 +416,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                           } else {
                             return PaginatedDataTable(
                               columnSpacing: 52.5,
-                              rowsPerPage: 25,
+                              rowsPerPage: 18,
                               columns: const [
                                 DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("In Date", style: TextStyle(fontWeight: FontWeight.bold),))),
@@ -464,7 +473,7 @@ class AttendanceDataSource extends DataTableSource {
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_out'] ?? ''))),
-        DataCell(Center(child: Text(attendance['total_hrs'] ?? ''))),
+        DataCell(Center(child: Text(attendance['act_time'] ?? ''))),
         DataCell(Center(child: Text(attendance['remark'] ?? ''))),
       ],
     );
