@@ -61,44 +61,20 @@ class _AttendanceReportState extends State<AttendanceReport> {
   List<String> itemGroupValues = [];
   List<String> invoiceNumber = [];
   String selectedCustomer="";
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+    fetchAttendanceDetails();
+    searchController.addListener(() {
+      filterData(searchController.text);
+    });
+    _searchFocus.requestFocus();
+    filteredData = List<Map<String, dynamic>>.from(data);
+    _scrollController = ScrollController();
 
-  void fetchData() async {
-    try {
-      final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        final List<dynamic> itemGroups = responseData;
-        Set<String> uniqueCustNames = Set();
-        final List uniqueData = itemGroups
-            .where((item) {
-          String custName = item['check_in']?.toString() ?? '';
-          String inDate = item['inDate']?.toString() ?? '';
-          String uniqueIdentifier = '$custName-$inDate';
-
-          if (!uniqueCustNames.contains(uniqueIdentifier)) {
-            uniqueCustNames.add(uniqueIdentifier);
-            return true;
-          }
-          return false;
-        })
-            .toList();
-
-        setState(() {
-          data = uniqueData.cast<Map<String, dynamic>>();
-          filteredData = List<Map<String, dynamic>>.from(data);
-          applySorting();
-        });
-
-        print('Data: $data');
-      } else {
-        print('Error: ${response.statusCode}');
-      }
-    } catch (error) {
-      print('Error: $error');
-    }
   }
+
 
   void applySorting() {
     filteredData.sort((a, b) {
@@ -259,18 +235,104 @@ class _AttendanceReportState extends State<AttendanceReport> {
   }
 */
 
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
-    searchController.addListener(() {
-      filterData(searchController.text);
-    });
-    _searchFocus.requestFocus();
-    filteredData = List<Map<String, dynamic>>.from(data);
-    _scrollController = ScrollController();
 
+
+
+  Future<List<Map<String, dynamic>>> fetchAttendanceDetails() async {
+    final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List<dynamic> responseData = json.decode(response.body);
+
+        // Use a Set to ensure unique records
+        Set<String> uniqueIdentifiers = Set();
+        List<Map<String, dynamic>> uniqueData = [];
+
+        for (var item in responseData) {
+          String custName = item['check_in']?.toString() ?? '';
+          String inDate = item['inDate']?.toString() ?? '';
+          String uniqueIdentifier = '$custName-$inDate';
+
+          if (!uniqueIdentifiers.contains(uniqueIdentifier)) {
+            uniqueIdentifiers.add(uniqueIdentifier);
+            uniqueData.add(Map<String, dynamic>.from(item));
+          }
+        }
+
+        return uniqueData;
+      } else {
+        throw Exception('Failed to load attendance details');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      throw Exception('Error fetching data');
+    }
   }
+
+
+ /* Future<List<dynamic>> fetchAttendanceDetails() async {
+    final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
+    print("URL: $url");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        // If the server returns an OK response, parse the JSON
+        List<dynamic> attendanceList = json.decode(response.body);
+        return attendanceList;
+      }
+      else {
+
+        throw Exception('Failed to load attendance details');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      throw Exception('Error fetching data');
+    }
+  }*/
+
+
+  void fetchData() async {
+    try {
+      final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final List<dynamic> itemGroups = responseData;
+        Set<String> uniqueCustNames = Set();
+        final List uniqueData = itemGroups
+            .where((item) {
+          String custName = item['check_in']?.toString() ?? '';
+          String inDate = item['inDate']?.toString() ?? '';
+          String uniqueIdentifier = '$custName-$inDate';
+
+          if (!uniqueCustNames.contains(uniqueIdentifier)) {
+            uniqueCustNames.add(uniqueIdentifier);
+            return true;
+          }
+          return false;
+        })
+            .toList();
+
+        setState(() {
+          data = uniqueData.cast<Map<String, dynamic>>();
+          filteredData = List<Map<String, dynamic>>.from(data);
+          applySorting();
+        });
+
+        print('Data: $data');
+      } else {
+        print('Error: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
+
   final FocusNode _searchFocus = FocusNode();
 
   @override
@@ -739,6 +801,8 @@ class _AttendanceReportState extends State<AttendanceReport> {
     );
   }
 }
+
+
 class _YourDataTableSource extends DataTableSource {
   final List<Map<String, dynamic>> data;
   final BuildContext context;
@@ -890,16 +954,6 @@ class _YourDataTableSource extends DataTableSource {
     return 'A'; // Mark as Absent by default
   }
 
-/*
-  bool isBetweenLunchOutTime(String lunchOutTime) {
-    if (lunchOutTime == "00:00:00") {
-      return false; // Handle the "00:00:00" case as needed
-    }
-
-    DateTime dummyDate = DateTime.parse("2000-01-01 $lunchOutTime");
-    return dummyDate.hour >= 16 && dummyDate.hour < 23;
-  }
-*/
   String formatTime(String timeString) {
     if (timeString != null && timeString != "00:00:00") {
       List<String> timeParts = timeString.split(':');

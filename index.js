@@ -3954,14 +3954,9 @@ app.get('/get_attendance_report', (req, res) => {
     }
   });
 });
+
 app.get('/get_attendance_overall', (req, res) => {
-  const sql = 'SELECT a.*, ' +
-              'SUM(CASE WHEN dws.machineType = "Winding" AND a.emp_code = dws.op_code AND DATE(a.inDate) = DATE(dws.createDate) THEN dws.extraproduction ' +
-              'WHEN dws.machineType IN ("Finishing", "Printing") AND ((a.emp_code = dws.ass_code1 OR a.emp_code = dws.ass_code2) AND DATE(a.inDate) = DATE(dws.createDate)) THEN dws.extraproduction / 2 ' +
-              'ELSE 0 END) AS calculated_extraproduction ' +
-              'FROM attendance a ' +
-              'LEFT JOIN daily_work_status dws ON (a.emp_code = dws.op_code OR a.emp_code = dws.ass_code1 OR a.emp_code = dws.ass_code2) ' +
-              'GROUP BY a.id'; // Assuming id is the primary key of the attendance table
+  const sql = 'SELECT * from attendance'; // Assuming id is the primary key of the attendance table
   db.query(sql, (err, result) => {
     if (err) {
       console.error('Error fetching data:', err);
@@ -3972,6 +3967,8 @@ app.get('/get_attendance_overall', (req, res) => {
     }
   });
 });
+
+
 app.post('/attandance_entry', (req, res) => {
   const { dataToInsertcustomer } = req.body;
 
@@ -9914,6 +9911,104 @@ app.put('/time_update_tvs/:id', (req, res) => {
     }
   });
 });
+
+
+/// 17-06-2024 gowtham done for present and absent home page work
+app.get('/attendance-summaryold', (req, res) => {
+  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  const currentTime = new Date().toTimeString().split(' ')[0]; // Get current time in HH:MM:SS format
+
+  const queryTotalEmployees = `SELECT COUNT(*) AS totalEmployees FROM employee`;
+  const queryPresent = `SELECT COUNT(*) AS present FROM attendance WHERE inDate = ? AND check_in IS NOT NULL`;
+  const queryAbsent = `SELECT COUNT(*) AS absent FROM attendance WHERE inDate = ? AND (check_in IS NULL OR check_in >= '06:00:00')`;
+
+  db.query(queryTotalEmployees, (err, totalEmployeesResult) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+    db.query(queryPresent, [currentDate], (err, presentResult) => {
+      if (err) {
+        return res.status(500).json({ error: err });
+      }
+      db.query(queryAbsent, [currentDate], (err, absentResult) => {
+        if (err) {
+          return res.status(500).json({ error: err });
+        }
+        res.json({
+          totalEmployees: totalEmployeesResult[0].totalEmployees,
+          present: presentResult[0].present,
+          absent: absentResult[0].absent
+        });
+      });
+    });
+  });
+});
+
+app.get('/attendance-summary', (req, res) => {
+  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
+  const queryTotalEmployees = `SELECT COUNT(*) AS totalEmployees FROM employee`;
+  const queryPresent = `SELECT COUNT(DISTINCT emp_code) AS present FROM attendance WHERE inDate = ?`;
+  const queryAbsent = `SELECT COUNT(*) AS absent FROM employee WHERE emp_code NOT IN (SELECT DISTINCT emp_code FROM attendance WHERE inDate = ?)`;
+
+  db.query(queryTotalEmployees, (err, totalEmployeesResult) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+    db.query(queryPresent, [currentDate], (err, presentResult) => {
+      if (err) {
+        return res.status(500).json({ error: err });
+      }
+      db.query(queryAbsent, [currentDate], (err, absentResult) => {
+        if (err) {
+          return res.status(500).json({ error: err });
+        }
+        res.json({
+          totalEmployees: totalEmployeesResult[0].totalEmployees,
+          present: presentResult[0].present,
+          absent: absentResult[0].absent
+        });
+      });
+    });
+  });
+});
+
+app.get('/present-employees', (req, res) => {
+  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
+  const queryPresent = `
+    SELECT e.emp_code, e.first_name, e.empMobile
+    FROM employee e
+    JOIN attendance a ON e.emp_code = a.emp_code
+    WHERE a.inDate = ?`;
+
+  db.query(queryPresent, [currentDate], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+    res.json(result);
+  });
+});
+
+app.get('/absent-employees', (req, res) => {
+  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
+  const queryAbsent = `
+    SELECT e.emp_code, e.first_name, e.empMobile
+    FROM employee e
+    WHERE e.emp_code NOT IN (
+      SELECT emp_code
+      FROM attendance
+      WHERE inDate = ?)`;
+
+  db.query(queryAbsent, [currentDate], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+    res.json(result);
+  });
+});
+
 
 
 

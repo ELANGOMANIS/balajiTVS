@@ -6,6 +6,7 @@ import 'package:vinayaga_project/profile.dart';
 import 'package:vinayaga_project/settings/settings.dart';
 
 import 'Attendance/Attendance_report.dart';
+import 'Attendance/Attendance_reportBalaji.dart';
 import 'Attendance/WeeklySalary.dart';
 import 'Attendance/employee_profile_update.dart';
 import 'home.dart';
@@ -141,6 +142,7 @@ class _MyScaffoldState extends State<MyScaffold> {
     'Attendance': false,
     'Salary': false,
     'Settings': false,
+    'Attendance Balaji': false,
   };
   final Map<String, bool> _clicked = {
     'Home': false,
@@ -148,6 +150,7 @@ class _MyScaffoldState extends State<MyScaffold> {
     'Attendance': false,
     'Salary': false,
     'Settings': false,
+    'Attendance Balaji': false,
   };
 
   @override
@@ -227,6 +230,7 @@ class _MyScaffoldState extends State<MyScaffold> {
                   _buildHoverButton('Attendance', Icons.punch_clock_rounded),
                   _buildHoverButton('Salary', Icons.monetization_on),
                   _buildHoverButton('Settings', Icons.settings),
+                  _buildHoverButton('Attendance Balaji', Icons.settings),
                 ],
               ),
             ),
@@ -292,6 +296,9 @@ class _MyScaffoldState extends State<MyScaffold> {
         break;
       case 'Settings':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const Settings()));
+        break;
+        case 'Attendance Balaji':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const AttendanceBalaji()));
         break;
     }
   }
