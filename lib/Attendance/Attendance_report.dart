@@ -239,7 +239,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
 
 
   Future<List<Map<String, dynamic>>> fetchAttendanceDetails() async {
-    final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
+    final url = Uri.parse('http://localhost:3309/get_attendance_overallold/');
     try {
       final response = await http.get(url);
 

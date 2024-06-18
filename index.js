@@ -3857,18 +3857,7 @@ app.get('/get_attendance_report', (req, res) => {
   });
 });
 
-app.get('/get_attendance_overall', (req, res) => {
-  const sql = 'SELECT * from attendance'; // Assuming id is the primary key of the attendance table
-  db.query(sql, (err, result) => {
-    if (err) {
-      console.error('Error fetching data:', err);
-      res.status(500).json({ error: 'Error fetching data' });
-    } else {
-      console.log('Data fetched successfully');
-      res.status(200).json(result);
-    }
-  });
-});
+
 
 
 app.post('/attandance_entry', (req, res) => {
@@ -9930,6 +9919,101 @@ app.delete('/shift_tvs_delete/:id', (req, res) => {
     }
   });
 });
+
+
+app.get('/get_attendance_overallold', (req, res) => {
+  const sql = 'SELECT * from attendance'; // Assuming id is the primary key of the attendance table
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Error fetching data' });
+    } else {
+      console.log('Data fetched successfully');
+      res.status(200).json(result);
+    }
+  });
+});
+
+
+
+app.get('/get_attendance_overall', (req, res) => {
+  const { fromDate, toDate, emp_code, first_name } = req.query;
+
+  let sqlAttendanceDates = 'SELECT DISTINCT inDate FROM attendance WHERE 1=1';
+  let sqlAttendance = 'SELECT * FROM attendance WHERE 1=1';
+  let sqlEmployees = 'SELECT * FROM employee WHERE 1=1';
+  const params = [];
+
+  if (fromDate) {
+    sqlAttendanceDates += ' AND inDate >= ?';
+    sqlAttendance += ' AND inDate >= ?';
+    params.push(fromDate);
+  }
+  if (toDate) {
+    sqlAttendanceDates += ' AND inDate <= ?';
+    sqlAttendance += ' AND inDate <= ?';
+    params.push(toDate);
+  }
+  if (emp_code) {
+    sqlEmployees += ' AND emp_code = ?';
+    params.push(emp_code);
+  }
+  if (first_name) {
+    sqlEmployees += ' AND first_name LIKE ?';
+    params.push(`%${first_name}%`);
+  }
+
+  db.query(sqlEmployees, params, (errEmployees, resultEmployees) => {
+    if (errEmployees) {
+      console.error('Error fetching employee data:', errEmployees);
+      res.status(500).json({ error: 'Error fetching employee data' });
+    } else {
+      db.query(sqlAttendanceDates, params, (errDates, resultDates) => {
+        if (errDates) {
+          console.error('Error fetching attendance dates:', errDates);
+          res.status(500).json({ error: 'Error fetching attendance dates' });
+        } else {
+          const uniqueDates = resultDates.map(row => row.inDate);
+
+          db.query(sqlAttendance, params, (errAttendance, resultAttendance) => {
+            if (errAttendance) {
+              console.error('Error fetching attendance data:', errAttendance);
+              res.status(500).json({ error: 'Error fetching attendance data' });
+            } else {
+              // Create a map with emp_code and inDate as the key
+              const attendanceMap = new Map();
+              resultAttendance.forEach(row => {
+                const key = `${row.emp_code}-${row.inDate}`;
+                attendanceMap.set(key, row);
+              });
+
+              const combinedData = [];
+
+              uniqueDates.forEach(date => {
+                resultEmployees.forEach(emp => {
+                  const key = `${emp.emp_code}-${date}`;
+                  const attendance = attendanceMap.get(key);
+                  combinedData.push({
+                    ...emp,
+                    inDate: date,
+                    check_in: attendance ? attendance.check_in : '',
+                    check_out: attendance ? attendance.check_out : '',
+                    total_hrs: attendance ? attendance.total_hrs : '',
+                    remark: attendance ? 'Present' : 'Absent'
+                  });
+                });
+              });
+
+              res.status(200).json(combinedData);
+            }
+          });
+        }
+      });
+    }
+  });
+});
+
+
 
 app.post('/shift_insert_tvs', (req, res) => {
   const { shiftType, startTime, endTime } = req.body;
