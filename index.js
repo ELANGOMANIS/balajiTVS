@@ -9914,231 +9914,74 @@ app.get('/get_attendance_overallold', (req, res) => {
     }
   });
 });
-app.get('/get_attendance_overall0ld2', (req, res) => {
-  const sqlAttendance = 'SELECT * FROM attendance ';
-  const sqlEmployees = 'SELECT * FROM employee';
 
-  db.query(sqlAttendance, (errAttendance, resultAttendance) => {
-    if (errAttendance) {
-      console.error('Error fetching attendance data:', errAttendance);
-      res.status(500).json({ error: 'Error fetching attendance data' });
-    } else {
-      db.query(sqlEmployees, (errEmployees, resultEmployees) => {
-        if (errEmployees) {
-          console.error('Error fetching employee data:', errEmployees);
-          res.status(500).json({ error: 'Error fetching employee data' });
-        } else {
-          // Combine data
-          const attendanceMap = new Map();
-          resultAttendance.forEach(row => {
-            attendanceMap.set(row.emp_code, row);
-          });
 
-          const combinedData = resultEmployees.map(emp => {
-            const attendance = attendanceMap.get(emp.emp_code) || { remark: 'Absent' };
-            return {
-              ...emp,
-              ...attendance,
-              remark: attendance.remark || 'Present'
-            };
-          });
 
-          res.status(200).json(combinedData);
-        }
-      });
-    }
-  });
-});
-
-app.get('/get_attendance_overallold3', (req, res) => {
-  const sqlAttendance = 'SELECT * FROM attendance';
-  const sqlEmployees = 'SELECT * FROM employee';
-
-  db.query(sqlAttendance, (errAttendance, resultAttendance) => {
-    if (errAttendance) {
-      console.error('Error fetching attendance data:', errAttendance);
-      res.status(500).json({ error: 'Error fetching attendance data' });
-    } else {
-      db.query(sqlEmployees, (errEmployees, resultEmployees) => {
-        if (errEmployees) {
-          console.error('Error fetching employee data:', errEmployees);
-          res.status(500).json({ error: 'Error fetching employee data' });
-        } else {
-          // Combine data
-          const attendanceMap = new Map();
-          resultAttendance.forEach(row => {
-            const key = `${row.emp_code}_${row.inDate}`;
-            attendanceMap.set(key, row);
-          });
-
-          const combinedData = [];
-          resultEmployees.forEach(emp => {
-            const dates = new Set(resultAttendance.map(att => att.inDate));
-            dates.forEach(date => {
-              const key = `${emp.emp_code}_${date}`;
-              const attendance = attendanceMap.get(key) || { inDate: date, remark: 'Absent' };
-              combinedData.push({
-                ...emp,
-                ...attendance,
-                remark: attendance.remark || 'Present'
-              });
-            });
-          });
-
-          res.status(200).json(combinedData);
-        }
-      });
-    }
-  });
-});
-app.get('/get_attendance_overallwork', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get the current date in YYYY-MM-DD format
-  const sqlAttendance = 'SELECT * FROM attendance WHERE inDate = ?';
-  const sqlEmployees = 'SELECT * FROM employee';
-
-  db.query(sqlEmployees, (errEmployees, resultEmployees) => {
-    if (errEmployees) {
-      console.error('Error fetching employee data:', errEmployees);
-      res.status(500).json({ error: 'Error fetching employee data' });
-    } else {
-      db.query(sqlAttendance, [currentDate], (errAttendance, resultAttendance) => {
-        if (errAttendance) {
-          console.error('Error fetching attendance data:', errAttendance);
-          res.status(500).json({ error: 'Error fetching attendance data' });
-        } else {
-          // Combine data
-          const attendanceMap = new Map();
-          resultAttendance.forEach(row => {
-            attendanceMap.set(row.emp_code, row);
-          });
-
-          const combinedData = resultEmployees.map(emp => {
-            const attendance = attendanceMap.get(emp.emp_code);
-            return {
-              ...emp,
-              inDate: currentDate,
-              check_in: attendance ? attendance.check_in : '',
-              check_out: attendance ? attendance.check_out : '',
-              total_hrs: attendance ? attendance.total_hrs : '',
-              remark: attendance ? 'Present' : 'Absent'
-            };
-          });
-
-          res.status(200).json(combinedData);
-        }
-      });
-    }
-  });
-});
-app.get('/get_attendance_overallold5', (req, res) => {
-  const sqlAttendance = 'SELECT DISTINCT inDate FROM attendance ORDER BY inDate';
-  const sqlEmployees = 'SELECT * FROM employee';
-
-  db.query(sqlEmployees, (errEmployees, resultEmployees) => {
-    if (errEmployees) {
-      console.error('Error fetching employee data:', errEmployees);
-      res.status(500).json({ error: 'Error fetching employee data' });
-    } else {
-      db.query(sqlAttendance, (errAttendance, resultAttendance) => {
-        if (errAttendance) {
-          console.error('Error fetching attendance data:', errAttendance);
-          res.status(500).json({ error: 'Error fetching attendance data' });
-        } else {
-          // Combine data
-          const combinedData = [];
-
-          resultAttendance.forEach(attendance => {
-            const employee = resultEmployees.find(emp => emp.emp_code === attendance.emp_code);
-            if (employee) {
-              combinedData.push({
-                ...employee,
-                inDate: attendance.inDate,
-                check_in: attendance.check_in,
-                check_out: attendance.check_out,
-                total_hrs: attendance.total_hrs,
-                remark: 'Present'
-              });
-            }
-          });
-
-          // Add absent employees for dates they are not present
-          const uniqueDates = [...new Set(resultAttendance.map(att => att.inDate))];
-          resultEmployees.forEach(emp => {
-            uniqueDates.forEach(date => {
-              if (!resultAttendance.some(att => att.emp_code === emp.emp_code && att.inDate === date)) {
-                combinedData.push({
-                  ...emp,
-                  inDate: date,
-                  check_in: '',
-                  check_out: '',
-                  total_hrs: '',
-                  remark: 'Absent'
-                });
-              }
-            });
-          });
-
-          res.status(200).json(combinedData);
-        }
-      });
-    }
-  });
-});
 app.get('/get_attendance_overall', (req, res) => {
-  const sqlAttendance = 'SELECT DISTINCT inDate FROM attendance ORDER BY inDate';
-  const sqlEmployees = 'SELECT * FROM employee';
-  const sqlAttendanceAll = 'SELECT * FROM attendance';
+  const { fromDate, toDate, emp_code, first_name } = req.query;
 
-  db.query(sqlEmployees, (errEmployees, resultEmployees) => {
+  let sqlAttendanceDates = 'SELECT DISTINCT inDate FROM attendance WHERE 1=1';
+  let sqlAttendance = 'SELECT * FROM attendance WHERE 1=1';
+  let sqlEmployees = 'SELECT * FROM employee WHERE 1=1';
+  const params = [];
+
+  if (fromDate) {
+    sqlAttendanceDates += ' AND inDate >= ?';
+    sqlAttendance += ' AND inDate >= ?';
+    params.push(fromDate);
+  }
+  if (toDate) {
+    sqlAttendanceDates += ' AND inDate <= ?';
+    sqlAttendance += ' AND inDate <= ?';
+    params.push(toDate);
+  }
+  if (emp_code) {
+    sqlEmployees += ' AND emp_code = ?';
+    params.push(emp_code);
+  }
+  if (first_name) {
+    sqlEmployees += ' AND first_name LIKE ?';
+    params.push(`%${first_name}%`);
+  }
+
+  db.query(sqlEmployees, params, (errEmployees, resultEmployees) => {
     if (errEmployees) {
       console.error('Error fetching employee data:', errEmployees);
       res.status(500).json({ error: 'Error fetching employee data' });
     } else {
-      db.query(sqlAttendance, (errDates, resultDates) => {
+      db.query(sqlAttendanceDates, params, (errDates, resultDates) => {
         if (errDates) {
           console.error('Error fetching attendance dates:', errDates);
           res.status(500).json({ error: 'Error fetching attendance dates' });
         } else {
-          db.query(sqlAttendanceAll, (errAttendanceAll, resultAttendanceAll) => {
-            if (errAttendanceAll) {
-              console.error('Error fetching all attendance data:', errAttendanceAll);
-              res.status(500).json({ error: 'Error fetching all attendance data' });
+          const uniqueDates = resultDates.map(row => row.inDate);
+
+          db.query(sqlAttendance, params, (errAttendance, resultAttendance) => {
+            if (errAttendance) {
+              console.error('Error fetching attendance data:', errAttendance);
+              res.status(500).json({ error: 'Error fetching attendance data' });
             } else {
-              // Combine data
+              // Create a map with emp_code and inDate as the key
+              const attendanceMap = new Map();
+              resultAttendance.forEach(row => {
+                const key = `${row.emp_code}-${row.inDate}`;
+                attendanceMap.set(key, row);
+              });
+
               const combinedData = [];
 
-              resultDates.forEach(dateRecord => {
-                const date = dateRecord.inDate;
-                const presentEmployees = new Set();
-
-                resultAttendanceAll.forEach(attendance => {
-                  if (attendance.inDate === date) {
-                    const employee = resultEmployees.find(emp => emp.emp_code === attendance.emp_code);
-                    if (employee) {
-                      presentEmployees.add(employee.emp_code);
-                      combinedData.push({
-                        ...employee,
-                        inDate: attendance.inDate,
-                        check_in: attendance.check_in,
-                        check_out: attendance.check_out,
-                        total_hrs: attendance.total_hrs,
-                        remark: 'Present'
-                      });
-                    }
-                  }
-                });
-
+              uniqueDates.forEach(date => {
                 resultEmployees.forEach(emp => {
-                  if (!presentEmployees.has(emp.emp_code)) {
-                    combinedData.push({
-                      ...emp,
-                      inDate: date,
-                      check_in: '',
-                      check_out: '',
-                      total_hrs: '',
-                      remark: 'Absent'
-                    });
-                  }
+                  const key = `${emp.emp_code}-${date}`;
+                  const attendance = attendanceMap.get(key);
+                  combinedData.push({
+                    ...emp,
+                    inDate: date,
+                    check_in: attendance ? attendance.check_in : '',
+                    check_out: attendance ? attendance.check_out : '',
+                    total_hrs: attendance ? attendance.total_hrs : '',
+                    remark: attendance ? 'Present' : 'Absent'
+                  });
                 });
               });
 
@@ -10150,6 +9993,7 @@ app.get('/get_attendance_overall', (req, res) => {
     }
   });
 });
+
 
 
 

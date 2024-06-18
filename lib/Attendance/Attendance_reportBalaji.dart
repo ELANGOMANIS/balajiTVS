@@ -1,8 +1,26 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:html';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
+import 'package:printing/printing.dart';
 import '../../main.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pdfWidgets;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:pdf/widgets.dart' as pw;
+
+
 
 class AttendanceBalaji extends StatefulWidget {
   const AttendanceBalaji({Key? key}) : super(key: key);
@@ -13,6 +31,10 @@ class AttendanceBalaji extends StatefulWidget {
 
 class _AttendanceBalajiState extends State<AttendanceBalaji> {
   late Future<List<Map<String, dynamic>>> attendanceDetailsFuture;
+  final TextEditingController fromDateController = TextEditingController();
+  final TextEditingController toDateController = TextEditingController();
+  final TextEditingController empCodeController = TextEditingController();
+  final TextEditingController firstNameController = TextEditingController();
 
   @override
   void initState() {
@@ -20,17 +42,102 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
     attendanceDetailsFuture = fetchAttendanceBalaji();
   }
 
-  Future<List<Map<String, dynamic>>> fetchAttendanceBalaji() async {
-    final response = await http.get(Uri.parse('http://localhost:3309/get_attendance_overall'));
-    print("response ${response.statusCode}");
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return List<Map<String, dynamic>>.from(data);
-    } else {
-      // Handle the error
+  void _applyFilters() {
+    setState(() {
+      attendanceDetailsFuture = fetchAttendanceBalaji(
+        fromDate: fromDateController.text,
+        toDate: toDateController.text,
+        empCode: empCodeController.text,
+        firstName: firstNameController.text,
+      );
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAttendanceBalaji({String? fromDate, String? toDate, String? empCode, String? firstName,}) async {
+    try {
+      final queryParameters = {
+        if (fromDate != null) 'fromDate': fromDate,
+        if (toDate != null) 'toDate': toDate,
+        if (empCode != null) 'emp_code': empCode,
+        if (firstName != null) 'first_name': firstName,
+      };
+
+      final uri = Uri.http(
+        'localhost:3309',
+        '/get_attendance_overall',
+        queryParameters,
+      );
+
+      final response = await http.get(uri);
+      print("response ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load attendance summary');
+      }
+    } catch (error) {
+      print('Error fetching attendance summary: $error');
       throw Exception('Failed to load attendance summary');
     }
   }
+
+  Future<List<String>> getSuggestions(String field, String pattern) async {
+    final List<String> suggestions = [];
+
+    try {
+      final response = await http.get(
+        Uri.http('localhost:3309', '/get_attendance_overallold', {'field': field, 'pattern': pattern}),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        data.forEach((item) {
+          suggestions.add(item[field]);
+        });
+      } else {
+        throw Exception('Failed to fetch suggestions');
+      }
+    } catch (error) {
+      print('Error fetching suggestions: $error');
+      throw Exception('Failed to fetch suggestions');
+    }
+
+    return suggestions;
+  }
+
+  Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
+    final pdf = pw.Document();
+    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check-in', 'Check-out', 'Total Hrs', 'Remark'];
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Table.fromTextArray(
+            headers: headers,
+            data: data.map((attendance) {
+              return [
+                '${data.indexOf(attendance) + 1}',
+                attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
+                attendance['emp_code'] ?? '',
+                attendance['first_name'] ?? '',
+                attendance['shiftType'] ?? '',
+                attendance['check_in'] ?? '',
+                attendance['check_out'] ?? '',
+                attendance['total_hrs'] ?? '',
+                attendance['remark'] ?? '',
+              ];
+            }).toList(),
+          );
+        },
+      ),
+    );
+
+    final Uint8List bytes = await pdf.save();
+    await Printing.sharePdf(bytes: bytes, filename: 'attendance_report.pdf');
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +172,202 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: SizedBox(
+                                  height:50,
+                                  width: 240,
+
+                                  child: TextFormField(
+
+                                    controller: fromDateController,
+                                    onTap: () {
+                                      showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime(2015, 8),
+                                        lastDate: DateTime(2101),
+                                      ).then((value) {
+                                        if (value != null) {
+                                          setState(() {
+                                            fromDateController.text = DateFormat('yyyy-MM-dd').format(value);
+                                          });
+                                        }
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText: 'From Date (YYYY-MM-DD)',
+                                      suffixIcon: IconButton(
+                                        icon: Icon(Icons.date_range),
+                                        onPressed: () async {
+                                          final DateTime? picked = await showDatePicker(
+                                            context: context,
+                                            initialDate: DateTime.now(),
+                                            firstDate: DateTime(2015, 8),
+                                            lastDate: DateTime(2101),
+                                          );
+                                          if (picked != null && picked != DateTime.parse(fromDateController.text)) {
+                                            setState(() {
+                                              fromDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                child: SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TextFormField(
+                                    controller: toDateController,
+                                    onTap: () {
+                                      showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime(2015, 8),
+                                        lastDate: DateTime(2101),
+                                      ).then((value) {
+                                        if (value != null) {
+                                          setState(() {
+                                            toDateController.text = DateFormat('yyyy-MM-dd').format(value);
+                                          });
+                                        }
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      labelText: 'To Date (YYYY-MM-DD)',
+                                      suffixIcon: IconButton(
+                                        icon: Icon(Icons.date_range),
+                                        onPressed: () async {
+                                          final DateTime? picked = await showDatePicker(
+                                            context: context,
+                                            initialDate: DateTime.now(),
+                                            firstDate: DateTime(2015, 8),
+                                            lastDate: DateTime(2101),
+                                          );
+                                          if (picked != null && picked != DateTime.parse(toDateController.text)) {
+                                            setState(() {
+                                              toDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                child: SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TypeAheadFormField(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                      controller: empCodeController,
+                                      decoration: InputDecoration(labelText: 'Employee Code'),
+                                    ),
+                                    suggestionsCallback: (pattern) async {
+                                      return getSuggestions('emp_code', pattern);
+                                    },
+                                    itemBuilder: (context, suggestion) {
+                                      return ListTile(
+                                        title: Text(suggestion),
+                                      );
+                                    },
+                                    onSuggestionSelected: (suggestion) {
+                                      empCodeController.text = suggestion;
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                child: SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TypeAheadFormField(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                      controller: firstNameController,
+                                      decoration: InputDecoration(labelText: 'First Name'),
+                                    ),
+                                    suggestionsCallback: (pattern) async {
+                                      return getSuggestions('first_name', pattern);
+                                    },
+                                    itemBuilder: (context, suggestion) {
+                                      return ListTile(
+                                        title: Text(suggestion),
+                                      );
+                                    },
+                                    onSuggestionSelected: (suggestion) {
+                                      firstNameController.text = suggestion;
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                child: ElevatedButton(
+                                  onPressed: _applyFilters,
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: Colors.white, backgroundColor: Colors.blue, // text color
+                                   // padding: EdgeInsets.symmetric(vertical: 1, horizontal: 40),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    textStyle: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.filter_alt_outlined), // Optional: Add an icon
+                                      SizedBox(width: 10), // Optional: Add space between icon and text
+                                      Text('Apply Filters'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Flexible(
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    final data = await attendanceDetailsFuture;
+                                    await _generatePdfAndDownload(data);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: Colors.white, backgroundColor: Colors.red, // text color
+                                    // padding: EdgeInsets.symmetric(vertical: 1, horizontal: 40),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    textStyle: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.download), // Optional: Add an icon
+                                      SizedBox(width: 10), // Optional: Add space between icon and text
+                                      Text('pdf'),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -112,8 +415,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 DataColumn(label: Center(child: Text("Remark", style: TextStyle(fontWeight: FontWeight.bold),))),
                               ],
                               source: AttendanceDataSource(snapshot.data!),
-
-                             // source: AttendanceDataSource(snapshot.data!),
                             );
                           }
                         },
@@ -134,15 +435,6 @@ class AttendanceDataSource extends DataTableSource {
   final List<Map<String, dynamic>> _data;
 
   AttendanceDataSource(this._data);
-  String _formatDate(String dateStr) {
-    try {
-      DateTime date = DateFormat('yyyy-MM-dd').parse(dateStr);
-      return DateFormat('MMMM-dd,yyyy').format(date);
-    } catch (e) {
-      return dateStr; // Return the original string if parsing fails
-    }
-  }
-
 
   @override
   DataRow? getRow(int index) {
@@ -182,5 +474,3 @@ class AttendanceDataSource extends DataTableSource {
   @override
   int get selectedRowCount => 0;
 }
-
-
