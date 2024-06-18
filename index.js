@@ -97,6 +97,8 @@ app.get('/attendance_view_general', (req, res) => {
             e.salaryType,
             it.punch_time,
             s.shiftType,
+            s.startTime,
+            s.endTime,
             t.checkin_start,
             t.checkin_end,
             t.checkout_start,
@@ -152,7 +154,9 @@ cron.schedule('*/1 * * * *', async () => {
             const checkinEnd = moment(empData[0]['checkin_end'], 'HH:mm:ss');
             const checkoutStart = moment(empData[0]['checkout_start'], 'HH:mm:ss');
             const checkoutEnd = moment(empData[0]['checkout_end'], 'HH:mm:ss');
-            const shiftEndTime = moment(empData[0]['endTime'], 'HH:mm:ss'); // Assuming endTime is fetched from shift data
+            const shiftStartTime = moment(empData[0]['startTime'], 'HH:mm:ss'); // Fetch startTime from shift data
+            const shiftEndTime = moment(empData[0]['endTime'], 'HH:mm:ss');// Assuming endTime is fetched from shift data
+            const reqTimeMinutes = shiftEndTime.diff(shiftStartTime, 'minutes');
 
             const checkInTime = empData.length >= 1 ? moment(empData[0]['punch_time']) : null;
             const checkOutTime = empData.length >= 2 ? moment(empData[1]['punch_time']) : null;
@@ -160,6 +164,8 @@ cron.schedule('*/1 * * * *', async () => {
             let remark = '';
             let lateCheckInMinutes = 0;
             let earlyCheckOutMinutes = 0;
+            let actTimeMinutes = 0;
+
 
             // Calculate late check-in minutes
             if (checkInTime && checkInTime.isValid() && checkInTime.isAfter(checkinEnd)) {
@@ -172,6 +178,10 @@ cron.schedule('*/1 * * * *', async () => {
                 const difference = checkoutStart.diff(checkOutTime, 'minutes');
                 earlyCheckOutMinutes = difference;
             }
+
+             if (checkInTime && checkOutTime && checkInTime.isValid() && checkOutTime.isValid()) {
+                            actTimeMinutes = checkOutTime.diff(checkInTime, 'minutes');
+                        }
 
             // Determine remark
             if (empData.length === 1) {
@@ -186,6 +196,9 @@ cron.schedule('*/1 * * * *', async () => {
             console.log('shiftEndTime:', shiftEndTime.format('HH:mm:ss'));
             console.log('lateCheckInMinutes:', lateCheckInMinutes);
             console.log('earlyCheckOutMinutes:', earlyCheckOutMinutes);
+            console.log('reqTimeMinutes:', reqTimeMinutes);
+            console.log('actTimeMinutes:', actTimeMinutes);
+
 
             const dataToInsertcustomer = {
                 "emp_code": empEntry[0],
@@ -195,10 +208,11 @@ cron.schedule('*/1 * * * *', async () => {
                 'inDate': moment(empData[0]['punch_time']).format('YYYY-MM-DD'),
                 'shiftType': empData[0]['shiftType'],
                 'check_in': checkInTime && (checkInTime.isBetween(checkinStart, checkinEnd) || checkInTime.isSameOrAfter(checkinStart)) ? checkInTime.format('HH:mm:ss') : '',
-                 'check_out': checkOutTime && checkOutTime.isValid() ? checkOutTime.format('HH:mm:ss') : '',
-                //'check_out': checkOutTime && (checkOutTime.isBetween(checkoutStart, checkoutEnd) || checkOutTime.isSameOrAfter(checkoutStart)) ? checkOutTime.format('HH:mm:ss') : '',
+                'check_out': checkOutTime && checkOutTime.isValid() ? checkOutTime.format('HH:mm:ss') : '',
                 'latecheck_in': lateCheckInMinutes,
                 'earlycheck_out': earlyCheckOutMinutes,
+                'act_time': actTimeMinutes,
+                'req_time':reqTimeMinutes,
                 'remark': remark,
             };
 
@@ -10141,7 +10155,29 @@ app.get('/get_attendance_overall', (req, res) => {
 
 
 
+app.post('/shift_insert_tvs', (req, res) => {
+  const { shiftType, startTime, endTime } = req.body;
 
+  // Insert into MySQL
+  const sql = 'INSERT INTO shift (shiftType, startTime, endTime) VALUES (?, ?, ?)';
+  db.query(sql, [shiftType, startTime, endTime], (err, result) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Error inserting shift into database');
+      return;
+    }
+
+    console.log('Shift added:', result);
+
+    // Respond with the inserted data (optional)
+    res.status(200).json({
+      id: result.insertId,
+      shiftType,
+      startTime,
+      endTime
+    });
+  });
+});
 
 
 
