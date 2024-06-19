@@ -9936,51 +9936,60 @@ app.get('/get_employee', (req, res) => {
 
 
 
+
+
+
 app.get('/get_attendance_overall', (req, res) => {
-  const { fromDate, toDate, emp_code, first_name } = req.query;
+  const { fromDate, toDate, emp_code, first_name, shiftType } = req.query;
 
   let sqlAttendanceDates = 'SELECT DISTINCT inDate FROM attendance WHERE 1=1';
   let sqlAttendance = 'SELECT * FROM attendance WHERE 1=1';
   let sqlEmployees = 'SELECT * FROM employee WHERE 1=1';
-  const params = [];
+  const paramsAttendance = [];
+  const paramsEmployees = [];
 
   if (fromDate) {
     sqlAttendanceDates += ' AND inDate >= ?';
     sqlAttendance += ' AND inDate >= ?';
-    params.push(fromDate);
+    paramsAttendance.push(fromDate);
   }
   if (toDate) {
     sqlAttendanceDates += ' AND inDate <= ?';
     sqlAttendance += ' AND inDate <= ?';
-    params.push(toDate);
+    paramsAttendance.push(toDate);
   }
+  if (shiftType) {
+    sqlAttendance += ' AND shiftType = ?';
+    paramsAttendance.push(shiftType);
+  }
+
+  // Filtering employees based on emp_code and first_name
   if (emp_code) {
     sqlEmployees += ' AND emp_code = ?';
-    params.push(emp_code);
+    paramsEmployees.push(emp_code);
   }
   if (first_name) {
     sqlEmployees += ' AND first_name LIKE ?';
-    params.push(`%${first_name}%`);
+    paramsEmployees.push(`%${first_name}%`);
   }
 
-  db.query(sqlEmployees, params, (errEmployees, resultEmployees) => {
+  db.query(sqlEmployees, paramsEmployees, (errEmployees, resultEmployees) => {
     if (errEmployees) {
       console.error('Error fetching employee data:', errEmployees);
       res.status(500).json({ error: 'Error fetching employee data' });
     } else {
-      db.query(sqlAttendanceDates, params, (errDates, resultDates) => {
+      db.query(sqlAttendanceDates, paramsAttendance, (errDates, resultDates) => {
         if (errDates) {
           console.error('Error fetching attendance dates:', errDates);
           res.status(500).json({ error: 'Error fetching attendance dates' });
         } else {
           const uniqueDates = resultDates.map(row => row.inDate);
 
-          db.query(sqlAttendance, params, (errAttendance, resultAttendance) => {
+          db.query(sqlAttendance, paramsAttendance, (errAttendance, resultAttendance) => {
             if (errAttendance) {
               console.error('Error fetching attendance data:', errAttendance);
               res.status(500).json({ error: 'Error fetching attendance data' });
             } else {
-              // Create a map with emp_code and inDate as the key
               const attendanceMap = new Map();
               resultAttendance.forEach(row => {
                 const key = `${row.emp_code}-${row.inDate}`;
@@ -9993,18 +10002,20 @@ app.get('/get_attendance_overall', (req, res) => {
                 resultEmployees.forEach(emp => {
                   const key = `${emp.emp_code}-${date}`;
                   const attendance = attendanceMap.get(key);
-                  combinedData.push({
-                    ...emp,
-                    inDate: date,
-                    check_in: attendance ? attendance.check_in : '',
-                    check_out: attendance ? attendance.check_out : '',
-                    act_time: attendance ? attendance.act_time : '',
-                    shiftType: attendance ? attendance.shiftType : '',
-                    latecheck_in: attendance ? attendance.latecheck_in : '',
-                    earlycheck_out: attendance ? attendance.earlycheck_out : '',
-                    req_time: attendance ? attendance.req_time : '',
-                    remark: attendance ? 'Present' : 'Absent'
-                  });
+                  if (!shiftType || (attendance && attendance.shiftType === shiftType)) {
+                    combinedData.push({
+                      ...emp,
+                      inDate: date,
+                      check_in: attendance ? attendance.check_in : '',
+                      check_out: attendance ? attendance.check_out : '',
+                      act_time: attendance ? attendance.act_time : '',
+                      shiftType: attendance ? attendance.shiftType : '',
+                      latecheck_in: attendance ? attendance.latecheck_in : '',
+                      earlycheck_out: attendance ? attendance.earlycheck_out : '',
+                      req_time: attendance ? attendance.req_time : '',
+                      remark: attendance ? 'Present' : 'Absent'
+                    });
+                  }
                 });
               });
 
@@ -10016,6 +10027,9 @@ app.get('/get_attendance_overall', (req, res) => {
     }
   });
 });
+
+
+
 
 
 
