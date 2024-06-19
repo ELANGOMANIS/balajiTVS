@@ -531,4 +531,29 @@ class _AbsentEmployeesPageState extends State<AbsentEmployeesPage> {
   }
 }
 
+class Utils {
+  static Future<List<String>> getSuggestions() async {
+    List<String> _shiftTypes = [];
+
+    try {
+      final response = await http.get(Uri.http('localhost:3309', '/get_shift_type'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        data.forEach((item) {
+          _shiftTypes.add(item['shiftType']);
+        });
+      } else {
+        throw Exception('Failed to fetch suggestions');
+      }
+    } catch (error) {
+      print('Error fetching suggestions: $error');
+      throw Exception('Failed to fetch suggestions');
+    }
+
+    return _shiftTypes;
+  }
+
+}
+
 

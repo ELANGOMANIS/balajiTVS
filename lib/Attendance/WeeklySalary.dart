@@ -59,27 +59,8 @@ class _CumulativeSalaryCalculationState
       print('Error fetching report: $error');
     }
   }
-  Future<List<String>> getSuggestions() async {
-    List<String> _shiftTypes = [];
 
-    try {
-      final response = await http.get(Uri.http('localhost:3309', '/get_shift_type'));
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        data.forEach((item) {
-          _shiftTypes.add(item['shiftType']);
-        });
-      } else {
-        throw Exception('Failed to fetch suggestions');
-      }
-    } catch (error) {
-      print('Error fetching suggestions: $error');
-      throw Exception('Failed to fetch suggestions');
-    }
-
-    return _shiftTypes;
-  }
 
 /*
   Future<void> fetchReport() async {
@@ -273,7 +254,11 @@ class _CumulativeSalaryCalculationState
                                       ),
                                     ),
                                     suggestionsCallback: (pattern) async {
-                                      return getSuggestions();
+                                      List<String> suggestions = [];
+                                      if (pattern.isNotEmpty) {
+                                        suggestions = await Utils.getSuggestions();
+                                      }
+                                      return suggestions;
                                     },
                                     itemBuilder: (context, suggestion) {
                                       return ListTile(
@@ -421,7 +406,7 @@ class _CumulativeSalaryCalculationState
                               DataColumn(label: Center(child: Text("No of Days", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                                DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
@@ -471,7 +456,7 @@ class _DataSource extends DataTableSource {
       DataCell(Text(formatDuration(data['total_req_time'].toString()))),
       DataCell(Text(formatDuration(data['total_act_time'].toString()))),
       //DataCell(Text(formatDuration(data['total_late'].toString()))),
-      DataCell(Text('\u20B9 ${data['perDaySalary']}')), // Display per day salary with rupee symbol
+      DataCell(Text('\u20B9 ${data['monthly_salary']}')),
       DataCell(Text('\u20B9 ${data['total_salary']}')), // Display per day salary with rupee symbol
       // DataCell(Text(calculateSalary(data).toString())),
       // DataCell(Text(double.parse(data['calculated_extraproduction']).toInt().toString())),

@@ -449,8 +449,8 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                             }
                                             List<String> suggestions =data
                                                 .where((item) =>
-                                            (item['first_name']?.toString()?.toLowerCase() ?? '').contains(pattern.toLowerCase()) ||
-                                                (item['emp_code']?.toString()?.toLowerCase() ?? '').contains(pattern.toLowerCase()))
+                                            (item['first_name']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()) ||
+                                                (item['emp_code']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()))
                                                 .map((item) => item['first_name'].toString())
                                                 .toSet()
                                                 .toList();

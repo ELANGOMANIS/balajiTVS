@@ -32,7 +32,7 @@ const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
    password: 'root',
-   database: 'balajitvs',
+   database: 'vkcones',
 });
 // Connect to MySQL
 db.connect((err) => {
@@ -217,6 +217,7 @@ cron.schedule('*/1 * * * *', async () => {
             const dataToInsertcustomer = {
                 "emp_code": empEntry[0],
                 "first_name": empData[0]['first_name'].toString(),
+                "monthly_salary": empData[0]['salary'].toString(),
                 "salary": dailySalary, // Added daily salary
                 'inDate': moment(empData[0]['punch_time']).format('YYYY-MM-DD'),
                 'shiftType': empData[0]['shiftType'],
@@ -4044,6 +4045,7 @@ app.post('/attandance_entry', (req, res) => {
       act_time = VALUES(act_time),
       salary = VALUES(salary),
       salaryType = VALUES(salaryType),
+      monthly_salary = VALUES(monthly_salary),
       remark = VALUES(remark)
   `;
 
@@ -4057,6 +4059,8 @@ app.post('/attandance_entry', (req, res) => {
     }
   });
 });
+
+
 //end elango
 
 
@@ -8220,6 +8224,7 @@ app.get('/get_cumulative_salary', (req, res) => {
   const sql = `
     SELECT
       emp_code,
+      monthly_salary,
       salary AS perDaySalary,
       CONCAT(first_name, '(', emp_code, ')') AS employee,
       MIN(inDate) AS from_date,
@@ -8239,6 +8244,7 @@ app.get('/get_cumulative_salary', (req, res) => {
       emp_code,
       first_name,
       a.shiftType,
+      monthly_salary,
       salary
   `;
 
