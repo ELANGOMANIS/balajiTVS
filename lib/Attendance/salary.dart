@@ -20,108 +20,8 @@ class SalaryCalculation extends StatefulWidget {
 class _SalaryCalculationState extends State<SalaryCalculation> {
   String? errorMessage;
 
-  ScrollController _scrollController = ScrollController();
-  double calculateTotalWorkingSalary(List<Map<String, dynamic>> filteredData) {
-    double totalLate = calculateTotalLate(filteredData);
-    double totalSalary = calculateTotalWorkSalary(filteredData);
-    double totalWorkSalary = 0 ;
-    print("totalSalary$totalSalary");
-
-    for (var row in filteredData) {
-      double salary = double.parse(row['salary'] ?? '0');
-      String shiftType = row['shiftType'] ?? '';
-      if (shiftType == 'Morning') {
-        if (totalLate < 5.75 * 60) {
-          totalWorkSalary =  totalSalary;
-        } else if (totalLate >= 5.75 * 60 && totalLate < 11.5 * 60) {
-          totalWorkSalary = totalSalary - (salary - (salary / 2));
-        }
-        else if (totalLate >= 11.5 * 60 && totalLate < 17.25 * 60) {
-          totalWorkSalary = totalSalary - (salary);
-        } else if (totalLate >= 17.25 && totalLate < 23 * 60) {
-          totalWorkSalary = totalSalary - ((2.5 * salary)-salary);
-        } else if (totalLate >= 23 * 60 && totalLate < 28.75 * 60) {
-          totalWorkSalary = totalSalary - ((3 * salary)-salary);
-        }
-      }
-      else if (shiftType == 'General') {
-        if (totalLate < 4.25 * 60) {
-          totalWorkSalary =  totalSalary;
-        } else if (totalLate >= 4.25 && totalLate < 8.50 * 60) {
-          totalWorkSalary = totalSalary - (salary - (salary / 2));
-        }
-        else if (totalLate >= 8.50 * 60 && totalLate < 12.75 * 60) {
-          totalWorkSalary = totalSalary - (salary);
-        } else if (totalLate >= 12.75 * 60 && totalLate < 17 * 60) {
-          totalWorkSalary = totalSalary - ((2.5 * salary)-salary);
-        } else if (totalLate >= 17 * 60 && totalLate < 21.25 * 60) {
-          totalWorkSalary = totalSalary - ((3 * salary)-salary);
-        }
-      }
-      else if (shiftType == 'Night') {
-        if (totalLate < 6 * 60) {
-          totalWorkSalary =  totalSalary;
-        } else if (totalLate >= 6 && totalLate < 12 * 60) {
-          totalWorkSalary = totalSalary - (salary - (salary / 2));
-        }
-        else if (totalLate >= 12 * 60 && totalLate < 24 * 60) {
-          totalWorkSalary = totalSalary - (salary);
-        } else if (totalLate >= 24 * 60 && totalLate < 30 * 60) {
-          totalWorkSalary = totalSalary - ((2.5 * salary)-salary);
-        } else if (totalLate >= 30 * 60 && totalLate < 36 * 60) {
-          totalWorkSalary = totalSalary - ((3 * salary)-salary);
-        }
-      }
-      totalWorkSalary += calculateTotalExtraProduction(filteredData);
-    }
-    return totalWorkSalary;
-  }
-  double parseTimeToHours(String timeString) {
-    if (timeString != null) {
-      DateTime dateTime = DateFormat('hh:mm a').parse(timeString);
-      return dateTime.hour + (dateTime.minute / 60);
-    }
-    return 0;
-  }
-  String calculateTotalWorkTime(List<Map<String, dynamic>> filteredData) {
-    double totalWorkTime = 0;
-    for (var row in filteredData) {
-      totalWorkTime += double.parse(row['act_time'] ?? '0');
-    }
-    return formatDuration(totalWorkTime);
-  }
-  double calculateTotalWorkTimeInHours(List<Map<String, dynamic>> filteredData) {
-    double totalWorkTime = 0;
-    for (var row in filteredData) {
-      totalWorkTime += double.parse(row['act_time'] ?? '0');
-    }
-    return totalWorkTime;
-  }
-
-  double calculateTotalExtraProduction(List<Map<String, dynamic>> filteredData) {
-    double totalExtraProduction = 0;
-    for (var row in filteredData) {
-      totalExtraProduction += double.parse(row['calculated_extraproduction'] ?? '0');
-    }
-    return totalExtraProduction;
-  }
-  double calculateTotalWorkSalary(List<Map<String, dynamic>> filteredData) {
-    double totalWorkSalary = 0;
-    for (var row in filteredData) {
-      totalWorkSalary += double.parse(row['salary'] ?? '0');
-    }
-    return totalWorkSalary;
-  }
-  String calculateReqWorkTime(List<Map<String, dynamic>> filteredData) {
-    double reqWorkTime = 0;
-    for (var row in filteredData) {
-      reqWorkTime += double.parse(row['req_time'] ?? '0');
-    }
-    return formatDuration(reqWorkTime);
-  }
 
   String toLate="";
-
   double calculateTotalLate(List<Map<String, dynamic>> filteredData) {
     double totalLate = 0;
 
@@ -169,12 +69,40 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
 
     return formattedDuration.trim();
   }
-  String convertToHoursAndMinutes(int minutes) {
-    int hours = minutes ~/ 60;
-    int remainingMinutes = minutes % 60;
-
-    String formattedTime = "${hours}h${remainingMinutes}m";
-    return formattedTime;
+  String calculateReqWorkTime(List<Map<String, dynamic>> filteredData) {
+    double reqWorkTime = 0;
+    for (var row in filteredData) {
+      reqWorkTime += double.parse(row['req_time'] ?? '0');
+    }
+    return formatDuration(reqWorkTime);
+  }
+  String calculateLateTime(List<Map<String, dynamic>> filteredData) {
+    double reqWorkTime = 0;
+    for (var row in filteredData) {
+      reqWorkTime += double.parse(row['latecheck_in'] ?? '0');
+    }
+    return formatDuration(reqWorkTime);
+  }
+  String calculateEarlyTime(List<Map<String, dynamic>> filteredData) {
+    double reqWorkTime = 0;
+    for (var row in filteredData) {
+      reqWorkTime += double.parse(row['earlycheck_out'] ?? '0');
+    }
+    return formatDuration(reqWorkTime);
+  }
+  double calculateTotalWorkTimeInHours(List<Map<String, dynamic>> filteredData) {
+    double totalWorkTime = 0;
+    for (var row in filteredData) {
+      totalWorkTime += double.parse(row['act_time'] ?? '0');
+    }
+    return totalWorkTime;
+  }
+  String calculateTotalWorkTime(List<Map<String, dynamic>> filteredData) {
+    double totalWorkTime = 0;
+    for (var row in filteredData) {
+      totalWorkTime += double.parse(row['act_time'] ?? '0');
+    }
+    return formatDuration(totalWorkTime);
   }
 
   List<String> supplierSuggestions = [];
@@ -207,6 +135,9 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
   List<String> itemGroupValues = [];
   List<String> invoiceNumber = [];
   String selectedCustomer="";
+  List<Map<String, dynamic>> data = [];
+  List<Map<String, dynamic>> filteredData = [];
+
 
   int calculateTotalDays(List<Map<String, dynamic>> filteredData) {
     return filteredData.length;
@@ -215,7 +146,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
 
   void fetchData() async {
     try {
-      final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
+      final url = Uri.parse('http://localhost:3309/get_individual_salary/');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -261,8 +192,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     });
   }
 
-  List<Map<String, dynamic>> data = [];
-  List<Map<String, dynamic>> filteredData = [];
+
 
   void filterData(String searchText) {
     print("Search Text: $searchText");
@@ -294,50 +224,11 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     });
     print("Filtered Data Length: ${filteredData.length}");
   }
-  double totalWorkingSalary = 0;
-  double totalExtraProduction = 0;
+
   double totalWorkTime = 0;
   double reqWorkTime = 0;
   double totalLate = 0;
-/*
-  void applyDateFilter() {
-    setState(() {
-      if (!isDateRangeValid) {
-        return;
-      }
-      filteredData = data.where((item) {
-        String dateStr = item['inDate']?.toString() ?? '';
-        DateTime? itemDate = DateTime.tryParse(dateStr);
 
-        if (itemDate != null &&
-            !itemDate.isBefore(fromDate!) &&
-            !itemDate.isAfter(toDate!.add(const Duration(days: 1)))) {
-          return true;
-        }
-        return false;
-      }).toList();
-      if (searchController.text.isNotEmpty) {
-        String searchTextLowerCase = searchController.text.toLowerCase();
-        filteredData = filteredData.where((item) {
-          String id = item['first_name']?.toString()?.toLowerCase() ?? '';
-          return id.contains(searchTextLowerCase);
-        }).toList();
-      }
-      filteredData.sort((a, b) {
-        DateTime? dateA = DateTime.tryParse(a['inDate'] ?? '');
-        DateTime? dateB = DateTime.tryParse(b['outDate'] ?? '');
-        if (dateA == null || dateB == null) {
-          return 0;
-        }
-        return dateB.compareTo(dateA);
-      });
-      totalWorkingSalary = calculateTotalWorkingSalary(filteredData);
-      totalWorkTime = calculateTotalWorkTime(filteredData) as double;
-      reqWorkTime = calculateReqWorkTime(filteredData) as double;
-      totalLate = calculateTotalLate(filteredData);
-    });
-  }
-*/
   void applyDateFilter() {
     setState(() {
       if (!isDateRangeValid) {
@@ -374,8 +265,6 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
         return dateB.compareTo(dateA);
       });
 
-      totalWorkingSalary = calculateTotalWorkingSalary(filteredData);
-      totalExtraProduction = calculateTotalExtraProduction(filteredData);
       totalWorkTime = calculateTotalWorkTime(filteredData) as double;
       reqWorkTime = calculateReqWorkTime(filteredData) as double;
       totalLate = calculateTotalLate(filteredData);
@@ -393,7 +282,6 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     });
     _searchFocus.requestFocus();
     filteredData = List<Map<String, dynamic>>.from(data);
-    _scrollController = ScrollController();
 
   }
   final FocusNode _searchFocus = FocusNode();
@@ -619,90 +507,33 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                           Navigator.pop(context);
                                         },
                                       ),
-                                      SizedBox(width: 50,),
                                       if (generatedButton || searchController.text.isNotEmpty)
-                                        Container(
-                                          //width: 200,
-                                          padding: EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [Colors.grey.shade50, Colors.grey.shade50,],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
+                                        Column(
+                                          children: [
+                                            Text(
+                                              "Total Days: ${calculateTotalDays(filteredData)}",
+                                              style: TextStyle(fontSize: 14),
                                             ),
-                                            borderRadius: BorderRadius.circular(15.0),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey.withOpacity(0.5),
-                                                spreadRadius: 2,
-                                                blurRadius: 10,
-                                                offset: const Offset(0, 3),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child:
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                if (fromDate != null && toDate != null && searchController.text.isEmpty)
-                                                  Text(
-                                                    "Total Salary: ₹${calculateTotalWorkingSalary(filteredData).toStringAsFixed(2)}",
-                                                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                                                  )
-                                                else
-                                                  Column(
-                                                    children: [
-                                                      Text(
-                                                        "Total Days: ${calculateTotalDays(filteredData)}",
-                                                        style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.bold),
-                                                      ),
-                                                      const SizedBox(height: 10),
-                                                      Text(
-                                                        "Req Time: ${calculateReqWorkTime(filteredData)}",
-                                                        style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.bold),
-                                                      ),
-                                                      SizedBox(height: 10),
-                                                      Text(
-                                                        "Work Time: ${calculateTotalWorkTime(filteredData)}",
-                                                        style: const TextStyle(fontSize: 13, color: Colors.black),
-                                                      ),
-                                                      if (calculateTotalWorkTimeInHours(filteredData) > 5)
-                                                        Column(
-                                                          children: [
-                                                            const SizedBox(height: 10),
-                                                            Text(
-                                                              "Total Late: $toLate",
-                                                              style: const TextStyle(fontSize: 13, color: Colors.red),
-                                                            ),
-                                                            const SizedBox(height: 10),
-                                                            Text(
-                                                              "Extra Production: ₹${calculateTotalExtraProduction(filteredData)}",
-                                                              style: const TextStyle(fontSize: 13, color: Colors.black),
-                                                            ),
-                                                            const SizedBox(height: 10),
-                                                            Row(
-                                                              children: [
-                                                                const Text(
-                                                                  "Total Salary: ",
-                                                                  style: TextStyle(fontSize: 13, color: Colors.black),
-                                                                ),
-                                                                Text(
-                                                                  "₹${calculateTotalWorkingSalary(filteredData).toStringAsFixed(2)}",
-                                                                  style: const TextStyle(fontSize: 16, color: Colors.black),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        ),
-                                                    ],
-                                                  ),
-                                              ],
+                                            Text(
+                                              "Req Time: ${calculateReqWorkTime(filteredData)}",
+                                              style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              "Late: ${calculateLateTime(filteredData)}",
+                                              style: const TextStyle(fontSize: 13, color: Colors.red),
+                                            ),
+                                            Text(
+                                              "Early Leave: ${calculateEarlyTime(filteredData)}",
+                                              style: const TextStyle(fontSize: 13, color: Colors.red),
+                                            ),
+                                            SizedBox(height: 10),
+                                            Text(
+                                              "Work Time: ${calculateTotalWorkTime(filteredData)}",
+                                              style: const TextStyle(fontSize: 13, color: Colors.black),
                                             ),
 
-                                          ),
-                                        ),
+                                          ],
+                                        )
                                     ],
                                   ),
                                 ],
@@ -716,8 +547,11 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                     errorMessage!,
                                     style: TextStyle(color: Colors.red),
                                   ),
+
                                 ],
+
                               ),
+
                           ],
                         ),
                       ),
@@ -739,7 +573,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
                           children: [
-                            const Align(
+                             Align(
                                 alignment:Alignment.topLeft,
                                 child: Padding(
                                   padding: EdgeInsets.only(left: 5),
@@ -752,23 +586,25 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                           Text("Report Details",style: TextStyle(fontSize:17,fontWeight: FontWeight.bold),),
                                         ],
                                       ),
+
                                     ],
                                   ),
                                 )),
 
                             const SizedBox(height: 20,),
                             PaginatedDataTable(
-                                columnSpacing:65.0,
+                                columnSpacing:90.0,
                                 rowsPerPage:25,
                                 columns:   const [
                                   DataColumn(label: Center(child: Text("S.No",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("In Date",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("Emp Code",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  DataColumn(label: Center(child: Text("Date",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   DataColumn(label: Center(child: Text("    Name",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("Shift",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("Work Time",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("Daily Salary",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("Extra Production",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                   DataColumn(label: Center(child: Text("Shift",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                   DataColumn(label: Center(child: Text("Req Time",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                    DataColumn(label: Center(child: Text("Late",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                    DataColumn(label: Center(child: Text("Early Leave",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                   DataColumn(label: Center(child: Text("Worked Time",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  // DataColumn(label: Center(child: Text("Daily Salary",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 ],
                                 source: _YourDataTableSource(
                                   filteredData,
@@ -895,14 +731,7 @@ class _YourDataTableSource extends DataTableSource {
 
     return DataRow(
       selected: selectedRows[index],
-      // onSelectChanged: (bool? selected) {
-      //   selectedRows[index] = selected ?? false;
-      //   notifyListeners();
-      //   if (selected == true) {
-      //     onRowSelected(row);
-      //
-      //   }
-      // },
+
       cells: [
         DataCell((Center(child: Text("${index + 1}")))),
         DataCell(Center(child: Text(
@@ -913,12 +742,13 @@ class _YourDataTableSource extends DataTableSource {
               : "",
         ),)),
 
-        DataCell(Center(child: Text("${row["emp_code"]}"))),
-        DataCell(Center(child: Text("${row["first_name"]}"))),
-        DataCell(Center(child: Text("${row["shiftType"]}"))),
-        DataCell(Center(child: Text(formatDuration(row["act_time"])))),
-        DataCell(Center(child: Text("₹${row["salary"]}"))),
-        DataCell(Center(child: Text((row["calculated_extraproduction"] ?? 0).toString().replaceAll(RegExp(r'(\.0+|(?<=\.\d)0+)$'), '')))),
+         DataCell(Center(child: Text("${row["first_name"]+' - '+row["emp_code"]} "))),
+         DataCell(Center(child: Text("${row["shiftType"]}"))),
+         DataCell(Center(child: Text(formatDuration(row["req_time"])))),
+         DataCell(Center(child: Text(formatDuration(row["latecheck_in"]?? '-')))),
+         DataCell(Center(child: Text(formatDuration(row["earlycheck_out"])))),
+         DataCell(Center(child: Text(formatDuration(row["act_time"])))),
+
       ],
     );
   }
@@ -953,7 +783,7 @@ class _YourDataTableSource extends DataTableSource {
 
       if (remainingMinutes > 0) {
         if (hours > 0) {
-          formattedDuration += ' ';
+          formattedDuration += '';
         }
         formattedDuration += '$remainingMinutes m';
       }
