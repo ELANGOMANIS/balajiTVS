@@ -8,6 +8,7 @@ import 'package:vinayaga_project/settings/settings.dart';
 import 'Attendance/Attendance_report.dart';
 import 'Attendance/WeeklySalary.dart';
 import 'Attendance/employee_profile_update.dart';
+import 'employee/employee_report.dart';
 import 'home.dart';
 import 'login_page.dart';
 
@@ -140,6 +141,7 @@ class _MyScaffoldState extends State<MyScaffold> {
     'Employee': false,
     'Attendance': false,
     'Salary': false,
+    'Employee Report': false,
     'Settings': false,
   };
   final Map<String, bool> _clicked = {
@@ -147,6 +149,7 @@ class _MyScaffoldState extends State<MyScaffold> {
     'Employee': false,
     'Attendance': false,
     'Salary': false,
+    'Employee Report': false,
     'Settings': false,
   };
 
@@ -226,6 +229,7 @@ class _MyScaffoldState extends State<MyScaffold> {
                   _buildHoverButton('Employee', Icons.person_add_alt_rounded),
                   _buildHoverButton('Attendance', Icons.punch_clock_rounded),
                   _buildHoverButton('Salary', Icons.monetization_on),
+                  _buildHoverButton('Employee Report', Icons.manage_accounts_sharp),
                   _buildHoverButton('Settings', Icons.settings),
                 ],
               ),
@@ -289,6 +293,9 @@ class _MyScaffoldState extends State<MyScaffold> {
         break;
       case 'Salary':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const CumulativeSalaryCalculation()));
+        break;
+      case 'Employee Report':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const EmployeeReport()));
         break;
       case 'Settings':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const Settings()));

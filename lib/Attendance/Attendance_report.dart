@@ -64,9 +64,8 @@ class _AttendanceReportState extends State<AttendanceReport> {
 
   void fetchData() async {
     try {
-      final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
+      final url = Uri.parse('https://xesstechlink.com/get_attendance_overall/');
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final List<dynamic> itemGroups = responseData;

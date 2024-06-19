@@ -10,7 +10,7 @@ class employeeView extends StatefulWidget {
   int id;
   String? empolyeeName;
   String? empID;
-  String? empolyeeMobile;
+ // String? empolyeeMobile;
   String? positoion;
   String? salary;
   String? department;
@@ -20,7 +20,7 @@ class employeeView extends StatefulWidget {
     //required this.date,
     required this.empolyeeName,
     required this.empID,
-    required this.empolyeeMobile,
+   // required this.empolyeeMobile,
     required this.positoion,
     required this.salary,
     required this.department,
@@ -74,7 +74,7 @@ class _employeeViewState extends State<employeeView> {
     currentdatecontroller=TextEditingController();
     empID.text = widget.empID ?? '';
     empName.text = widget.empolyeeName ?? '';
-    employeemobile.text = widget.empolyeeMobile.toString();
+   // employeemobile.text = widget.empolyeeMobile.toString();
     employeeposition.text = widget.positoion.toString();
     employeedept.text = widget.department ?? '';
     employeesalay.text = widget.salary.toString();
@@ -297,7 +297,7 @@ class _employeeViewState extends State<employeeView> {
                           ],
                         ),
                         // SizedBox(width: 8,),
-                        SizedBox(
+                       /* SizedBox(
                           width: 200, height: 70,
                           child: TextFormField(
                             onChanged: (value) {
@@ -309,9 +309,8 @@ class _employeeViewState extends State<employeeView> {
                               setState(() {
                                 errorMessage = null; // Reset error message when user types
                               });
-
                             },
-                            initialValue: widget.empolyeeMobile.toString(),
+                            initialValue: widget.empolyeeMobile,
                             //controller: machineS_No,
                             style: TextStyle(fontSize: 13),
                             keyboardType: TextInputType.text,
@@ -329,7 +328,7 @@ class _employeeViewState extends State<employeeView> {
                               ),
                             ),
                           ),
-                        ),
+                        ),*/
                         // SizedBox(width: 8,),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

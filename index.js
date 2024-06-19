@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const multer = require('multer');
 
+
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const csv = require('csv-parser');
@@ -14,6 +15,8 @@ const axios = require('axios');
 const app = express();
 
 // Settings
+require("dotenv").config();
+//console.log(process.env.WEATHER_API_KEY);
 app.set('port', process.env.PORT || 3309);
 
 // Middlewares
@@ -393,6 +396,7 @@ app.get('/checkorderNo', (req, res) => {
     }
   });
 });
+
 app.get('/get_purchase_orderitem', (req, res) => {
   const orderNo = req.query.orderNo;
 
@@ -1988,6 +1992,9 @@ app.get('/getemployeename', (req, res) => {
   });
 });
 
+
+
+
 app.get('/getemployee', (req, res) => {
   const sql = 'select * from personnel_employee'; // Modify to your table name
 
@@ -2035,7 +2042,6 @@ app.get('/employee/:empID', (req, res) => {
       res.status(404).send('Employee not found');
       return;
     }
-
     res.json(results[0]);
   });
 });
@@ -9915,10 +9921,18 @@ app.put('/time_update_tvs/:id', (req, res) => {
   });
 });
 
+app.get('/getshift', (req, res) => {
+  const sql = 'select * from shift'; // Modify to your table name
 
-
-
-
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Error fetching data' });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
 
 // Starting the server
 app.listen(app.get('port'), () => {
