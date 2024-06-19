@@ -28,13 +28,6 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 
-// MySQL connection
-//const db = mysql.createConnection({
-//   host: '207.174.212.202',
-//   user: 'kanin7w7_vkc',
-//   password: 'vkcones@123',
-//   database: 'kanin7w7_vkc',
-//});
 const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
@@ -53,6 +46,7 @@ db.connect((err) => {
 
 
 //end morning auto save
+//General auto save
 async function insertDatacustomer(dataToInsertcustomer) {
   const apiUrl = 'http://localhost:3309/attandance_entry';
 
@@ -76,102 +70,7 @@ async function insertDatacustomer(dataToInsertcustomer) {
     throw new Error('Error:', error);
   }
 }
-function calculateLate(punches) {
-  if (punches.length < 1) {
-    return ''; // No check-in data
-  }
 
-  const checkInTime = moment(punches[0]['punch_time']);
-  const shiftStart = moment(`${checkInTime.format('YYYY-MM-DD')} 08:00:00`);
-  const lateMinutes = Math.max(0, checkInTime.diff(shiftStart, 'minutes'));
-  return lateMinutes.toString();
-}
-function calculateEarlyLeave(punches) {
-  if (punches.length < 4) {
-    return '';
-  }
-
-  const checkOutTime = moment(punches[3]['punch_time']);
-  let shiftEnd;
-
-  switch (punches[0]['shiftType']) {
-    case 'Morning':
-      shiftEnd = moment(`${checkOutTime.format('YYYY-MM-DD')} 20:00:00`);
-      break;
-    case 'Night':
-      shiftEnd = moment(`${checkOutTime.format('YYYY-MM-DD')} 08:00:00`);
-      break;
-    case 'General':
-      shiftEnd = moment(`${checkOutTime.format('YYYY-MM-DD')} 18:00:00`);
-      break;
-    default:
-      return '';
-  }
-
-  // Calculate early leave minutes
-  const earlyLeaveMinutes = Math.max(0, shiftEnd.diff(checkOutTime, 'minutes'));
-
-  return earlyLeaveMinutes.toString();
-}
-function calculateLateLunch(entries) {
-  if (entries.length < 1 || entries.length < 2 || entries.length < 3) {
-    return '';
-  }
-
-  const lunchOut = moment(entries[1]['punch_time']).local();
-  const lunchIn = moment(entries[2]['punch_time']).local();
-
-  const lateMinutes = Math.max(0, lunchIn.diff(lunchOut, 'minutes') - 30); // Subtract default lunch time
-
-  return lateMinutes.toString();
-}
-function calculateActTime(entries) {
-  if (entries.length % 2 !== 0) {
-    entries.pop();
-  }
-
-  let actTime = 0;
-
-  for (let i = 0; i < entries.length; i += 2) {
-    const checkIn = moment(entries[i]['punch_time']);
-    const lunchOut = moment(entries[i + 1]['punch_time']);
-
-    actTime += Math.max(0, lunchOut.diff(checkIn, 'minutes'));
-  }
-
-  return actTime;
-}
-//General auto save
-function calculateActTimeGeneral(entries) {
-  if (entries.length % 2 != 0) {
-    entries.pop(); // Remove the last entry if the length is odd
-  }
-
-  let actTime = 0;
-
-  for (let i = 0; i < entries.length; i += 2) {
-    const checkIn = moment(entries[i]['punch_time']);
-    const lunchOut = moment(entries[i + 1]['punch_time']);
-
-    // Calculate the time difference in minutes
-    const diffMinutes = lunchOut.diff(checkIn, 'minutes');
-
-    // Ensure the calculated time is positive
-    actTime += Math.max(0, diffMinutes);
-  }
-  actTime -= 30;
-  return actTime;
-}
-function calculateLateCheck(punches) {
-  if (punches.length < 1) {
-    return ''; // No check-in data
-  }
-
-  const checkInTime = moment(punches[0]['punch_time']);
-  const shiftStart = moment(`${checkInTime.format('YYYY-MM-DD')} 09:00:00`);
-  const lateMinutes = Math.max(0, checkInTime.diff(shiftStart, 'minutes'));
-  return lateMinutes.toString();
-}
 async function fetchUnitEntriesGeneral() {
   try {
     const response = await axios.get('http://localhost:3309/attendance_view_general');
@@ -190,6 +89,49 @@ async function fetchUnitEntriesGeneral() {
     throw new Error(`Failed to load unit entries: ${error.message}`);
   }
 }
+app.get('/attendance_view_general', (req, res) => {
+    const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
+
+    const sql = `
+        SELECT
+            e.emp_code,
+            e.first_name,
+            e.salary,
+            e.salaryType,
+            it.punch_time,
+            s.shiftType,
+            s.startTime,
+            s.endTime,
+            t.checkin_start,
+            t.checkin_end,
+            t.checkout_start,
+            t.checkout_end,
+            t.lunchout_start,
+            t.lunchout_end,
+            t.lunchin_start,
+            t.lunchin_end
+        FROM
+            employee e
+        LEFT JOIN
+            iclock_transaction it ON e.emp_code = it.emp_code
+        LEFT JOIN
+            shift s ON e.shift = s.shiftType
+        LEFT JOIN
+            time t ON s.shiftType = t.shiftType
+        WHERE
+            (DATE(it.punch_time) = ? OR DATE(it.punch_time) IS NULL)
+    `;
+
+    db.query(sql, [currentDate], (err, result) => {
+        if (err) {
+            console.error('Error fetching data:', err);
+            res.status(500).json({ error: 'Error fetching data' });
+        } else {
+            res.json(result);
+        }
+    });
+});
+
 cron.schedule('*/1 * * * *', async () => {
     console.log('Automated task started at', new Date());
 
@@ -209,76 +151,56 @@ cron.schedule('*/1 * * * *', async () => {
 
         for (const empEntry of Object.entries(groupedEntries)) {
             const empData = empEntry[1];
+
+            // Define moment objects for time ranges
+            const checkinStart = moment(empData[0]['checkin_start'], 'HH:mm:ss');
+            const checkinEnd = moment(empData[0]['checkin_end'], 'HH:mm:ss');
+            const checkoutStart = moment(empData[0]['checkout_start'], 'HH:mm:ss');
+            const checkoutEnd = moment(empData[0]['checkout_end'], 'HH:mm:ss');
+            const shiftStartTime = moment(empData[0]['startTime'], 'HH:mm:ss'); // Fetch startTime from shift data
+            const shiftEndTime = moment(empData[0]['endTime'], 'HH:mm:ss');// Assuming endTime is fetched from shift data
+            const reqTimeMinutes = shiftEndTime.diff(shiftStartTime, 'minutes');
+
             const checkInTime = empData.length >= 1 ? moment(empData[0]['punch_time']) : null;
-            let lunchOutTime = empData.length >= 2 ? moment(empData[1]['punch_time']) : null;
-            let lunchInTime = empData.length >= 3 ? moment(empData[2]['punch_time']) : null;
-            // const checkOutTime = empData.length >= 4 ? moment(empData[3]['punch_time']) : null;
-            const isSalary = empEntry[1].length > 1;
+            const checkOutTime = empData.length >= 2 ? moment(empData[1]['punch_time']) : null;
 
-            let checkOutTime;
-            if (empData.length >= 4) {
-                const tempCheckOutTime = moment(empData[3]['punch_time']);
-                if (tempCheckOutTime.isSameOrAfter(moment().set({ hour: 16, minute: 0, second: 0 })) &&
-                    tempCheckOutTime.isBefore(moment().set({ hour: 23, minute: 59, second: 50 }))) {
-                    checkOutTime = tempCheckOutTime.format('HH:mm:ss');
-                } else {
-                    checkOutTime = '0';
-                }
-            } else if (empData.length >= 3) {
-                const tempLunchInTime = moment(empData[2]['punch_time']);
-                if (tempLunchInTime.isSameOrAfter(moment().set({ hour: 16, minute: 0, second: 0 })) &&
-                    tempLunchInTime.isBefore(moment().set({ hour: 23, minute: 59, second: 50 }))) {
-                    checkOutTime = tempLunchInTime.format('HH:mm:ss');
-                    lunchInTime = null;
-                } else {
-                    checkOutTime = '0';
-                }
-            } else if (empData.length >= 2) {
-                // Check for lunchOutTime
-                const tempLunchOutTime = moment(empData[1]['punch_time']);
-                if (tempLunchOutTime.isSameOrAfter(moment().set({ hour: 16, minute: 0, second: 0 })) &&
-                    tempLunchOutTime.isBefore(moment().set({ hour: 23, minute: 59, second: 50 }))) {
-                    // If lunchOutTime meets the condition, insert it as check_out
-                    checkOutTime = tempLunchOutTime.format('HH:mm:ss');
-                    // Set lunchOutTime to null to prevent it from being inserted
-                    lunchOutTime = null;
-                } else {
-                    // If lunchOutTime doesn't meet the condition, insert it as lunch_out
-                    checkOutTime = '0';
-                }
-            } else {
-                checkOutTime = '0';
+            let remark = '';
+            let lateCheckInMinutes = 0;
+            let earlyCheckOutMinutes = 0;
+            let actTimeMinutes = 0;
+
+
+            // Calculate late check-in minutes
+            if (checkInTime && checkInTime.isValid() && checkInTime.isAfter(checkinEnd)) {
+                const difference = checkInTime.diff(checkinEnd, 'minutes');
+                lateCheckInMinutes = difference;
             }
-                let remark = '';
 
-               if (empData.length >= 1) {
-                   // If only check_in is present
-                   if (empData.length === 1) {
-                       remark = 'A';
-                   } else {
-                       const checkInTime = moment(empData[0]['punch_time']);
-                       const lunchOutTime = moment(empData[1]['punch_time']);
+            // Calculate early check-out minutes
+            if (checkOutTime && checkOutTime.isValid() && checkOutTime.isBefore(checkoutStart)) {
+                const difference = checkoutStart.diff(checkOutTime, 'minutes');
+                earlyCheckOutMinutes = difference;
+            }
 
-                       if (lunchOutTime.isBetween(moment('11:00:00', 'HH:mm:ss'), moment('16:00:00', 'HH:mm:ss'))) {
-                           remark = 'HD';
-                       } else if (lunchOutTime.isBetween(moment('16:00:00', 'HH:mm:ss'), moment('23:59:59', 'HH:mm:ss'))) {
-                           remark = 'P';
-                       }
+             if (checkInTime && checkOutTime && checkInTime.isValid() && checkOutTime.isValid()) {
+                            actTimeMinutes = checkOutTime.diff(checkInTime, 'minutes');
+                        }
 
-                       if (empData.length >= 3) {
-                           const lunchInTime = moment(empData[2]['punch_time']);
+            // Determine remark
+            if (empData.length === 1) {
+                remark = 'A';
+            } else {
+                remark = 'P';
+            }
 
-                           if (remark === 'HD') {
-                               remark = 'HD';
-                           } else {
-                               remark = 'P';
-                           }
-                           if (empData.length >= 4) {
-                               remark = 'P';
-                           }
-                       }
-                   }
-               }
+            // Prepare data for insertion
+            console.log('checkInTime:', checkInTime ? checkInTime.format('HH:mm:ss') : 'null');
+            console.log('checkOutTime:', checkOutTime ? checkOutTime.format('HH:mm:ss') : 'null');
+            console.log('shiftEndTime:', shiftEndTime.format('HH:mm:ss'));
+            console.log('lateCheckInMinutes:', lateCheckInMinutes);
+            console.log('earlyCheckOutMinutes:', earlyCheckOutMinutes);
+            console.log('reqTimeMinutes:', reqTimeMinutes);
+            console.log('actTimeMinutes:', actTimeMinutes);
 
 
             const dataToInsertcustomer = {
@@ -288,15 +210,12 @@ cron.schedule('*/1 * * * *', async () => {
                 "salaryType": empData[0]['salaryType'].toString(),
                 'inDate': moment(empData[0]['punch_time']).format('YYYY-MM-DD'),
                 'shiftType': empData[0]['shiftType'],
-                'check_in': checkInTime ? checkInTime.format('HH:mm:ss') : '',
-                'lunch_out': lunchOutTime ? lunchOutTime.format('HH:mm:ss') : '',
-                'lunch_in': lunchInTime ? lunchInTime.format('HH:mm:ss') : '',
-                'check_out': checkOutTime,
-                'latecheck_in': calculateLateCheck(empEntry[1]),
-                'late_lunch': calculateLateLunch(empEntry[1]),
-                'earlycheck_out': calculateEarlyLeave(empEntry[1]),
-                'req_time': '510',
-                'act_time': isSalary ? calculateActTimeGeneral(empEntry[1]).toString() : '0',
+                'check_in': checkInTime && (checkInTime.isBetween(checkinStart, checkinEnd) || checkInTime.isSameOrAfter(checkinStart)) ? checkInTime.format('HH:mm:ss') : '',
+                'check_out': checkOutTime && checkOutTime.isValid() ? checkOutTime.format('HH:mm:ss') : '',
+                'latecheck_in': lateCheckInMinutes,
+                'earlycheck_out': earlyCheckOutMinutes,
+                'act_time': actTimeMinutes,
+                'req_time':reqTimeMinutes,
                 'remark': remark,
             };
 
@@ -313,30 +232,8 @@ cron.schedule('*/1 * * * *', async () => {
 });
 
 
+
 //end General auto save
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //24/11/2023
@@ -3731,6 +3628,10 @@ app.get('/attendance_view_morning', (req, res) => {
     }
   });
 });
+
+
+
+/*
 app.get('/attendance_view_general', (req, res) => {
   const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
   const sql = `
@@ -3760,6 +3661,7 @@ app.get('/attendance_view_general', (req, res) => {
     }
   });
 });
+*/
 
 
 /*app.get('/attendance_view_general', (req, res) => {
@@ -3960,24 +3862,10 @@ app.get('/get_attendance_report', (req, res) => {
     }
   });
 });
-app.get('/get_attendance_overall', (req, res) => {
-  const sql = 'SELECT a.*, ' +
-              'SUM(CASE WHEN dws.machineType = "Winding" AND a.emp_code = dws.op_code AND DATE(a.inDate) = DATE(dws.createDate) THEN dws.extraproduction ' +
-              'WHEN dws.machineType IN ("Finishing", "Printing") AND ((a.emp_code = dws.ass_code1 OR a.emp_code = dws.ass_code2) AND DATE(a.inDate) = DATE(dws.createDate)) THEN dws.extraproduction / 2 ' +
-              'ELSE 0 END) AS calculated_extraproduction ' +
-              'FROM attendance a ' +
-              'LEFT JOIN daily_work_status dws ON (a.emp_code = dws.op_code OR a.emp_code = dws.ass_code1 OR a.emp_code = dws.ass_code2) ' +
-              'GROUP BY a.id'; // Assuming id is the primary key of the attendance table
-  db.query(sql, (err, result) => {
-    if (err) {
-      console.error('Error fetching data:', err);
-      res.status(500).json({ error: 'Error fetching data' });
-    } else {
-      console.log('Data fetched successfully');
-      res.status(200).json(result);
-    }
-  });
-});
+
+
+
+
 app.post('/attandance_entry', (req, res) => {
   const { dataToInsertcustomer } = req.body;
 
@@ -9929,10 +9817,121 @@ app.get('/getshift', (req, res) => {
       console.error('Error fetching data:', err);
       res.status(500).json({ error: 'Error fetching data' });
     } else {
-      res.status(200).json(results);
+      console.log('Data fetched successfully');
+      res.status(200).json(result);
     }
   });
 });
+
+
+
+app.get('/get_attendance_overall', (req, res) => {
+  const { fromDate, toDate, emp_code, first_name } = req.query;
+
+  let sqlAttendanceDates = 'SELECT DISTINCT inDate FROM attendance WHERE 1=1';
+  let sqlAttendance = 'SELECT * FROM attendance WHERE 1=1';
+  let sqlEmployees = 'SELECT * FROM employee WHERE 1=1';
+  const params = [];
+
+  if (fromDate) {
+    sqlAttendanceDates += ' AND inDate >= ?';
+    sqlAttendance += ' AND inDate >= ?';
+    params.push(fromDate);
+  }
+  if (toDate) {
+    sqlAttendanceDates += ' AND inDate <= ?';
+    sqlAttendance += ' AND inDate <= ?';
+    params.push(toDate);
+  }
+  if (emp_code) {
+    sqlEmployees += ' AND emp_code = ?';
+    params.push(emp_code);
+  }
+  if (first_name) {
+    sqlEmployees += ' AND first_name LIKE ?';
+    params.push(`%${first_name}%`);
+  }
+
+  db.query(sqlEmployees, params, (errEmployees, resultEmployees) => {
+    if (errEmployees) {
+      console.error('Error fetching employee data:', errEmployees);
+      res.status(500).json({ error: 'Error fetching employee data' });
+    } else {
+      db.query(sqlAttendanceDates, params, (errDates, resultDates) => {
+        if (errDates) {
+          console.error('Error fetching attendance dates:', errDates);
+          res.status(500).json({ error: 'Error fetching attendance dates' });
+        } else {
+          const uniqueDates = resultDates.map(row => row.inDate);
+
+          db.query(sqlAttendance, params, (errAttendance, resultAttendance) => {
+            if (errAttendance) {
+              console.error('Error fetching attendance data:', errAttendance);
+              res.status(500).json({ error: 'Error fetching attendance data' });
+            } else {
+              // Create a map with emp_code and inDate as the key
+              const attendanceMap = new Map();
+              resultAttendance.forEach(row => {
+                const key = `${row.emp_code}-${row.inDate}`;
+                attendanceMap.set(key, row);
+              });
+
+              const combinedData = [];
+
+              uniqueDates.forEach(date => {
+                resultEmployees.forEach(emp => {
+                  const key = `${emp.emp_code}-${date}`;
+                  const attendance = attendanceMap.get(key);
+                  combinedData.push({
+                    ...emp,
+                    inDate: date,
+                    check_in: attendance ? attendance.check_in : '',
+                    check_out: attendance ? attendance.check_out : '',
+                    act_time: attendance ? attendance.act_time : '',
+                    shiftType: attendance ? attendance.shiftType : '',
+                    remark: attendance ? 'Present' : 'Absent'
+                  });
+                });
+              });
+
+              res.status(200).json(combinedData);
+            }
+          });
+        }
+      });
+    }
+  });
+});
+
+
+
+app.post('/shift_insert_tvs', (req, res) => {
+  const { shiftType, startTime, endTime } = req.body;
+
+  // Insert into MySQL
+  const sql = 'INSERT INTO shift (shiftType, startTime, endTime) VALUES (?, ?, ?)';
+  db.query(sql, [shiftType, startTime, endTime], (err, result) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Error inserting shift into database');
+      return;
+    }
+
+    console.log('Shift added:', result);
+
+    // Respond with the inserted data (optional)
+    res.status(200).json({
+      id: result.insertId,
+      shiftType,
+      startTime,
+      endTime
+    });
+  });
+});
+
+
+
+
 
 // Starting the server
 app.listen(app.get('port'), () => {

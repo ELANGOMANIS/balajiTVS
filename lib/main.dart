@@ -4,8 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vinayaga_project/Attendance/Attendance.dart';
 import 'package:vinayaga_project/profile.dart';
 import 'package:vinayaga_project/settings/settings.dart';
-
-import 'Attendance/Attendance_report.dart';
+import 'Attendance/Attendance_reportBalaji.dart';
 import 'Attendance/WeeklySalary.dart';
 import 'Attendance/employee_profile_update.dart';
 import 'employee/employee_report.dart';
@@ -143,6 +142,7 @@ class _MyScaffoldState extends State<MyScaffold> {
     'Salary': false,
     'Employee Report': false,
     'Settings': false,
+    'Attendance Balaji': false,
   };
   final Map<String, bool> _clicked = {
     'Home': false,
@@ -151,6 +151,7 @@ class _MyScaffoldState extends State<MyScaffold> {
     'Salary': false,
     'Employee Report': false,
     'Settings': false,
+    'Attendance Balaji': false,
   };
 
   @override
@@ -289,7 +290,7 @@ class _MyScaffoldState extends State<MyScaffold> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => const EmployeeProfileUpdate()));
         break;
       case 'Attendance':
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const AttendanceReport()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const AttendanceBalaji()));
         break;
       case 'Salary':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const CumulativeSalaryCalculation()));
@@ -300,6 +301,7 @@ class _MyScaffoldState extends State<MyScaffold> {
       case 'Settings':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const Settings()));
         break;
+
     }
   }
 }
