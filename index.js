@@ -114,14 +114,12 @@ app.get('/attendance_view_general', (req, res) => {
             t.lunchin_end
         FROM
             employee e
-        LEFT JOIN
-            iclock_transaction it ON e.emp_code = it.emp_code
+        INNER JOIN
+            iclock_transaction it ON e.emp_code = it.emp_code AND DATE(it.punch_time) = ?
         LEFT JOIN
             shift s ON e.shift = s.shiftType
         LEFT JOIN
             time t ON s.shiftType = t.shiftType
-        WHERE
-            (DATE(it.punch_time) = ? OR DATE(it.punch_time) IS NULL)
     `;
 
     db.query(sql, [currentDate], (err, result) => {
@@ -133,7 +131,6 @@ app.get('/attendance_view_general', (req, res) => {
         }
     });
 });
-
 cron.schedule('*/1 * * * *', async () => {
     console.log('Automated task started at', new Date());
 
@@ -219,7 +216,7 @@ cron.schedule('*/1 * * * *', async () => {
                 "first_name": empData[0]['first_name'].toString(),
                 "monthly_salary": empData[0]['salary'].toString(),
                 "salary": dailySalary, // Added daily salary
-                'inDate': moment(empData[0]['punch_time']).format('YYYY-MM-DD'),
+                'inDate': checkInTime ? checkInTime.format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
                 'shiftType': empData[0]['shiftType'],
                 'check_in': checkInTime && (checkInTime.isBetween(checkinStart, checkinEnd) || checkInTime.isSameOrAfter(checkinStart)) ? checkInTime.format('HH:mm:ss') : '',
                 'check_out': checkOutTime && checkOutTime.isValid() ? checkOutTime.format('HH:mm:ss') : '',
@@ -10034,14 +10031,7 @@ app.get('/getshift', (req, res) => {
 });
 
 app.get('/get_individual_salary', (req, res) => {
-  const sql = `
-    SELECT
-      a.*
-    FROM
-      attendance a
-    GROUP BY
-      a.id`; // Assuming id is the primary key of the attendance table
-
+   const sql = 'select * from attendance'; // Modify to your table name
   db.query(sql, (err, result) => {
     if (err) {
       console.error('Error fetching data:', err);

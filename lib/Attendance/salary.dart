@@ -148,7 +148,6 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     try {
       final url = Uri.parse('http://localhost:3309/get_individual_salary/');
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final List<dynamic> itemGroups = responseData;
@@ -181,6 +180,8 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
       print('Error: $error');
     }
   }
+
+
   void applySorting() {
     filteredData.sort((a, b) {
       DateTime? dateA = DateTime.tryParse(a['inDate'] ?? '');
