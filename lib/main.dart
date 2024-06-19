@@ -9,6 +9,7 @@ import 'Attendance/Attendance_report.dart';
 import 'Attendance/Attendance_reportBalaji.dart';
 import 'Attendance/WeeklySalary.dart';
 import 'Attendance/employee_profile_update.dart';
+import 'Attendance/salary.dart';
 import 'home.dart';
 import 'login_page.dart';
 
@@ -53,9 +54,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Vinayaga Cones',
-      //home: const LoginPage(),
+      home: const LoginPage(),
      // home: const Home(),
-      home: const Settings(),
+      //home: const SalaryCalculation(),
       // initialRoute: 'loginpage',
       //   routes: {'loginpage':(context)=> LoginPAge()},
       theme: ThemeData (

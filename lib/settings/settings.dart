@@ -48,43 +48,11 @@ class _SettingsState extends State<Settings> {
       initialTime: TimeOfDay.now(),
     );
     if (picked != null) {
-      // Manually input the seconds
-      String? seconds = await _selectSeconds(context);
-      if (seconds != null) {
-        setState(() {
-          final localizations = MaterialLocalizations.of(context);
-          controller.text = localizations.formatTimeOfDay(picked, alwaysUse24HourFormat: true) + ':$seconds';
-        });
-      }
+      setState(() {
+        final localizations = MaterialLocalizations.of(context);
+        controller.text = localizations.formatTimeOfDay(picked, alwaysUse24HourFormat: true) + ':00';
+      });
     }
-  }
-
-  Future<String?> _selectSeconds(BuildContext context) async {
-    String? selectedSeconds;
-    await showDialog(
-      context: context,
-      builder: (context) {
-        TextEditingController secondsController = TextEditingController();
-        return AlertDialog(
-          title: Text('Enter Seconds'),
-          content: TextField(
-            controller: secondsController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Seconds'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                selectedSeconds = secondsController.text;
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-    return selectedSeconds;
   }
 
   void _showAddShiftDialog(BuildContext context) {
@@ -191,11 +159,52 @@ class _SettingsState extends State<Settings> {
       },
     );
   }
+// Function to add a new shift
   Future<void> addShift() async {
     final newShift = {
       'shiftType': _shiftTypeController.text,
       'startTime': _startTimeController.text,
       'endTime': _endTimeController.text,
+      'checkin_start': '00:00:00',
+      'checkin_end': '00:00:00',
+      'checkout_start': '00:00:00',
+      'checkout_end': '00:00:00',
+    };
+
+    final response = await http.post(
+      Uri.parse('http://localhost:3309/shift_insert_tvs'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(newShift),
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: Text(responseData['message']),
+        ),
+      );
+      // Clear text fields after successful addition
+      _shiftTypeController.clear();
+      _startTimeController.clear();
+      _endTimeController.clear();
+    } else {
+      throw Exception('Failed to add shift');
+    }
+  }
+/*
+  Future<void> addShift() async {
+    final newShift = {
+      'shiftType': _shiftTypeController.text,
+      'startTime': _startTimeController.text,
+      'endTime': _endTimeController.text,
+      'checkin_start': '00:00:00',
+      'checkin_end': '00:00:00',
+      'checkout_start': '00:00:00',
+      'checkout_end': '00:00:00',
     };
 
     final response = await http.post(
@@ -213,17 +222,16 @@ class _SettingsState extends State<Settings> {
           content: Text('Shift added'),
         ),
       );
-      setState(() {
-        shifts.add(json.decode(response.body));
-        isAddingShift = false;
-        _shiftTypeController.clear();
-        _startTimeController.clear();
-        _endTimeController.clear();
-      });
+      // Clear text fields after successful addition
+      _shiftTypeController.clear();
+      _startTimeController.clear();
+      _endTimeController.clear();
     } else {
       throw Exception('Failed to add shift');
     }
   }
+*/
+
   fetchShifts() async {
     final response = await http.get(Uri.parse('http://localhost:3309/shift_tvs'));
     if (response.statusCode == 200) {
@@ -610,27 +618,6 @@ class _SettingsState extends State<Settings> {
                                 ),
                               ],
                             ),
-                            /*Align(
-                              alignment: Alignment.topLeft,
-                              child: Row(
-                                children: [
-                                  Text("Lunch Time", style: TextStyle(fontSize: 14)),
-
-                                  Switch(
-                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap, // Reduces tap target size
-                                    activeColor: Colors.blue, // Color when switch is ON
-                                    inactiveThumbColor: Colors.grey, // Color of the switch knob when OFF
-                                    inactiveTrackColor: Colors.grey.withOpacity(0.5),
-                                    value: showLunchOutRows,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        showLunchOutRows = value;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),*/
                             SizedBox(height: 20),
                             Row(
                               children: [

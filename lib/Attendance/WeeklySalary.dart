@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:vinayaga_project/Attendance/salary.dart';
 import 'package:vinayaga_project/Attendance/salary_weekly_pdf.dart';
 
 
@@ -23,9 +24,30 @@ class _CumulativeSalaryCalculationState
   DateTime? fromDate;
   DateTime? toDate;
   bool isCardVisible = false;
+  Future<List<String>> getSuggestions(String field, String pattern) async {
+    final List<String> suggestions = [];
 
+    try {
+      final response = await http.get(
+        Uri.http('localhost:3309', '/get_shift_type', {'field': field, 'pattern': pattern}),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        data.forEach((item) {
+          suggestions.add(item[field]);
+        });
+      } else {
+        throw Exception('Failed to fetch suggestions');
+      }
+    } catch (error) {
+      print('Error fetching suggestions: $error');
+      throw Exception('Failed to fetch suggestions');
+    }
+
+    return suggestions;
+  }
   List<Map<String, dynamic>> reportData = [];
-  final List<String> _shiftTypes = ['General', 'Morning', 'Night'];
   Future<void> fetchReport() async {
     if (fromDate == null || toDate == null) {
       print("Please select both From Date and To Date");
@@ -158,7 +180,7 @@ class _CumulativeSalaryCalculationState
                       ),
                       child: Column(
                         children: [
-                          const Row(
+                           Row(
                             children: [
                               Icon(Icons.report),
                               SizedBox(width: 10),
@@ -169,6 +191,10 @@ class _CumulativeSalaryCalculationState
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              SizedBox(width: 10),
+                              MaterialButton(onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (Context) => const SalaryCalculation()));
+                              }, child: Text('Individual', style: TextStyle(color: Colors.blue),)),
                             ],
                           ),
                           Padding(
@@ -228,38 +254,23 @@ class _CumulativeSalaryCalculationState
                                 SizedBox(
                                   width: 180,
                                   height: 34,
-                                  child:
-                                  TypeAheadFormField(
+                                  child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
-                                      controller: _typeAheadController, // Use the controller here.
-                                      decoration: const InputDecoration(
-                                        labelText: 'Shift Type',
-                                        border: OutlineInputBorder(),
-                                        suffixIcon: Icon(Icons.arrow_drop_down),
+                                      controller: _typeAheadController,
+                                      decoration: InputDecoration(labelText: 'Shift',                                      labelStyle: TextStyle(fontSize: 12),
                                       ),
                                     ),
-                                    suggestionsCallback: (pattern) {
-                                      return _shiftTypes.where((item) => item.toLowerCase().contains(pattern.toLowerCase()));
+                                    suggestionsCallback: (pattern) async {
+                                      return getSuggestions('shiftType', pattern);
                                     },
                                     itemBuilder: (context, suggestion) {
                                       return ListTile(
-                                        title: Text(suggestion.toString()),
+                                        title: Text(suggestion),
                                       );
                                     },
                                     onSuggestionSelected: (suggestion) {
-                                      setState(() {
-                                        selectedShiftType = suggestion.toString();
-                                        _typeAheadController.text = selectedShiftType!; // Update the controller text when an item is selected.
-                                      });
+                                      _typeAheadController.text = suggestion;
                                     },
-                                    // Optionally clear the selection based on your app's logic
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'Please select a shift type';
-                                      }
-                                      return null;
-                                    },
-                                    onSaved: (value) => selectedShiftType = value,
                                   ),
                                 ),
                                 Padding(

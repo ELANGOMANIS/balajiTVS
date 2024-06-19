@@ -88,7 +88,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
     try {
       final response = await http.get(
-        Uri.http('localhost:3309', '/get_attendance_overallold', {'field': field, 'pattern': pattern}),
+        Uri.http('localhost:3309', '/get_employee', {'field': field, 'pattern': pattern}),
       );
 
       if (response.statusCode == 200) {
@@ -109,7 +109,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
-    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check-in', 'Check-out', 'Total Hrs', 'Remark'];
+    final headers = ['S.No', 'Date', 'Emp Code', 'Name', 'Shift', 'Check-in', 'Check-out', 'Total Hrs', 'Remark'];
 
     const int rowsPerPage = 18; // Define the number of rows per page
     int totalPages = (data.length / rowsPerPage).ceil();
@@ -212,7 +212,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       });
                                     },
                                     decoration: InputDecoration(
-                                      labelText: 'From Date (YYYY-MM-DD)',
+                                      labelText: 'From',
                                       labelStyle: TextStyle(fontSize: 12),
                                       suffixIcon: IconButton(
                                         icon: Icon(Icons.date_range),
@@ -255,7 +255,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       });
                                     },
                                     decoration: InputDecoration(
-                                      labelText: 'To Date (YYYY-MM-DD)',
+                                      labelText: 'To',
                                       labelStyle: TextStyle(fontSize: 12),
                                       suffixIcon: IconButton(
                                         icon: Icon(Icons.date_range),
@@ -283,6 +283,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   width: 240,
                                   child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
+                                      style: TextStyle(fontSize: 12),
                                       controller: empCodeController,
                                       decoration: InputDecoration(labelText: 'Employee Code',                                      labelStyle: TextStyle(fontSize: 12),
                                       ),
@@ -307,6 +308,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   width: 240,
                                   child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
+                                      style: TextStyle(fontSize: 12),
                                       controller: firstNameController,
                                       decoration: InputDecoration(labelText: 'First Name',
                                         labelStyle: TextStyle(fontSize: 12),
@@ -419,8 +421,8 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                               rowsPerPage: 18,
                               columns: const [
                                 DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("In Date", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("Emp Code", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold),))),
+                               // DataColumn(label: Center(child: Text("Emp Code", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Name", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Shift", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Check-in", style: TextStyle(fontWeight: FontWeight.bold),))),
@@ -468,7 +470,7 @@ class AttendanceDataSource extends DataTableSource {
                 : "",
           ),
         )),
-        DataCell(Center(child: Text(attendance['emp_code'] ?? ''))),
+        //DataCell(Center(child: Text(attendance['emp_code'] ?? ''))),
         DataCell(Center(child: Text(attendance['first_name'] ?? ''))),
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
