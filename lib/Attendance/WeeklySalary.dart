@@ -407,7 +407,9 @@ class _CumulativeSalaryCalculationState
                               DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Deduction Amount", style: TextStyle(fontWeight: FontWeight.bold)))),
+                               DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+
                               // DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Extra\nProduction", style: TextStyle(fontWeight: FontWeight.bold)))),
@@ -457,6 +459,7 @@ class _DataSource extends DataTableSource {
       DataCell(Text(formatDuration(data['total_act_time'].toString()))),
       //DataCell(Text(formatDuration(data['total_late'].toString()))),
       DataCell(Text('\u20B9 ${data['monthly_salary']}')),
+      DataCell(Text('\u20B9 ${data['deduction_salary']}')),
       DataCell(Text('\u20B9 ${data['total_salary']}')), // Display per day salary with rupee symbol
       // DataCell(Text(calculateSalary(data).toString())),
       // DataCell(Text(double.parse(data['calculated_extraproduction']).toInt().toString())),
