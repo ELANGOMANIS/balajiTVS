@@ -22,6 +22,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
   final TextEditingController toDateController = TextEditingController();
   final TextEditingController empCodeController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController shiftController = TextEditingController();
   String selectedSuggestion = ''; // Track selected suggestion
   @override
   void initState() {
@@ -35,9 +36,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
         toDate: toDateController.text,
         empCode: empCodeController.text,
         firstName: firstNameController.text,
+        shiftType: shiftController.text,
       );
     });
   }
+/*
   Future<List<Map<String, dynamic>>> fetchAttendanceBalaji({String? fromDate, String? toDate, String? empCode, String? firstName,}) async {
     try {
       final queryParameters = {
@@ -45,6 +48,45 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
         if (toDate != null) 'toDate': toDate,
         if (empCode != null) 'emp_code': empCode,
         if (firstName != null) 'first_name': firstName,
+      };
+
+      final uri = Uri.http(
+        'localhost:3309',
+        '/get_attendance_overall',
+        queryParameters,
+      );
+
+      final response = await http.get(uri);
+      print("response ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load attendance summary');
+      }
+    } catch (error) {
+      print('Error fetching attendance summary: $error');
+      throw Exception('Failed to load attendance summary');
+    }
+  }
+*/
+
+
+  Future<List<Map<String, dynamic>>> fetchAttendanceBalaji({
+    String? fromDate,
+    String? toDate,
+    String? empCode,
+    String? firstName,
+    String? shiftType, // Add shiftType parameter
+  }) async {
+    try {
+      final queryParameters = {
+        if (fromDate != null) 'fromDate': fromDate,
+        if (toDate != null) 'toDate': toDate,
+        if (empCode != null) 'emp_code': empCode,
+        if (firstName != null) 'first_name': firstName,
+        if (shiftType != null) 'shiftType': shiftType, // Add shiftType to query parameters
       };
 
       final uri = Uri.http(
@@ -375,6 +417,32 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   ),
                                 ),
                               ),
+                              Flexible(
+                                child: SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TypeAheadFormField(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                      controller: shiftController,
+                                      decoration: InputDecoration(labelText: 'Shift',
+                                        labelStyle: TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                    suggestionsCallback: (pattern) async {
+                                      return getSuggestions('first_name', pattern);
+                                    },
+                                    itemBuilder: (context, suggestion) {
+                                      return ListTile(
+                                        title: Text(suggestion),
+                                      );
+                                    },
+                                    onSuggestionSelected: (suggestion) {
+                                      shiftController.text = suggestion;
+                                    },
+                                  ),
+                                ),
+                              ),
+
                               Flexible(
                                 child: ElevatedButton(
                                   onPressed: _applyFilters,
