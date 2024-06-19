@@ -21,6 +21,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
   final TextEditingController toDateController = TextEditingController();
   final TextEditingController empCodeController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
+  String selectedSuggestion = ''; // Track selected suggestion
   @override
   void initState() {
     super.initState();
@@ -65,9 +66,9 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       throw Exception('Failed to load attendance summary');
     }
   }
+
   Future<List<String>> getSuggestions(String field, String pattern) async {
     final List<String> suggestions = [];
-
     try {
       final response = await http.get(
         Uri.http('localhost:3309', '/get_employee', {'field': field, 'pattern': pattern}),
@@ -75,9 +76,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        data.forEach((item) {
-          suggestions.add(item[field]);
-        });
+        suggestions.addAll(data
+            .where((item) =>
+        item['emp_code'].toString().toLowerCase().contains(pattern.toLowerCase()) ||
+            item['first_name'].toString().toLowerCase().contains(pattern.toLowerCase()))
+            .map((item) => '${item['emp_code']} - ${item['first_name']}'));
       } else {
         throw Exception('Failed to fetch suggestions');
       }
@@ -88,7 +91,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
     return suggestions;
   }
-
 
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
@@ -107,7 +109,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
    // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
    // final imageBytes = imageData.buffer.asUint8List();
 
-    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Total Hrs', 'Remark'];
+    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Late\nin','Early\nout', 'required\nTime', 'Total Hrs', 'Remark'];
 
     const int rowsPerPage = 20; // Define the number of rows per page
     int totalPages = (data.length / rowsPerPage).ceil();
@@ -147,10 +149,10 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
           build: (pw.Context context) {
             return [
               pw.Table.fromTextArray(
-                columnWidths: columnWidths,
+               // columnWidths: columnWidths,
                 headers: headers,
-                cellStyle: pw.TextStyle(fontSize: 10),
-                headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+                cellStyle: pw.TextStyle(fontSize: 6),
+                headerStyle: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold),
                 data: pageData.map((attendance) {
                   return [
                     '${data.indexOf(attendance) + 1}',
@@ -160,7 +162,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                     attendance['shiftType'] ?? '',
                     attendance['check_in'] ?? '',
                     attendance['check_out'] ?? '',
+                    formatDuration(attendance['latecheck_in'] ?? '') ?? '',
+                    formatDuration(attendance['earlycheck_out'] ?? '') ?? '',
+                    attendance['req_time'] ?? '',
                     attendance['act_time'] ?? '',
+
                     attendance['remark'] ?? '',
                   ];
                 }).toList(),
@@ -173,6 +179,14 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
     final Uint8List bytes = await pdf.save();
     await Printing.sharePdf(bytes: bytes, filename: 'attendance_report.pdf');
+  }
+
+  String extractEmpCode(String suggestion) {
+    final parts = suggestion.split(' - ');
+    if (parts.length >= 2) {
+      return parts[1]; /// Get the first part (emp_code) use parts 0 & get a first name use 1
+    }
+    return ''; // Return empty string if separation fails
   }
 
 
@@ -305,7 +319,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   ),
                                 ),
                               ),
-                              Flexible(
+                           /*   Flexible(
                                 child: SizedBox(
                                   height:50,
                                   width: 240,
@@ -324,11 +338,14 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       );
                                     },
                                     onSuggestionSelected: (suggestion) {
-                                      empCodeController.text = suggestion;
+                                      setState(() {
+                                        selectedSuggestion = suggestion;
+                                        empCodeController.text = extractEmpCode(suggestion); // Set empCodeController
+                                      });
                                     },
                                   ),
                                 ),
-                              ),
+                              ),*/
                               Flexible(
                                 child: SizedBox(
                                   height:50,
@@ -336,7 +353,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
                                       controller: firstNameController,
-                                      decoration: InputDecoration(labelText: 'First Name',
+                                      decoration: InputDecoration(labelText: 'First Name / Employee Code',
                                         labelStyle: TextStyle(fontSize: 12),
                                       ),
                                     ),
@@ -349,7 +366,10 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       );
                                     },
                                     onSuggestionSelected: (suggestion) {
-                                      firstNameController.text = suggestion;
+                                      setState(() {
+                                        selectedSuggestion = suggestion;
+                                        firstNameController.text = extractEmpCode(suggestion); // Set empCodeController
+                                      });
                                     },
                                   ),
                                 ),
@@ -447,12 +467,14 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                               rowsPerPage: 20,
                               columns: const [
                                 DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("In Date", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("Emp Code", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Name", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Shift", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Check-in", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Check-out", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("latecheck-in", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("earlycheck-out", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("req_time", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Remark", style: TextStyle(fontWeight: FontWeight.bold),))),
                               ],
@@ -495,11 +517,14 @@ class AttendanceDataSource extends DataTableSource {
                 : "",
           ),
         )),
-        DataCell(Center(child: Text(attendance['emp_code'] ?? ''))),
-        DataCell(Center(child: Text(attendance['first_name'] ?? ''))),
+
+        DataCell(Center(child: Text(attendance['first_name'] + ' - ' + attendance['emp_code'] ?? '')),),
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_out'] ?? ''))),
+        DataCell(Center(child: Text(formatDuration(attendance['latecheck_in'] ?? '')))),
+        DataCell(Center(child: Text(formatDuration(attendance['earlycheck_out'] ?? '')))),
+        DataCell(Center(child: Text(attendance['req_time'] ?? ''))),
         DataCell(Center(child: Text(attendance['act_time'] ?? ''))),
         DataCell(Center(child: Text(attendance['remark'] ?? ''))),
       ],
@@ -514,4 +539,36 @@ class AttendanceDataSource extends DataTableSource {
 
   @override
   int get selectedRowCount => 0;
+}
+
+String formatDuration(String durationInMinutes) {
+  try {
+    if (durationInMinutes != null) {
+      int minutes = int.tryParse(durationInMinutes) ?? 0; // Use int.tryParse with a fallback value of 0
+      Duration duration = Duration(minutes: minutes);
+
+      int hours = duration.inHours;
+      int remainingMinutes = duration.inMinutes.remainder(60);
+
+      String formattedDuration = '';
+
+      if (hours > 0) {
+        formattedDuration += '$hours h';
+      }
+
+      if (remainingMinutes > 0) {
+        if (hours > 0) {
+          formattedDuration += ' ';
+        }
+        formattedDuration += '$remainingMinutes m';
+      }
+
+      return formattedDuration.trim();
+    }
+  } catch (e) {
+    // Handle the exception, e.g., log the error or return a default value
+    print('Error formatting duration: $e');
+  }
+
+  return ""; // Return a default value if there's an error
 }
