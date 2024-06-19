@@ -8259,7 +8259,6 @@ app.get('/get_cumulative_salary', (req, res) => {
   });
 });
 
-
 /*
 app.get('/get_cumulative_salary', (req, res) => {
   const fromDate = req.query.fromDate;

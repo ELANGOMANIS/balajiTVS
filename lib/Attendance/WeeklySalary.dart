@@ -163,7 +163,7 @@ class _CumulativeSalaryCalculationState
                       child: Column(
                         children: [
 
-                           Row(
+                          Row(
                             children: [
                               Icon(Icons.report),
                               SizedBox(width: 10),
@@ -407,7 +407,7 @@ class _CumulativeSalaryCalculationState
                               DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
-                               DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Extra\nProduction", style: TextStyle(fontWeight: FontWeight.bold)))),
@@ -451,7 +451,7 @@ class _DataSource extends DataTableSource {
       DataCell(Text(data['employee'])),
       // DataCell(Text(_fromDate != null ? DateFormat('yyyy-MM-dd').format(_fromDate!) : '')),
       // DataCell(Text(_toDate != null ? DateFormat('yyyy-MM-dd').format(_toDate!) : '')),
-     // DataCell(Text(shiftType)),
+      // DataCell(Text(shiftType)),
       DataCell(Text((data['no_of_work_days'].toString()))),
       DataCell(Text(formatDuration(data['total_req_time'].toString()))),
       DataCell(Text(formatDuration(data['total_act_time'].toString()))),
