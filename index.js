@@ -10219,6 +10219,9 @@ app.get('/get_attendance_overall', (req, res) => {
                     check_out: attendance ? attendance.check_out : '',
                     act_time: attendance ? attendance.act_time : '',
                     shiftType: attendance ? attendance.shiftType : '',
+                    latecheck_in: attendance ? attendance.latecheck_in : '',
+                    earlycheck_out: attendance ? attendance.earlycheck_out : '',
+                    req_time: attendance ? attendance.req_time : '',
                     remark: attendance ? 'Present' : 'Absent'
                   });
                 });

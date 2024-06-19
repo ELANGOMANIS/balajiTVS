@@ -1,47 +1,33 @@
+
 import 'dart:convert';
-import 'dart:html';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_file/open_file.dart';
 import 'package:printing/printing.dart';
 import '../../main.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pdfWidgets;
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:pdf/widgets.dart' as pw;
-
-
-
 class AttendanceBalaji extends StatefulWidget {
   const AttendanceBalaji({Key? key}) : super(key: key);
 
   @override
   State<AttendanceBalaji> createState() => _AttendanceBalajiState();
 }
-
 class _AttendanceBalajiState extends State<AttendanceBalaji> {
   late Future<List<Map<String, dynamic>>> attendanceDetailsFuture;
   final TextEditingController fromDateController = TextEditingController();
   final TextEditingController toDateController = TextEditingController();
   final TextEditingController empCodeController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
-
+  String selectedSuggestion = ''; // Track selected suggestion
   @override
   void initState() {
     super.initState();
     attendanceDetailsFuture = fetchAttendanceBalaji();
   }
-
   void _applyFilters() {
     setState(() {
       attendanceDetailsFuture = fetchAttendanceBalaji(
@@ -52,7 +38,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       );
     });
   }
-
   Future<List<Map<String, dynamic>>> fetchAttendanceBalaji({String? fromDate, String? toDate, String? empCode, String? firstName,}) async {
     try {
       final queryParameters = {
@@ -85,7 +70,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
   Future<List<String>> getSuggestions(String field, String pattern) async {
     final List<String> suggestions = [];
-
     try {
       final response = await http.get(
         Uri.http('localhost:3309', '/get_employee', {'field': field, 'pattern': pattern}),
@@ -93,9 +77,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        data.forEach((item) {
-          suggestions.add(item[field]);
-        });
+        suggestions.addAll(data
+            .where((item) =>
+        item['emp_code'].toString().toLowerCase().contains(pattern.toLowerCase()) ||
+            item['first_name'].toString().toLowerCase().contains(pattern.toLowerCase()))
+            .map((item) => '${item['emp_code']} - ${item['first_name']}'));
       } else {
         throw Exception('Failed to fetch suggestions');
       }
@@ -109,9 +95,24 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
-    final headers = ['S.No', 'Date', 'Emp Code', 'Name', 'Shift', 'Check-in', 'Check-out', 'Total Hrs', 'Remark'];
+    final columnWidths = <int, pw.TableColumnWidth>{
+      0: pw.FixedColumnWidth(40),
+      1: pw.FixedColumnWidth(90),
+      2: pw.FixedColumnWidth(80),
+      3: pw.FixedColumnWidth(90),
+      4: pw.FixedColumnWidth(80),
+      5: pw.FixedColumnWidth(75),
+      6: pw.FixedColumnWidth(75),
+      7: pw.FixedColumnWidth(80),
+      8: pw.FixedColumnWidth(75),
 
-    const int rowsPerPage = 18; // Define the number of rows per page
+    };
+    // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
+    // final imageBytes = imageData.buffer.asUint8List();
+
+    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Late\nin','Early\nout', 'required\nTime', 'Total Hrs', 'Remark'];
+
+    const int rowsPerPage = 20; // Define the number of rows per page
     int totalPages = (data.length / rowsPerPage).ceil();
 
     for (int page = 0; page < totalPages; page++) {
@@ -119,25 +120,59 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       final endRow = (startRow + rowsPerPage) > data.length ? data.length : (startRow + rowsPerPage);
       final pageData = data.sublist(startRow, endRow);
 
+
       pdf.addPage(
-        pw.Page(
-          build: (pw.Context context) {
-            return pw.Table.fromTextArray(
-              headers: headers,
-              data: pageData.map((attendance) {
-                return [
-                  '${data.indexOf(attendance) + 1}',
-                  attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
-                  attendance['emp_code'] ?? '',
-                  attendance['first_name'] ?? '',
-                  attendance['shiftType'] ?? '',
-                  attendance['check_in'] ?? '',
-                  attendance['check_out'] ?? '',
-                  attendance['act_time'] ?? '',
-                  attendance['remark'] ?? '',
-                ];
-              }).toList(),
+        pw.MultiPage(
+          header: (pw.Context context) {
+            return pw.Container(
+                alignment: pw.Alignment.center,
+                padding: pw.EdgeInsets.all(10),
+                child: pw.Column(
+                  children: [
+                    pw.Row(
+                      children: [
+                        pw.Text('Attendance Report', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                        pw.Spacer(),
+                        //  pw.Image(pw.MemoryImage(imageBytes), width: 50, height: 50)
+
+
+                      ],
+
+                    ),
+
+                    pw.Divider(),
+                  ],
+
+                )
+
             );
+          },
+          build: (pw.Context context) {
+            return [
+              pw.Table.fromTextArray(
+                // columnWidths: columnWidths,
+                headers: headers,
+                cellStyle: pw.TextStyle(fontSize: 6),
+                headerStyle: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold),
+                data: pageData.map((attendance) {
+                  return [
+                    '${data.indexOf(attendance) + 1}',
+                    attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
+                    attendance['emp_code'] ?? '',
+                    attendance['first_name'] ?? '',
+                    attendance['shiftType'] ?? '',
+                    attendance['check_in'] ?? '',
+                    attendance['check_out'] ?? '',
+                    formatDuration(attendance['latecheck_in'] ?? '') ?? '',
+                    formatDuration(attendance['earlycheck_out'] ?? '') ?? '',
+                    attendance['req_time'] ?? '',
+                    attendance['act_time'] ?? '',
+
+                    attendance['remark'] ?? '',
+                  ];
+                }).toList(),
+              )
+            ];
           },
         ),
       );
@@ -145,6 +180,14 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
     final Uint8List bytes = await pdf.save();
     await Printing.sharePdf(bytes: bytes, filename: 'attendance_report.pdf');
+  }
+
+  String extractEmpCode(String suggestion) {
+    final parts = suggestion.split(' - ');
+    if (parts.length >= 2) {
+      return parts[1]; /// Get the first part (emp_code) use parts 0 & get a first name use 1
+    }
+    return ''; // Return empty string if separation fails
   }
 
 
@@ -212,7 +255,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       });
                                     },
                                     decoration: InputDecoration(
-                                      labelText: 'From',
+                                      labelText: 'From Date (YYYY-MM-DD)',
                                       labelStyle: TextStyle(fontSize: 12),
                                       suffixIcon: IconButton(
                                         icon: Icon(Icons.date_range),
@@ -255,7 +298,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       });
                                     },
                                     decoration: InputDecoration(
-                                      labelText: 'To',
+                                      labelText: 'To Date (YYYY-MM-DD)',
                                       labelStyle: TextStyle(fontSize: 12),
                                       suffixIcon: IconButton(
                                         icon: Icon(Icons.date_range),
@@ -277,13 +320,12 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   ),
                                 ),
                               ),
-                              Flexible(
+                              /*   Flexible(
                                 child: SizedBox(
                                   height:50,
                                   width: 240,
                                   child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
-                                      style: TextStyle(fontSize: 12),
                                       controller: empCodeController,
                                       decoration: InputDecoration(labelText: 'Employee Code',                                      labelStyle: TextStyle(fontSize: 12),
                                       ),
@@ -297,20 +339,22 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       );
                                     },
                                     onSuggestionSelected: (suggestion) {
-                                      empCodeController.text = suggestion;
+                                      setState(() {
+                                        selectedSuggestion = suggestion;
+                                        empCodeController.text = extractEmpCode(suggestion); // Set empCodeController
+                                      });
                                     },
                                   ),
                                 ),
-                              ),
+                              ),*/
                               Flexible(
                                 child: SizedBox(
                                   height:50,
                                   width: 240,
                                   child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
-                                      style: TextStyle(fontSize: 12),
                                       controller: firstNameController,
-                                      decoration: InputDecoration(labelText: 'First Name',
+                                      decoration: InputDecoration(labelText: 'First Name / Employee Code',
                                         labelStyle: TextStyle(fontSize: 12),
                                       ),
                                     ),
@@ -323,7 +367,10 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       );
                                     },
                                     onSuggestionSelected: (suggestion) {
-                                      firstNameController.text = suggestion;
+                                      setState(() {
+                                        selectedSuggestion = suggestion;
+                                        firstNameController.text = extractEmpCode(suggestion); // Set empCodeController
+                                      });
                                     },
                                   ),
                                 ),
@@ -333,7 +380,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   onPressed: _applyFilters,
                                   style: ElevatedButton.styleFrom(
                                     foregroundColor: Colors.white, backgroundColor: Colors.blue, // text color
-                                   // padding: EdgeInsets.symmetric(vertical: 1, horizontal: 40),
+                                    // padding: EdgeInsets.symmetric(vertical: 1, horizontal: 40),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -418,15 +465,17 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                           } else {
                             return PaginatedDataTable(
                               columnSpacing: 52.5,
-                              rowsPerPage: 18,
+                              rowsPerPage: 20,
                               columns: const [
                                 DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold),))),
-                               // DataColumn(label: Center(child: Text("Emp Code", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Name", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Shift", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Check-in", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Check-out", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("latecheck-in", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("earlycheck-out", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("req_time", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Remark", style: TextStyle(fontWeight: FontWeight.bold),))),
                               ],
@@ -446,7 +495,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
     );
   }
 }
-
 class AttendanceDataSource extends DataTableSource {
   final List<Map<String, dynamic>> _data;
 
@@ -470,11 +518,14 @@ class AttendanceDataSource extends DataTableSource {
                 : "",
           ),
         )),
-        //DataCell(Center(child: Text(attendance['emp_code'] ?? ''))),
-        DataCell(Center(child: Text(attendance['first_name'] ?? ''))),
+
+        DataCell(Center(child: Text(attendance['first_name'] + ' - ' + attendance['emp_code'] ?? '')),),
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_out'] ?? ''))),
+        DataCell(Center(child: Text(formatDuration(attendance['latecheck_in'] ?? '')))),
+        DataCell(Center(child: Text(formatDuration(attendance['earlycheck_out'] ?? '')))),
+        DataCell(Center(child: Text(attendance['req_time'] ?? ''))),
         DataCell(Center(child: Text(attendance['act_time'] ?? ''))),
         DataCell(Center(child: Text(attendance['remark'] ?? ''))),
       ],
@@ -489,4 +540,36 @@ class AttendanceDataSource extends DataTableSource {
 
   @override
   int get selectedRowCount => 0;
+}
+
+String formatDuration(String durationInMinutes) {
+  try {
+    if (durationInMinutes != null) {
+      int minutes = int.tryParse(durationInMinutes) ?? 0; // Use int.tryParse with a fallback value of 0
+      Duration duration = Duration(minutes: minutes);
+
+      int hours = duration.inHours;
+      int remainingMinutes = duration.inMinutes.remainder(60);
+
+      String formattedDuration = '';
+
+      if (hours > 0) {
+        formattedDuration += '$hours h';
+      }
+
+      if (remainingMinutes > 0) {
+        if (hours > 0) {
+          formattedDuration += ' ';
+        }
+        formattedDuration += '$remainingMinutes m';
+      }
+
+      return formattedDuration.trim();
+    }
+  } catch (e) {
+    // Handle the exception, e.g., log the error or return a default value
+    print('Error formatting duration: $e');
+  }
+
+  return ""; // Return a default value if there's an error
 }
