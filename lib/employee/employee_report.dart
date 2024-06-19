@@ -350,7 +350,7 @@ class _EmployeeReportState extends State<EmployeeReport> {
                                       DataColumn(label: Center(child: Text("      Mobile",style: TextStyle(fontWeight: FontWeight.bold),))),
                                       DataColumn(label: Center(child: Text("    Position",style: TextStyle(fontWeight: FontWeight.bold),))),
                                       DataColumn(label: Center(child: Text("    Salary",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                      DataColumn(label: Center(child: Text("    Status",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                      //DataColumn(label: Center(child: Text("    Status",style: TextStyle(fontWeight: FontWeight.bold),))),
                                       DataColumn(label: Center(child: Text("    Action",style: TextStyle(fontWeight: FontWeight.bold),))),
                                     ],
                                     source: _YourDataTableSource(filteredData,context,generatedButton,onDelete),
@@ -486,186 +486,181 @@ class _YourDataTableSource extends DataTableSource {
         DataCell(Center(child: Text("${row["empMobile"]}"))),
         DataCell(Center(child: Text("${row["empPosition"]}"))),
         DataCell(Center(child: Text("${row["salary"]}"))),
-        DataCell(Center(child:
-        Row(children: [
-          Visibility(visible:(row["Status"]=="Active") ,
-            child: IconButton(
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (ctx) =>
-                      // Dialog box for register meeting and add guest
-                      AlertDialog(
-                        backgroundColor:
-                        Colors.grey[
-                        800],
-                        title: const Text(
-                            'Deactivate',
-                            style: TextStyle(
-                                color: Colors
-                                    .white)),
-                        content: const Text(
-                            "Do you want to Deactivate this Employee?",
-                            style: TextStyle(
-                                color: Colors
-                                    .white)),
-                        actions: [
-                          TextButton(
-                            onPressed:
-                                () async {
-                              await employeedeactivate(row["emp_code"], "Deactivate");
-                              Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReport()));
-                              ScaffoldMessenger.of(
-                                  context)
-                                  .showSnackBar(const SnackBar(
-                                  content:
-                                  Text("You have Successfully Deactivate this Employee")));
-                            },
-                            child: const Text(
-                                'Yes',
-                                style: TextStyle(
-                                    color:
-                                    Colors.white)),
-                          ),
-                          TextButton(
-                              onPressed:
-                                  () async {
-                                Navigator.pop(
-                                    context);
-                              },
-                              child: const Text(
-                                  'No',
-                                  style: TextStyle(
-                                      color:
-                                      Colors.white)))
-                        ],
-                      ));
-                },
-                icon: const Icon(
-                  Icons.check_circle_outline,
-                  color: Colors.green,
-                ))
-          ),
-          Visibility(visible:(row["Status"]=="Deactivate"),
-            child:  IconButton(
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (ctx) =>
-                      // Dialog box for register meeting and add guest
-                      AlertDialog(
-                        backgroundColor:
-                        Colors.grey[
-                        800],
-                        title: const Text(
-                            'Activate',
-                            style: TextStyle(
-                                color: Colors
-                                    .white)),
-                        content: const Text(
-                            "Do you want to Activate this Employee?",
-                            style: TextStyle(
-                                color: Colors
-                                    .white)),
-                        actions: [
-                          TextButton(
-                            onPressed:
-                                () async {
-                                  await employeedeactivate(row["emp_code"], "Active");
-                             Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReport()));
-                              ScaffoldMessenger.of(
-                                  context)
-                                  .showSnackBar(const SnackBar(
-                                  content:
-                                  Text("You have Successfully Deactivate this Employee")));
-                            },
-                            child: const Text(
-                                'Yes',
-                                style: TextStyle(
-                                    color:
-                                    Colors.white)),
-                          ),
-                          TextButton(
-                              onPressed:
-                                  () {
-                                Navigator.pop(
-                                    context);
-                              },
-                              child: const Text(
-                                  'No',
-                                  style: TextStyle(
-                                      color:
-                                      Colors.white)))
-                        ],
-                      ));
-                },
-                icon: const Icon(
-                  Icons.remove,
-                  color: Colors.red,
-                ))
-
-            /*IconButton(
-              onPressed: () async {
-                await employeedeactivate(row["emp_code"], "Deactivate");
-              },
-              icon: Icon(Icons.remove),
-              color: Colors.green.shade600,
-            ),*/
-          ),
-          IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              showDeleteConfirmationDialog(context, id);
-            },
-          ),
-        ],)
-        )
-        ),
+        // DataCell(Center(child:
+        // Row(children: [
+        //   Visibility(visible:(row["Status"]=="Active") ,
+        //     child: IconButton(
+        //         onPressed: () {
+        //           showDialog(
+        //               context: context,
+        //               builder: (ctx) =>
+        //               // Dialog box for register meeting and add guest
+        //               AlertDialog(
+        //                 backgroundColor:
+        //                 Colors.grey[
+        //                 800],
+        //                 title: const Text(
+        //                     'Deactivate',
+        //                     style: TextStyle(
+        //                         color: Colors
+        //                             .white)),
+        //                 content: const Text(
+        //                     "Do you want to Deactivate this Employee?",
+        //                     style: TextStyle(
+        //                         color: Colors
+        //                             .white)),
+        //                 actions: [
+        //                   TextButton(
+        //                     onPressed:
+        //                         () async {
+        //                       await employeedeactivate(row["emp_code"], "Deactivate");
+        //                       Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReport()));
+        //                       ScaffoldMessenger.of(
+        //                           context)
+        //                           .showSnackBar(const SnackBar(
+        //                           content:
+        //                           Text("You have Successfully Deactivate this Employee")));
+        //                     },
+        //                     child: const Text(
+        //                         'Yes',
+        //                         style: TextStyle(
+        //                             color:
+        //                             Colors.white)),
+        //                   ),
+        //                   TextButton(
+        //                       onPressed:
+        //                           () async {
+        //                         Navigator.pop(
+        //                             context);
+        //                       },
+        //                       child: const Text(
+        //                           'No',
+        //                           style: TextStyle(
+        //                               color:
+        //                               Colors.white)))
+        //                 ],
+        //               ));
+        //         },
+        //         icon: const Icon(
+        //           Icons.check_circle_outline,
+        //           color: Colors.green,
+        //         ))
+        //   ),
+        //   Visibility(visible:(row["Status"]=="Deactivate"),
+        //     child:  IconButton(
+        //         onPressed: () {
+        //           showDialog(
+        //               context: context,
+        //               builder: (ctx) =>
+        //               // Dialog box for register meeting and add guest
+        //               AlertDialog(
+        //                 backgroundColor:
+        //                 Colors.grey[
+        //                 800],
+        //                 title: const Text(
+        //                     'Activate',
+        //                     style: TextStyle(
+        //                         color: Colors
+        //                             .white)),
+        //                 content: const Text(
+        //                     "Do you want to Activate this Employee?",
+        //                     style: TextStyle(
+        //                         color: Colors
+        //                             .white)),
+        //                 actions: [
+        //                   TextButton(
+        //                     onPressed:
+        //                         () async {
+        //                           await employeedeactivate(row["emp_code"], "Active");
+        //                      Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReport()));
+        //                       ScaffoldMessenger.of(
+        //                           context)
+        //                           .showSnackBar(const SnackBar(
+        //                           content:
+        //                           Text("You have Successfully Deactivate this Employee")));
+        //                     },
+        //                     child: const Text(
+        //                         'Yes',
+        //                         style: TextStyle(
+        //                             color:
+        //                             Colors.white)),
+        //                   ),
+        //                   TextButton(
+        //                       onPressed:
+        //                           () {
+        //                         Navigator.pop(
+        //                             context);
+        //                       },
+        //                       child: const Text(
+        //                           'No',
+        //                           style: TextStyle(
+        //                               color:
+        //                               Colors.white)))
+        //                 ],
+        //               ));
+        //         },
+        //         icon: const Icon(
+        //           Icons.remove,
+        //           color: Colors.red,
+        //         ))
+        //
+        //     /*IconButton(
+        //       onPressed: () async {
+        //         await employeedeactivate(row["emp_code"], "Deactivate");
+        //       },
+        //       icon: Icon(Icons.remove),
+        //       color: Colors.green.shade600,
+        //     ),*/
+        //   ),
+        //
+        // ],)
+        // )
+        // ),
         DataCell(Container(
           child: Row(children: [
-            IconButton(
-              onPressed: (){
-                String fathername=row["fatherName"];
-                String fatherMobile=row["fatherName"];
-                Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeDetails(
-                  // empPhoto:row["empPhoto"],
-                  empID:row["emp_code"],
-                  empName:row["first_name"],
-                  empAddress :row["empAddress"],
-                  pincode :row["pincode"],
-                  empMobile:row["empMobile"],
-                  dob:row["dob"],
-                  age:row["age"],
-                  bloodgroup:row["bloodgroup"],
-                  gender:row["gender"],
-                  maritalStatus:row["maritalStatus"],
-                  gaurdian: fathername.isEmpty? row["spouseName"]??"":fathername,
-                  gaurdianmobile:fatherMobile.isEmpty?row["spouseName"]??"":fatherMobile,
-                  education:row["education"],
-                  doj:row["doj"],
-                  end:row["endingDate"],
-                  deptName:row["deptName"],
-                  empPosition:row["empPosition"],
-                  salary:row["salaryType"],
-                  daySalary:row["salary"],
-                  shift:row["shift"],
-                  acNumber:row["acNumber"],
-                  acHoldername:row["acHoldername"],
-                  bank:row["bank"],
-                  branch:row["branch"],
-                  ifsc:row["ifsc"],
-                  pan:row["pan"],
-                  aadhar:row["aadhar"],
-                )
-                ));
-              },icon:const Icon(Icons.remove_red_eye_outlined),
-              color: Colors.blue.shade600,
-            ),
+            // IconButton(
+            //   onPressed: (){
+            //     String fathername=row["fatherName"];
+            //     String fatherMobile=row["fatherMobile"];
+            //     Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeDetails(
+            //       // empPhoto:row["empPhoto"],
+            //       empID:row["emp_code"].toString(),
+            //       empName:row["first_name"].toString(),
+            //       empAddress :row["empAddress"].toString(),
+            //       pincode: (row["pincode"] ?? "-").toString(),
+            //       empMobile:row["empMobile"].toString(),
+            //       dob:row["dob"],
+            //       age:row["age"].toString(),
+            //       bloodgroup:row["bloodgroup"].toString(),
+            //       gender:row["gender"].toString(),
+            //       maritalStatus:row["maritalStatus"].toString(),
+            //       gaurdian: fathername.isEmpty? row["spouseName"]??"":fathername,
+            //       gaurdianmobile:fatherMobile.isEmpty?row["spouseMobile"]??"":fatherMobile,
+            //       education:row["education"].toString(),
+            //       doj:row["doj"],
+            //       end:row["endingDate"],
+            //       deptName:row["deptName"].toString(),
+            //       empPosition:row["empPosition"].toString(),
+            //       salary:row["salaryType"].toString(),
+            //       daySalary:row["salary"].toString(),
+            //       shift:row["shift"].toString(),
+            //       acNumber:row["acNumber"].toString(),
+            //       acHoldername:row["acHoldername"].toString(),
+            //       bank:row["bank"].toString(),
+            //       branch:row["branch"].toString(),
+            //       ifsc:row["ifsc"].toString(),
+            //       pan:row["pan"].toString(),
+            //       aadhar:row["aadhar"].toString(),
+            //     )
+            //     ));
+            //   },icon:const Icon(Icons.remove_red_eye_outlined),
+            //   color: Colors.blue.shade600,
+            // ),
 
             IconButton(
               onPressed: (){
                 String fathername=row["fatherName"];
-                String fatherMobile=row["fatherName"];
+                String fatherMobile=row["fatherMobile"];
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> EmployeeReportPdf(
                   empID:row["emp_code"],
                   empName:row["first_name"],
@@ -678,7 +673,7 @@ class _YourDataTableSource extends DataTableSource {
                   gender:row["gender"],
                   maritalStatus:row["maritalStatus"],
                   gaurdian: fathername.isEmpty? row["spouseName"]??"":fathername,
-                  gaurdianmobile:fatherMobile.isEmpty?row["spouseName"]??"":fatherMobile,
+                  gaurdianmobile:fatherMobile.isEmpty?row["spouseMobile"]??"":fatherMobile,
                   education:row["education"],
                   doj:row["doj"],
                   end:row["endingDate"],
@@ -698,6 +693,13 @@ class _YourDataTableSource extends DataTableSource {
                 ));
               },icon: Icon(Icons.print,),
               color: Colors.blue.shade600,
+            ),
+
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                showDeleteConfirmationDialog(context, id);
+              },
             ),
 
           ],),

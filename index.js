@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const multer = require('multer');
 
+
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const csv = require('csv-parser');
@@ -14,6 +15,8 @@ const axios = require('axios');
 const app = express();
 
 // Settings
+require("dotenv").config();
+//console.log(process.env.WEATHER_API_KEY);
 app.set('port', process.env.PORT || 3309);
 
 // Middlewares
@@ -29,7 +32,7 @@ const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
    password: 'root',
-   database: 'vkcones',
+   database: 'balajitvs',
 });
 // Connect to MySQL
 db.connect((err) => {
@@ -446,6 +449,7 @@ app.get('/checkorderNo', (req, res) => {
     }
   });
 });
+
 app.get('/get_purchase_orderitem', (req, res) => {
   const orderNo = req.query.orderNo;
 
@@ -2041,6 +2045,9 @@ app.get('/getemployeename', (req, res) => {
   });
 });
 
+
+
+
 app.get('/getemployee', (req, res) => {
   const sql = 'select * from personnel_employee'; // Modify to your table name
 
@@ -2088,7 +2095,6 @@ app.get('/employee/:empID', (req, res) => {
       res.status(404).send('Employee not found');
       return;
     }
-
     res.json(results[0]);
   });
 });
@@ -10007,127 +10013,10 @@ app.put('/time_update_tvs/:id', (req, res) => {
   });
 });
 
+app.get('/getshift', (req, res) => {
+  const sql = 'select * from shift'; // Modify to your table name
 
-/// 17-06-2024 gowtham done for present and absent home page work
-app.get('/attendance-summaryold', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-  const currentTime = new Date().toTimeString().split(' ')[0]; // Get current time in HH:MM:SS format
-
-  const queryTotalEmployees = `SELECT COUNT(*) AS totalEmployees FROM employee`;
-  const queryPresent = `SELECT COUNT(*) AS present FROM attendance WHERE inDate = ? AND check_in IS NOT NULL`;
-  const queryAbsent = `SELECT COUNT(*) AS absent FROM attendance WHERE inDate = ? AND (check_in IS NULL OR check_in >= '06:00:00')`;
-
-  db.query(queryTotalEmployees, (err, totalEmployeesResult) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    db.query(queryPresent, [currentDate], (err, presentResult) => {
-      if (err) {
-        return res.status(500).json({ error: err });
-      }
-      db.query(queryAbsent, [currentDate], (err, absentResult) => {
-        if (err) {
-          return res.status(500).json({ error: err });
-        }
-        res.json({
-          totalEmployees: totalEmployeesResult[0].totalEmployees,
-          present: presentResult[0].present,
-          absent: absentResult[0].absent
-        });
-      });
-    });
-  });
-});
-
-app.get('/attendance-summary', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
-  const queryTotalEmployees = `SELECT COUNT(*) AS totalEmployees FROM employee`;
-  const queryPresent = `SELECT COUNT(DISTINCT emp_code) AS present FROM attendance WHERE inDate = ?`;
-  const queryAbsent = `SELECT COUNT(*) AS absent FROM employee WHERE emp_code NOT IN (SELECT DISTINCT emp_code FROM attendance WHERE inDate = ?)`;
-
-  db.query(queryTotalEmployees, (err, totalEmployeesResult) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    db.query(queryPresent, [currentDate], (err, presentResult) => {
-      if (err) {
-        return res.status(500).json({ error: err });
-      }
-      db.query(queryAbsent, [currentDate], (err, absentResult) => {
-        if (err) {
-          return res.status(500).json({ error: err });
-        }
-        res.json({
-          totalEmployees: totalEmployeesResult[0].totalEmployees,
-          present: presentResult[0].present,
-          absent: absentResult[0].absent
-        });
-      });
-    });
-  });
-});
-
-app.get('/present-employees', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
-  const queryPresent = `
-    SELECT e.emp_code, e.first_name, e.empMobile
-    FROM employee e
-    JOIN attendance a ON e.emp_code = a.emp_code
-    WHERE a.inDate = ?`;
-
-  db.query(queryPresent, [currentDate], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    res.json(result);
-  });
-});
-
-app.get('/absent-employees', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
-  const queryAbsent = `
-    SELECT e.emp_code, e.first_name, e.empMobile
-    FROM employee e
-    WHERE e.emp_code NOT IN (
-      SELECT emp_code
-      FROM attendance
-      WHERE inDate = ?)`;
-
-  db.query(queryAbsent, [currentDate], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    res.json(result);
-  });
-});
-
-
-app.delete('/shift_tvs_delete/:id', (req, res) => {
-  const { id } = req.params;
-
-  const sql = 'DELETE FROM shift WHERE id = ?';
-  db.query(sql, [id], (err, result) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).send('Error deleting shift from database');
-      return;
-    }
-
-    if (result.affectedRows === 0) {
-      res.status(404).send('Shift not found');
-    } else {
-      res.status(200).send('Shift deleted successfully');
-    }
-  });
-});
-
-
-app.get('/get_employee', (req, res) => {
-  const sql = 'SELECT * from employee'; // Assuming id is the primary key of the attendance table
-  db.query(sql, (err, result) => {
+  db.query(sql, (err, results) => {
     if (err) {
       console.error('Error fetching data:', err);
       res.status(500).json({ error: 'Error fetching data' });

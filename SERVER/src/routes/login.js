@@ -6,6 +6,7 @@
    router.get('/', (req, res) => {
        res.status(200).json('Server on port 4000 and Database is connected.');
    });
+
   /* router.post('/:login', (req, res) => {
        const {custCode,custName,custAddress,custMobile,custGSTIN,custPaytype} = req.body;
        console.log(req.body);
@@ -27,6 +28,7 @@
             }
         });
     });
+
 
     /*router.post('/:login', (req, res) => {
           const {from, to, empID, empName, shiftType, shiftTime, ot} = req.body;
