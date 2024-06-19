@@ -508,31 +508,42 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                         },
                                       ),
                                       if (generatedButton || searchController.text.isNotEmpty)
-                                        Column(
-                                          children: [
-                                            Text(
-                                              "Total Days: ${calculateTotalDays(filteredData)}",
-                                              style: TextStyle(fontSize: 14),
-                                            ),
-                                            Text(
-                                              "Req Time: ${calculateReqWorkTime(filteredData)}",
-                                              style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.bold),
-                                            ),
-                                            Text(
-                                              "Late: ${calculateLateTime(filteredData)}",
-                                              style: const TextStyle(fontSize: 13, color: Colors.red),
-                                            ),
-                                            Text(
-                                              "Early Leave: ${calculateEarlyTime(filteredData)}",
-                                              style: const TextStyle(fontSize: 13, color: Colors.red),
-                                            ),
-                                            SizedBox(height: 10),
-                                            Text(
-                                              "Work Time: ${calculateTotalWorkTime(filteredData)}",
-                                              style: const TextStyle(fontSize: 13, color: Colors.black),
-                                            ),
+                                        Align(
+                                          alignment: Alignment.bottomRight,
+                                          child: Card(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Align(
+                                                alignment: Alignment.topLeft,
+                                                child: Column(
+                                                  children: [
+                                                    Text(
+                                                      "Total Days: ${calculateTotalDays(filteredData)}",
+                                                      style: TextStyle(fontSize: 14),
+                                                    ),
+                                                    Text(
+                                                      "Req Time: ${calculateReqWorkTime(filteredData)}",
+                                                      style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.bold),
+                                                    ),
+                                                    Text(
+                                                      "Late: ${calculateLateTime(filteredData)}",
+                                                      style: const TextStyle(fontSize: 13, color: Colors.red),
+                                                    ),
+                                                    Text(
+                                                      "Early Leave: ${calculateEarlyTime(filteredData)}",
+                                                      style: const TextStyle(fontSize: 13, color: Colors.red),
+                                                    ),
+                                                    SizedBox(height: 10),
+                                                    Text(
+                                                      "Work Time: ${calculateTotalWorkTime(filteredData)}",
+                                                      style: const TextStyle(fontSize: 13, color: Colors.black),
+                                                    ),
 
-                                          ],
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         )
                                     ],
                                   ),

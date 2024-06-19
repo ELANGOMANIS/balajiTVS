@@ -7,8 +7,8 @@ import 'package:vinayaga_project/Attendance/salary.dart';
 import 'package:vinayaga_project/Attendance/salary_weekly_pdf.dart';
 
 
-import '../../home.dart';
-import '../../main.dart';
+import '../home.dart';
+import '../main.dart';
 
 class CumulativeSalaryCalculation extends StatefulWidget {
   const CumulativeSalaryCalculation({Key? key}) : super(key: key);
@@ -24,30 +24,9 @@ class _CumulativeSalaryCalculationState
   DateTime? fromDate;
   DateTime? toDate;
   bool isCardVisible = false;
-  Future<List<String>> getSuggestions(String field, String pattern) async {
-    final List<String> suggestions = [];
 
-    try {
-      final response = await http.get(
-        Uri.http('localhost:3309', '/get_shift_type', {'field': field, 'pattern': pattern}),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        data.forEach((item) {
-          suggestions.add(item[field]);
-        });
-      } else {
-        throw Exception('Failed to fetch suggestions');
-      }
-    } catch (error) {
-      print('Error fetching suggestions: $error');
-      throw Exception('Failed to fetch suggestions');
-    }
-
-    return suggestions;
-  }
   List<Map<String, dynamic>> reportData = [];
+  final List<String> _shiftTypes = [];
   Future<void> fetchReport() async {
     if (fromDate == null || toDate == null) {
       print("Please select both From Date and To Date");
@@ -80,6 +59,28 @@ class _CumulativeSalaryCalculationState
       print('Error fetching report: $error');
     }
   }
+  Future<List<String>> getSuggestions() async {
+    List<String> _shiftTypes = [];
+
+    try {
+      final response = await http.get(Uri.http('localhost:3309', '/get_shift_type'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        data.forEach((item) {
+          _shiftTypes.add(item['shiftType']);
+        });
+      } else {
+        throw Exception('Failed to fetch suggestions');
+      }
+    } catch (error) {
+      print('Error fetching suggestions: $error');
+      throw Exception('Failed to fetch suggestions');
+    }
+
+    return _shiftTypes;
+  }
+
 /*
   Future<void> fetchReport() async {
     if (fromDate == null || toDate == null) {
@@ -180,6 +181,7 @@ class _CumulativeSalaryCalculationState
                       ),
                       child: Column(
                         children: [
+
                            Row(
                             children: [
                               Icon(Icons.report),
@@ -193,8 +195,15 @@ class _CumulativeSalaryCalculationState
                               ),
                               SizedBox(width: 10),
                               MaterialButton(onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (Context) => const SalaryCalculation()));
-                              }, child: Text('Individual', style: TextStyle(color: Colors.blue),)),
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SalaryCalculation(),
+                                  ),
+                                );
+                              },
+                                child: Text('Individual',style: TextStyle(color: Colors.blue),),
+                              ),
                             ],
                           ),
                           Padding(
@@ -256,23 +265,37 @@ class _CumulativeSalaryCalculationState
                                   height: 34,
                                   child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
-                                      controller: _typeAheadController,
-                                      decoration: InputDecoration(labelText: 'Shift',                                      labelStyle: TextStyle(fontSize: 12),
+                                      controller: _typeAheadController, // Use the controller here.
+                                      decoration: const InputDecoration(
+                                        labelText: 'Shift Type',
+                                        border: OutlineInputBorder(),
+                                        suffixIcon: Icon(Icons.arrow_drop_down),
                                       ),
                                     ),
                                     suggestionsCallback: (pattern) async {
-                                      return getSuggestions('shiftType', pattern);
+                                      return getSuggestions();
                                     },
                                     itemBuilder: (context, suggestion) {
                                       return ListTile(
-                                        title: Text(suggestion),
+                                        title: Text(suggestion.toString()),
                                       );
                                     },
                                     onSuggestionSelected: (suggestion) {
-                                      _typeAheadController.text = suggestion;
+                                      setState(() {
+                                        selectedShiftType = suggestion.toString();
+                                        _typeAheadController.text = selectedShiftType!; // Update the controller text when an item is selected.
+                                      });
                                     },
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return 'Please select a shift type';
+                                      }
+                                      return null;
+                                    },
+                                    onSaved: (value) => selectedShiftType = value,
                                   ),
                                 ),
+
                                 Padding(
                                   padding: const EdgeInsets.all(20.0),
                                   child: MaterialButton(
@@ -395,14 +418,15 @@ class _CumulativeSalaryCalculationState
                             columns: const [
                               DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Employee/code", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("No of Days\nPresent", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Required\nTime", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Actual\nTime", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Late", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("No of Days", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Extra\nProduction", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                               DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Extra\nProduction", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                             ],
                             source: _DataSource(reportData, fromDate, toDate),
                           ),
@@ -435,22 +459,23 @@ class _DataSource extends DataTableSource {
     }
     final data = _data[index];
     String shiftType = data['shift_type'].toString();
-    double totalWorkSalary = calculateSalary(data) + double.parse(data['calculated_extraproduction'].toString());
+    //double totalWorkSalary = calculateSalary(data) + double.parse(data['calculated_extraproduction'].toString());
 
     return DataRow(cells: [
       DataCell(Text((index + 1).toString())),
       DataCell(Text(data['employee'])),
       // DataCell(Text(_fromDate != null ? DateFormat('yyyy-MM-dd').format(_fromDate!) : '')),
       // DataCell(Text(_toDate != null ? DateFormat('yyyy-MM-dd').format(_toDate!) : '')),
-      //DataCell(Text(shiftType)),
+     // DataCell(Text(shiftType)),
       DataCell(Text((data['no_of_work_days'].toString()))),
       DataCell(Text(formatDuration(data['total_req_time'].toString()))),
       DataCell(Text(formatDuration(data['total_act_time'].toString()))),
-      DataCell(Text(formatDuration(data['total_late'].toString()))),
+      //DataCell(Text(formatDuration(data['total_late'].toString()))),
       DataCell(Text('\u20B9 ${data['perDaySalary']}')), // Display per day salary with rupee symbol
-      DataCell(Text(calculateSalary(data).toString())),
-      DataCell(Text(double.parse(data['calculated_extraproduction']).toInt().toString())),
-      DataCell(Text(totalWorkSalary.toStringAsFixed(2))), // Display total work salary with two decimal places
+      DataCell(Text('\u20B9 ${data['total_salary']}')), // Display per day salary with rupee symbol
+      // DataCell(Text(calculateSalary(data).toString())),
+      // DataCell(Text(double.parse(data['calculated_extraproduction']).toInt().toString())),
+      // DataCell(Text(totalWorkSalary.toStringAsFixed(2))), // Display total work salary with two decimal places
 // Display the calculated extra production without decimal places
     ]);
   }

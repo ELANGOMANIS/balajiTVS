@@ -8210,6 +8210,7 @@ app.get('/get_cumulative_salary', (req, res) => {
   const fromDate = req.query.fromDate;
   const toDate = req.query.toDate;
   const shiftType = req.query.shiftType;
+
   const sql = `
     SELECT
       emp_code,
@@ -8235,12 +8236,15 @@ app.get('/get_cumulative_salary', (req, res) => {
       salary
   `;
 
+  console.log('Executing query:', sql);
+  console.log('With parameters:', [fromDate, toDate, shiftType]);
+
   db.query(sql, [fromDate, toDate, shiftType], (err, result) => {
     if (err) {
       console.error('Error fetching data:', err);
       res.status(500).json({ error: 'Error fetching data' });
     } else {
-      console.log('Data fetched successfully');
+      console.log('Data fetched successfully:', result);
       res.status(200).json(result);
     }
   });
@@ -10313,7 +10317,7 @@ app.post('/shift_insert_tvs', (req, res) => {
 });
 
 app.get('/get_shift_type', (req, res) => {
-  const sql = 'SELECT * from shift'; // Assuming id is the primary key of the attendance table
+  const sql = 'SELECT shiftType FROM shift'; // Only select shiftType
   db.query(sql, (err, result) => {
     if (err) {
       console.error('Error fetching data:', err);

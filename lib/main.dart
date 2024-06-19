@@ -54,9 +54,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Vinayaga Cones',
-      home: const LoginPage(),
+      //home: const LoginPage(),
      // home: const Home(),
-      //home: const SalaryCalculation(),
+      home: const CumulativeSalaryCalculation(),
       // initialRoute: 'loginpage',
       //   routes: {'loginpage':(context)=> LoginPAge()},
       theme: ThemeData (
