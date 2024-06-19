@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:vinayaga_project/employee/empview.dart';
 import 'dart:convert';
 import 'package:vinayaga_project/main.dart';
 import '../home.dart';
@@ -41,6 +42,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
   TextEditingController aadhar = TextEditingController();
   TextEditingController searchController = TextEditingController();
   TextEditingController daySalary = TextEditingController();
+  TextEditingController shifttype = TextEditingController();
   // TextEditingController doj = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -66,7 +68,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       education.text = "";
       aadhar.text = "";
       pan.text = "";
-      shifttype = "Shift Type";
+      shifttype.text = "";
       empName.text = "";
       empAddress.text = "";
       pincode.text = "";
@@ -79,7 +81,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       gender = "Gender";
       maritalstatus = "Marital Status";
       salary = "Salary Type";
-      empposition = "Employee Position";
+      empposition = "";
       spouseName.text = "";
       spouseMobile.text = "";
       empPhoto.text = "";
@@ -120,7 +122,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
   bool emppositionerrormsg = true;
   String? gender;
   String? bloodGroup;
-  String? shifttype;
   String? salary;
   String? maritalstatus;
   String? empposition;
@@ -211,10 +212,45 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
     super.initState();
     fetchData5();
     fetchData6();
+    fetchData8();
+    getshiftData();
     clearEmployeeDetails();
     fetchEmployeeDetailsbyname(empId.text);
   }
 
+  List<Map<String, dynamic>> emp_Position = [];
+
+  Future<void> fetchData8() async {
+    try {
+      final response = await http.get(Uri.parse('http://localhost:3309/getemployeename'));
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        setState(() {
+          emp_Position = jsonData.cast<Map<String, dynamic>>();
+        });
+      }
+      else {
+      }
+    } catch (error) {
+    }
+  }
+
+  List<Map<String, dynamic>> shift= [];
+
+  Future<void> getshiftData() async {
+    try {
+      final response = await http.get(Uri.parse('http://localhost:3309/getshift'));
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        setState(() {
+          shift = jsonData.cast<Map<String, dynamic>>();
+        });
+      }
+      else {
+      }
+    } catch (error) {
+    }
+  }
 
 
 
@@ -331,10 +367,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
         education.text = data["education"]??"";
         aadhar.text = data["aadhar"]??"";
         pan.text =data["pan"]??"";
-        shifttype= data["shift"]??"";
-        if (!["Shift Type","General", "Morning", "Night"].contains(shifttype)) {
-          shifttype = "Shift Type";
-        }
+        shifttype.text= data["shift"]??"";
       });
       empName.text = data['first_name'];
       empAddress.text = data['empAddress']??"";
@@ -348,7 +381,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       gender= data['gender']??"";
       maritalstatus = data["maritalStatus"]??"";
       salary = data["salary"]??"";
-      empposition= data["empPosition"]??"";
+      empPosition.text= data["empPosition"]??"";
       spouseName.text = data["spouseName"]??"";
       spouseMobile.text = data["spouseMobile"]??"";
       empPhoto.text = data["empPhoto"]??"";
@@ -429,18 +462,18 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       "gender":gender,
       "dob": dOB != DateTime.now() ? DateFormat('yyyy-MM-dd').format(dOB) : "",
       // "dob":dOB,
-      "age":agevalue,
+      "age":age.text,
       "bloodgroup":bloodGroup,
       "maritalStatus":maritalstatus,
       "spouseName":spouseName.text,
       "spouseMobile":spouseMobile.text,
-      "empPhoto":_imageUrl,
+     // "empPhoto":_imageUrl,
       "education":education.text,
       "aadhar":aadhar.text,
       "doj": dOJ != null ? DateFormat('yyyy-MM-dd').format(dOJ) : null,
-      "empPosition":empposition,
+      "empPosition":empPosition.text,
       "deptName":depName.text,
-      "shift":shifttype,
+      "shift":shifttype.text,
       "salaryType":salary,
       "salary":daySalary.text,
       "acNumber":acNumber.text,
@@ -540,8 +573,8 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
           spouseName.text = order['spouseName']?.toString() ?? '';
           education.text = order['education'] ?? '';
           depName.text = order['deptName']?.toString() ?? '';
-          empposition= order["empPosition"].toString() ??"";
-          shifttype= order['shift']?.toString() ?? '';
+          empPosition.text= order["empPosition"].toString() ??"";
+          shifttype.text= order['shift']?.toString() ?? '';
           salary= order['salaryType']?.toString() ?? '';
           daySalary.text= order['salary']?.toString() ?? '';
           acNumber.text= order['acNumber']?.toString() ?? '';
@@ -591,8 +624,21 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
     }
   }
 
+//age calculation
+  void calculateAge() {
+    print('calculateAge called');
+    final today = DateTime.now();
+    final ageCalculation = today.year - dOB.year;
+    if (today.month < dOB.month || (today.month == dOB.month && today.day < dOB.day)) {
+      agevalue = ageCalculation - 1;
+    } else {
+      agevalue = ageCalculation;
+    }
+    print('Calculated age: $agevalue');
+  }
 
 
+  List<String> employeePositions = ["Operator", "Assistant", "Manager", "CEO"];
 
   @override
   Widget build(BuildContext context) {
@@ -693,7 +739,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                 },
                               ),
                             ),
-
                           ],
                         ),
                         SizedBox(height: 20,),
@@ -935,73 +980,122 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                             ),
                             SizedBox(
                               width: 200,
-                              height:70,
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButtonFormField<String>(
-                                  decoration: const InputDecoration(
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      vertical: 10.0,
-                                      horizontal: 16.0,
-                                    ),
-                                    disabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            width: 1, color: Colors.white)),
-                                  ),
-                                  hint: const Text("Employee Position",style: TextStyle(fontSize:13),),
-                                  isExpanded: true,
-                                  value: empposition,
-
-                                  items: <String>["Employee Position",  "Operator", "Assistant",]
-                                      .map<DropdownMenuItem<String>>((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(
-                                        value,
-                                        style: const TextStyle(fontSize: 15),
-                                      ),
+                              child: TypeAheadFormField<String>(
+                                textFieldConfiguration: TextFieldConfiguration(
+                                  controller: empPosition,
+                                  onChanged: (value) {
+                                    // fetchData5();
+                                    String capitalizedValue = capitalizeFirstLetter(value);
+                                    empPosition.value = empPosition.value.copyWith(
+                                      text: capitalizedValue,
+                                      selection: TextSelection.collapsed(offset: capitalizedValue.length),
                                     );
-                                  }).toList(),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      empposition = newValue!;
-                                    });},),),),
+                                  },
+                                  style: const TextStyle(fontSize: 13),
+                                  decoration: InputDecoration(
+                                    fillColor: Colors.white,
+                                    filled: true,
+                                    labelText: "Employee Position", // Update label
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                                suggestionsCallback: (pattern) async {
+                                  if (pattern.isEmpty) {
+                                    // Show all data when field is clicked, excluding null values
+                                    return emp_Position.where((item) => item['empPosition'] != null)
+                                        .map<String>((item) => '${item['empPosition']}') // Modify this line to match your data structure
+                                        .toSet() // Remove duplicates efficiently
+                                        .toList();
+                                  }
+                                  final processedPattern = pattern.replaceAll(' ', '').toLowerCase();
+                                  List<String> suggestions = emp_Position
+                                      .where((item) {
+                                    String empName = item['empPosition']?.toString()?.toLowerCase() ?? '';
+                                    return empName.isNotEmpty && empName[0] == processedPattern[0];
+                                  })
+                                      .map<String>((item) =>
+                                  '${item['empPosition']}') // Modify this line to match your data structure
+                                      .toSet() // Remove duplicates using a Set
+                                      .toList();
+                                  return suggestions;
+                                },
+
+                                itemBuilder: (context, suggestion) {
+                                  return ListTile(
+                                    title: Text(suggestion),
+                                  );
+                                },
+                                onSuggestionSelected: (suggestion) {
+                                  String selectedEmpName = suggestion.split(' ')[0];
+                                  setState(() {
+                                    selectedCustomer = selectedEmpName;
+                                    empPosition.text = selectedEmpName;
+                                  });
+                                  print('Selected Customer: $selectedCustomer');
+                                },
+                              ),
+                            ),
                             SizedBox(
                               width: 200,
-                              height:40,
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButtonFormField<String>(
-                                  decoration: const InputDecoration(
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      vertical: 10.0,
-                                      horizontal: 16.0,
-                                    ),
-                                    disabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            width: 1, color: Colors.white)),
-                                  ),
-                                  hint: const Text("Salary Type",style: TextStyle(fontSize:12),),
-                                  isExpanded: true,
-                                  value: salary,
-                                  items: <String>["Salary Type","Daily","Monthly"
-                                  ]
-                                      .map<DropdownMenuItem<String>>((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(
-                                        value,
-                                        style: const TextStyle(fontSize: 15),
-                                      ),
+                              child: TypeAheadFormField<String>(
+                                textFieldConfiguration: TextFieldConfiguration(
+                                  controller: shifttype,
+                                  onChanged: (value) {
+                                    // fetchData5();
+                                    String capitalizedValue = capitalizeFirstLetter(value);
+                                    shifttype.value = shifttype.value.copyWith(
+                                      text: capitalizedValue,
+                                      selection: TextSelection.collapsed(offset: capitalizedValue.length),
                                     );
-                                  }).toList(),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      salary = newValue!;
-                                    });},),),),
-                            ///Gender
+                                  },
+                                  style: const TextStyle(fontSize: 13),
+                                  decoration: InputDecoration(
+                                    fillColor: Colors.white,
+                                    filled: true,
+                                    labelText: "Shift Type", // Update label
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                                suggestionsCallback: (pattern) async {
+                                  if (pattern.isEmpty) {
+                                    // Show all data when field is clicked, excluding null values
+                                    return shift.where((item) => item['shiftType'] != null)
+                                        .map<String>((item) => '${item['shiftType']}') // Modify this line to match your data structure
+                                        .toSet() // Remove duplicates efficiently
+                                        .toList();
+                                  }
+                                  final processedPattern = pattern.replaceAll(' ', '').toLowerCase();
+                                  List<String> suggestions = shift
+                                      .where((item) {
+                                    String empName = item['shiftType']?.toString()?.toLowerCase() ?? '';
+                                    return empName.isNotEmpty && empName[0] == processedPattern[0];
+                                  })
+                                      .map<String>((item) =>
+                                  '${item['shiftType']}') // Modify this line to match your data structure
+                                      .toSet() // Remove duplicates using a Set
+                                      .toList();
+                                  return suggestions;
+                                },
+                                itemBuilder: (context, suggestion) {
+                                  return ListTile(
+                                    title: Text(suggestion),
+                                  );
+                                },
+                                onSuggestionSelected: (suggestion) {
+                                  String selectedEmpName = suggestion.split(' ')[0];
+                                  setState(() {
+                                    selectedCustomer = selectedEmpName;
+                                    shifttype.text = selectedEmpName;
+                                  });
+                                  print('Selected Customer: $selectedCustomer');
+                                },
+                              ),
+                            ),
+
                           ],
                         ),
 
@@ -1026,12 +1120,12 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                 keyboardType: TextInputType.number,
                                 inputFormatters: <TextInputFormatter>[
                                   FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(4)
+                                  LengthLimitingTextInputFormatter(6)
                                 ],
                                 decoration: InputDecoration(
                                     filled: true,
                                     fillColor: Colors.white,
-                                    labelText: "Salary/Day(₹)",
+                                    labelText: "Salary/Month(₹)",
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(
                                         10,),
@@ -1039,6 +1133,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                 ),
                               ),
                             ),
+
                             ///Date Of Birth
                             SizedBox(
                               width: 200,
@@ -1049,15 +1144,17 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                 onTap: () {
                                   showDatePicker(
                                     context: context,
-                                    initialDate: DateTime.now(),  // Use the current date if dOB is null
+                                    initialDate: DateTime(1950), // Use the current date if dOB is null
                                     firstDate: DateTime(1900),
                                     lastDate: DateTime.now(),
+                                    initialDatePickerMode: DatePickerMode.year,
                                   ).then((date) {
                                     if (date != null) {
                                       setState(() {
-                                        date = date;
+                                        dOB = date;
                                         calculateAge();
                                         dateSelected = true;
+                                        age.text = agevalue.toString();
                                       });
                                       _textController.text = DateFormat('dd-MM-yyyy').format(date!);
                                     }
@@ -1078,7 +1175,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                             SizedBox(
                               width: 200, height: 70,
                               child: TextFormField(
-                                // controller:age,
+                                controller: age,
                                 style: TextStyle(fontSize: 13),
                                 keyboardType: TextInputType.number,
                                 inputFormatters: <TextInputFormatter>[
@@ -1092,8 +1189,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                controller: TextEditingController(
-                                    text: agevalue.toString()),
                               ),
                             ),
                             SizedBox(
@@ -1174,7 +1269,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                           spacing: 36.0, // Set the horizontal spacing between the children
                           runSpacing: 20.0,
                           children: [
-
                             SizedBox(
                               width: 200, height: 70,
                               child: TextFormField(
@@ -1197,6 +1291,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                   )
                               ),
                             ),
+
 
                             SizedBox(
                               width: 200,
@@ -1346,32 +1441,93 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                   ),
                                 ),
                             ///Department Name
+                            // SizedBox(
+                            //   width: 200, height: 70,
+                            //   child: TextFormField(
+                            //       controller: depName,
+                            //       onChanged: (value) {
+                            //         String capitalizedValue = capitalizeFirstLetter(
+                            //             value);
+                            //         depName.value =
+                            //             depName.value.copyWith(
+                            //               text: capitalizedValue,
+                            //               selection: TextSelection.collapsed(
+                            //                   offset: capitalizedValue.length),
+                            //             );
+                            //       },
+                            //       style: TextStyle(fontSize: 13),
+                            //       decoration: InputDecoration(
+                            //         filled: true,
+                            //         fillColor: Colors.white,
+                            //         labelText: "Department Name",
+                            //         border: OutlineInputBorder(
+                            //           borderRadius: BorderRadius.circular(
+                            //               8.0),
+                            //         ),
+                            //       )
+                            //   ),
+                            // ),
+
                             SizedBox(
-                              width: 200, height: 70,
-                              child: TextFormField(
+                              width: 200,
+                              child: TypeAheadFormField<String>(
+                                textFieldConfiguration: TextFieldConfiguration(
                                   controller: depName,
                                   onChanged: (value) {
-                                    String capitalizedValue = capitalizeFirstLetter(
-                                        value);
-                                    depName.value =
-                                        depName.value.copyWith(
-                                          text: capitalizedValue,
-                                          selection: TextSelection.collapsed(
-                                              offset: capitalizedValue.length),
-                                        );
+                                    // fetchData5();
+                                    String capitalizedValue = capitalizeFirstLetter(value);
+                                    depName.value = depName.value.copyWith(
+                                      text: capitalizedValue,
+                                      selection: TextSelection.collapsed(offset: capitalizedValue.length),
+                                    );
                                   },
-                                  style: TextStyle(fontSize: 13),
+                                  style: const TextStyle(fontSize: 13),
                                   decoration: InputDecoration(
-                                    filled: true,
                                     fillColor: Colors.white,
-                                    labelText: "Department Name",
+                                    filled: true,
+                                    labelText: "Employee Position", // Update label
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          8.0),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                  )
+                                  ),
+                                ),
+                                suggestionsCallback: (pattern) async {
+                                  if (pattern.isEmpty) {
+                                    // Show all data when field is clicked, excluding null values
+                                    return emp_Position.where((item) => item['deptName'] != null)
+                                        .map<String>((item) => '${item['deptName']}') // Modify this line to match your data structure
+                                        .toSet() // Remove duplicates efficiently
+                                        .toList();
+                                  }
+                                  final processedPattern = pattern.replaceAll(' ', '').toLowerCase();
+                                  List<String> suggestions = emp_Position
+                                      .where((item) {
+                                    String empName = item['deptName']?.toString()?.toLowerCase() ?? '';
+                                    return empName.isNotEmpty && empName[0] == processedPattern[0];
+                                  })
+                                      .map<String>((item) =>
+                                  '${item['deptName']}') // Modify this line to match your data structure
+                                      .toSet() // Remove duplicates using a Set
+                                      .toList();
+                                  return suggestions;
+                                },
+
+                                itemBuilder: (context, suggestion) {
+                                  return ListTile(
+                                    title: Text(suggestion),
+                                  );
+                                },
+                                onSuggestionSelected: (suggestion) {
+                                  String selectedEmpName = suggestion.split(' ')[0];
+                                  setState(() {
+                                    selectedCustomer = selectedEmpName;
+                                    depName.text = selectedEmpName;
+                                  });
+                                  print('Selected Customer: $selectedCustomer');
+                                },
                               ),
                             ),
+
                           ],
                         ),
                         Wrap(
@@ -1497,6 +1653,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                   )
                               ),
                             ),
+
                           ],
                         ),
 
@@ -1559,36 +1716,21 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                       errorMessage = "* Select a Gender ";
                                     });
                                   }
-
-                                  else if(empposition=="Employee Position"){
+                                  else if(empPosition.text.isEmpty){
                                     setState(() {
                                       errorMessage ="* Select a Employee Position";
                                     });
                                   }
-                                  else if(salary==null){
-                                    setState(() {
-                                      errorMessage ="* Select a Salary Type";
-                                    });
-                                  } else if(shifttype==null){
+                                  else if(shifttype.text.isEmpty){
                                     setState(() {
                                       errorMessage ="* Select a Shift Type";
                                     });
                                   }
-                                 /* else if(ifsc.text.isNotEmpty) {
-                                    if (!RegExp(r'^[A-Za-z]{4}[0][A-Z0-9]{6}$').hasMatch(ifsc.text)) {
-                                      setState(() {
-                                        errorMessage = "* Enter a valid IFSC Code";
-                                      });
-                                    }}
-                                  else if(pan.text.isNotEmpty){
-                                    if (!RegExp("[A-Z]{5}[0-9]{4}[A-Z]{1}")
-                                        .hasMatch(pan.text)) {
-                                      setState(() {
-                                        errorMessage ="* Enter a Valid PAN number";
-                                      });
-                                    }
-                                  }*/
-
+                                  else if(daySalary.text.isEmpty){
+                                    setState(() {
+                                      errorMessage ="* Enter  a Salary";
+                                    });
+                                  }
                                   else if(aadhar.text.isNotEmpty){
                                     if(aadhar.text.length !=12){
                                       setState(() {
@@ -1615,11 +1757,13 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                           spouseName.text,
                                           spouseMobile.text,
                                           empPhoto.text,
-                                          education.text,aadhar.text,
+                                          education.text,
+                                          aadhar.text,
                                           dOJ.toString(),
                                           eod.toString(),
-                                          empposition.toString(),
-                                          depName.text, shifttype.toString(),
+                                          empPosition.text,
+                                          depName.text,
+                                          shifttype.text,
                                           salary.toString(),
                                           acNumber.text,
                                           acHoldername.text,
@@ -1675,8 +1819,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                             MaterialButton(
                               color: Colors.red.shade600,
                               onPressed: (){
-                                /*                    Navigator.push(context,
-                              MaterialPageRoute(builder: (context) =>const Home()));*/
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
@@ -1718,17 +1860,8 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       ),
     );
   }
-  void calculateAge() {
-    print('calculateAge called');
-    final today = DateTime.now();
-    final ageCalculation = today.year - dOB.year;
-    if (today.month < dOB.month || (today.month == dOB.month && today.day < dOB.day)) {
-      agevalue = ageCalculation - 1;
-    } else {
-      agevalue = ageCalculation;
-    }
-    print('Calculated age: $agevalue');
-  }
+
+
 
 }
 

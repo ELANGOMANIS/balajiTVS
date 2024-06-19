@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -148,8 +149,8 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       8: pw.FixedColumnWidth(75),
 
     };
-   // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
-   // final imageBytes = imageData.buffer.asUint8List();
+    // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
+    // final imageBytes = imageData.buffer.asUint8List();
 
     final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Late\nin','Early\nout', 'required\nTime', 'Total Hrs', 'Remark'];
 
@@ -174,7 +175,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                       children: [
                         pw.Text('Attendance Report', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                         pw.Spacer(),
-                      //  pw.Image(pw.MemoryImage(imageBytes), width: 50, height: 50)
+                        //  pw.Image(pw.MemoryImage(imageBytes), width: 50, height: 50)
 
 
                       ],
@@ -191,7 +192,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
           build: (pw.Context context) {
             return [
               pw.Table.fromTextArray(
-               // columnWidths: columnWidths,
+                // columnWidths: columnWidths,
                 headers: headers,
                 cellStyle: pw.TextStyle(fontSize: 6),
                 headerStyle: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold),
@@ -361,7 +362,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   ),
                                 ),
                               ),
-                           /*   Flexible(
+                              /*   Flexible(
                                 child: SizedBox(
                                   height:50,
                                   width: 240,
@@ -447,7 +448,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   onPressed: _applyFilters,
                                   style: ElevatedButton.styleFrom(
                                     foregroundColor: Colors.white, backgroundColor: Colors.blue, // text color
-                                   // padding: EdgeInsets.symmetric(vertical: 1, horizontal: 40),
+                                    // padding: EdgeInsets.symmetric(vertical: 1, horizontal: 40),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -542,8 +543,8 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 DataColumn(label: Center(child: Text("Check-out", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("latecheck-in", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("earlycheck-out", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("req_time", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Remark", style: TextStyle(fontWeight: FontWeight.bold),))),
                               ],
                               source: AttendanceDataSource(snapshot.data!),

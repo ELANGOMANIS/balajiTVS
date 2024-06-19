@@ -17,6 +17,247 @@ class Home extends StatefulWidget {
 
 }
 class _HomeState extends State<Home> {
+
+  String? errorMessage;
+
+  ScrollController _scrollController = ScrollController();
+
+
+  String convertToHoursAndMinutes(int minutes) {
+    int hours = minutes ~/ 60;
+    int remainingMinutes = minutes % 60;
+
+    String formattedTime = "${hours}h${remainingMinutes}m";
+    return formattedTime;
+  }
+
+  List<String> supplierSuggestions = [];
+  String selectedSupplier = "";
+  bool isDateRangeValid=true;
+
+  int currentPage = 1;
+  int rowsPerPage = 10;
+
+  void updateFilteredData() {
+    final startIndex = (currentPage - 1) * rowsPerPage;
+    final endIndex = currentPage * rowsPerPage;
+
+    setState(() {
+      filteredData = data.sublist(startIndex, endIndex);
+    });
+  }
+
+  String capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return text.substring(0, 1).toUpperCase() + text.substring(1);
+  }
+
+  bool generatedButton = false;
+  DateTime? fromDate;
+  DateTime? toDate;
+  TextEditingController searchController = TextEditingController();
+  TextEditingController emp_code = TextEditingController();
+
+  List<String> itemGroupValues = [];
+  List<String> invoiceNumber = [];
+  String selectedCustomer="";
+
+  void fetchData() async {
+    try {
+      final url = Uri.parse('http://localhost:3309/get_attendance_overall/');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final List<dynamic> itemGroups = responseData;
+        Set<String> uniqueCustNames = Set();
+        final List uniqueData = itemGroups
+            .where((item) {
+          String custName = item['check_in']?.toString() ?? '';
+          String inDate = item['inDate']?.toString() ?? '';
+          String uniqueIdentifier = '$custName-$inDate';
+
+          if (!uniqueCustNames.contains(uniqueIdentifier)) {
+            uniqueCustNames.add(uniqueIdentifier);
+            return true;
+          }
+          return false;
+        })
+            .toList();
+
+        setState(() {
+          data = uniqueData.cast<Map<String, dynamic>>();
+          filteredData = List<Map<String, dynamic>>.from(data);
+          applySorting();
+        });
+
+        print('Data: $data');
+      } else {
+        print('Error: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
+
+  void applySorting() {
+    filteredData.sort((a, b) {
+      DateTime? dateA = DateTime.tryParse(a['inDate'] ?? '');
+      DateTime? dateB = DateTime.tryParse(b['inDate'] ?? '');
+      if (dateA == null || dateB == null) {
+        return 0;
+      }
+      return dateB.compareTo(dateA);
+    });
+  }
+  List<Map<String, dynamic>> data = [];
+  List<Map<String, dynamic>> filteredData = [];
+
+  void filterData(String searchText) {
+    print("Search Text: $searchText");
+    setState(() {
+      if (searchText.isEmpty) {
+        filteredData = List<Map<String, dynamic>>.from(data);
+      } else {
+        searchText = searchText.toLowerCase(); // Convert search text to lowercase once
+
+        filteredData = data.where((item) {
+          String supName = item['first_name']?.toString()?.toLowerCase() ?? '';
+          String shiftType = item['shiftType']?.toString()?.toLowerCase() ?? '';
+
+          String searchTextLowerCase = searchText.toLowerCase();
+
+          return supName.contains(searchTextLowerCase) ||
+              shiftType.contains(searchTextLowerCase);
+        }).toList();
+        if (filteredData.isNotEmpty) {
+          Map<String, dynamic> order = filteredData.first;
+          emp_code.text = order['emp_code']?.toString() ?? '';
+        } else {
+          emp_code.clear();
+        }
+      }
+
+      // Move the sorting after applying the search filter
+      filteredData.sort((a, b) {
+        DateTime? dateA = DateTime.tryParse(a['inDate'] ?? '');
+        DateTime? dateB = DateTime.tryParse(b['inDate'] ?? '');  // Change 'outDate' to 'inDate'
+        if (dateA == null || dateB == null) {
+          return 0;
+        }
+        return dateB.compareTo(dateA); // Compare in descending order
+      });
+    });
+
+    print("Filtered Data Length: ${filteredData.length}");
+  }
+  double totalWorkingSalary = 0;
+  void applyDateFilter() {
+    setState(() {
+      if (!isDateRangeValid) {
+        return;
+      }
+
+      // Calculate present and missing dates
+      Set<DateTime> presentDates = Set();
+      List<DateTime> missingDates = [];
+      for (var item in data) {
+        String dateStr = item['inDate']?.toString() ?? '';
+        DateTime? itemDate = DateTime.tryParse(dateStr);
+
+        if (itemDate != null &&
+            itemDate.isAfter(fromDate!.subtract(Duration(days: 1))) &&
+            itemDate.isBefore(toDate!.add(Duration(days: 1)))) {
+          presentDates.add(itemDate);
+        }
+      }
+
+      // Find missing dates
+      for (DateTime date = fromDate!; date.isBefore(toDate!); date = date.add(Duration(days: 1))) {
+        if (!presentDates.contains(date)) {
+          missingDates.add(date);
+        }
+      }
+
+      // Filter data based on search query
+      String searchTextLowerCase = searchController.text.toLowerCase();
+      filteredData = data.where((item) {
+        String id = item['first_name']?.toString()?.toLowerCase() ?? '';
+        String shiftType = item['shiftType']?.toString()?.toLowerCase() ?? '';
+        return (id.contains(searchTextLowerCase) || shiftType.contains(searchTextLowerCase)) &&
+            (presentDates.contains(DateTime.parse(item['inDate'])));
+      }).toList();
+
+      applySorting();
+
+      // Calculate total present and absent days
+      int totalPresentDays = presentDates.length;
+      int totalAbsentDays = missingDates.length;
+
+      // Format missing dates as date strings without time component
+      List<String> formattedMissingDates =
+      missingDates.map((date) => DateFormat('yyyy-MM-dd').format(date)).toList();
+
+      print('Total Present Days: $totalPresentDays');
+      print('Total Absent Days: $totalAbsentDays');
+      print('Missing Dates: $formattedMissingDates');
+    });
+  }
+  Map<String, dynamic> calculateTotalAbsentDays(DateTime fromDate, DateTime toDate, List<Map<String, dynamic>> filteredData) {
+    Set<DateTime> presentDates = Set();
+
+    // Add present dates to the set
+    for (var item in filteredData) {
+      String dateStr = item['inDate']?.toString() ?? '';
+      DateTime? itemDate = DateTime.tryParse(dateStr);
+
+      if (itemDate != null) {
+        presentDates.add(itemDate);
+      }
+    }
+
+    // Calculate total days within the specified range
+    int totalDaysInRange = toDate.difference(fromDate).inDays + 1;
+
+    // Find missing dates
+    List<DateTime> missingDates = [];
+    for (DateTime date = fromDate; date.isBefore(toDate.add(Duration(days: 1))); date = date.add(Duration(days: 1))) {
+      if (!presentDates.contains(date)) {
+        missingDates.add(date);
+      }
+    }
+
+    // Calculate total absent days
+    int totalAbsentDays = missingDates.length;
+
+    return {
+      'totalAbsentDays': totalAbsentDays,
+      'missingDates': missingDates,
+    };
+  }
+/*
+  int calculateTotalAbsentDays(DateTime fromDate, DateTime toDate, List<Map<String, dynamic>> filteredData) {
+    Set<DateTime> presentDates = Set();
+
+    // Add present dates to the set
+    for (var item in filteredData) {
+      String dateStr = item['inDate']?.toString() ?? '';
+      DateTime? itemDate = DateTime.tryParse(dateStr);
+
+      if (itemDate != null) {
+        presentDates.add(itemDate);
+      }
+    }
+
+    // Calculate total days within the specified range
+    int totalDaysInRange = toDate.difference(fromDate).inDays + 1;
+
+    // Calculate total absent days by subtracting present days from total days in range
+    int totalAbsentDays = totalDaysInRange - presentDates.length;
+
+    return totalAbsentDays;
+  }
+*/
   int totalEmployees = 0;
   int present = 0;
   int absent = 0;
@@ -288,6 +529,31 @@ class _AbsentEmployeesPageState extends State<AbsentEmployeesPage> {
       ),
     );
   }
+}
+
+class Utils {
+  static Future<List<String>> getSuggestions() async {
+    List<String> _shiftTypes = [];
+
+    try {
+      final response = await http.get(Uri.http('localhost:3309', '/get_shift_type'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        data.forEach((item) {
+          _shiftTypes.add(item['shiftType']);
+        });
+      } else {
+        throw Exception('Failed to fetch suggestions');
+      }
+    } catch (error) {
+      print('Error fetching suggestions: $error');
+      throw Exception('Failed to fetch suggestions');
+    }
+
+    return _shiftTypes;
+  }
+
 }
 
 

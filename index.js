@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const multer = require('multer');
 
+
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const csv = require('csv-parser');
@@ -14,6 +15,8 @@ const axios = require('axios');
 const app = express();
 
 // Settings
+require("dotenv").config();
+//console.log(process.env.WEATHER_API_KEY);
 app.set('port', process.env.PORT || 3309);
 
 // Middlewares
@@ -86,6 +89,8 @@ async function fetchUnitEntriesGeneral() {
     throw new Error(`Failed to load unit entries: ${error.message}`);
   }
 }
+
+
 app.get('/attendance_view_general', (req, res) => {
     const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
 
@@ -166,6 +171,160 @@ cron.schedule('*/1 * * * *', async () => {
             let earlyCheckOutMinutes = 0;
             let actTimeMinutes = 0;
 
+            // Calculate late check-in minutes
+            if (checkInTime && checkInTime.isValid() && checkInTime.isAfter(checkinEnd)) {
+                const difference = checkInTime.diff(checkinEnd, 'minutes');
+                lateCheckInMinutes = difference;
+            }
+
+            // Calculate early check-out minutes
+            if (checkOutTime && checkOutTime.isValid() && checkOutTime.isBefore(checkoutStart)) {
+                const difference = checkoutStart.diff(checkOutTime, 'minutes');
+                earlyCheckOutMinutes = difference;
+            }
+
+            if (checkInTime && checkOutTime && checkInTime.isValid() && checkOutTime.isValid()) {
+                actTimeMinutes = checkOutTime.diff(checkInTime, 'minutes');
+            }
+
+            // Determine remark
+            if (empData.length === 1) {
+                remark = 'A';
+            } else {
+                remark = 'P';
+            }
+
+            // Calculate daily salary
+            const monthlySalary = parseFloat(empData[0]['salary']);
+            const currentMonth = moment().month() + 1; // current month (1-12)
+            const currentYear = moment().year(); // current year
+            const daysInMonth = moment(`${currentYear}-${currentMonth}`, 'YYYY-MM').daysInMonth();
+            let dailySalary = monthlySalary / daysInMonth;
+
+            // Custom rounding logic
+            dailySalary = dailySalary < Math.ceil(dailySalary) - 0.50 ? Math.floor(dailySalary) : Math.ceil(dailySalary);
+
+            // Prepare data for insertion
+            console.log('checkInTime:', checkInTime ? checkInTime.format('HH:mm:ss') : 'null');
+            console.log('checkOutTime:', checkOutTime ? checkOutTime.format('HH:mm:ss') : 'null');
+            console.log('shiftEndTime:', shiftEndTime.format('HH:mm:ss'));
+            console.log('lateCheckInMinutes:', lateCheckInMinutes);
+            console.log('earlyCheckOutMinutes:', earlyCheckOutMinutes);
+            console.log('reqTimeMinutes:', reqTimeMinutes);
+            console.log('actTimeMinutes:', actTimeMinutes);
+            console.log('dailySalary:', dailySalary);
+
+            const dataToInsertcustomer = {
+                "emp_code": empEntry[0],
+                "first_name": empData[0]['first_name'].toString(),
+                "monthly_salary": empData[0]['salary'].toString(),
+                "salary": dailySalary, // Added daily salary
+                'inDate': moment(empData[0]['punch_time']).format('YYYY-MM-DD'),
+                'shiftType': empData[0]['shiftType'],
+                'check_in': checkInTime && (checkInTime.isBetween(checkinStart, checkinEnd) || checkInTime.isSameOrAfter(checkinStart)) ? checkInTime.format('HH:mm:ss') : '',
+                'check_out': checkOutTime && checkOutTime.isValid() ? checkOutTime.format('HH:mm:ss') : '',
+                'latecheck_in': lateCheckInMinutes,
+                'earlycheck_out': earlyCheckOutMinutes,
+                'act_time': actTimeMinutes,
+                'req_time': reqTimeMinutes,
+                'remark': remark,
+            };
+
+            insertFutures.push(insertDatacustomer(dataToInsertcustomer));
+        }
+
+        await Promise.all(insertFutures);
+        console.log('All data inserted successfully');
+    } catch (error) {
+        console.error('Error inserting/updating data:', error);
+    }
+
+    console.log('Automated task completed at', new Date());
+});
+
+
+/*
+app.get('/attendance_view_general', (req, res) => {
+    const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
+
+    const sql = `
+        SELECT
+            e.emp_code,
+            e.first_name,
+            e.salary,
+            e.salaryType,
+            it.punch_time,
+            s.shiftType,
+            s.startTime,
+            s.endTime,
+            t.checkin_start,
+            t.checkin_end,
+            t.checkout_start,
+            t.checkout_end,
+            t.lunchout_start,
+            t.lunchout_end,
+            t.lunchin_start,
+            t.lunchin_end
+        FROM
+            employee e
+        LEFT JOIN
+            iclock_transaction it ON e.emp_code = it.emp_code
+        LEFT JOIN
+            shift s ON e.shift = s.shiftType
+        LEFT JOIN
+            time t ON s.shiftType = t.shiftType
+        WHERE
+            (DATE(it.punch_time) = ? OR DATE(it.punch_time) IS NULL)
+    `;
+
+    db.query(sql, [currentDate], (err, result) => {
+        if (err) {
+            console.error('Error fetching data:', err);
+            res.status(500).json({ error: 'Error fetching data' });
+        } else {
+            res.json(result);
+        }
+    });
+});
+
+cron.schedule('*//*
+1 * * * *', async () => {
+    console.log('Automated task started at', new Date());
+
+    try {
+        const entries = await fetchUnitEntriesGeneral();
+
+        const groupedEntries = {};
+        for (const entry of entries) {
+            const empCode = entry['emp_code'].toString();
+            if (!groupedEntries.hasOwnProperty(empCode)) {
+                groupedEntries[empCode] = [];
+            }
+            groupedEntries[empCode].push(entry);
+        }
+
+        const insertFutures = [];
+
+        for (const empEntry of Object.entries(groupedEntries)) {
+            const empData = empEntry[1];
+
+            // Define moment objects for time ranges
+            const checkinStart = moment(empData[0]['checkin_start'], 'HH:mm:ss');
+            const checkinEnd = moment(empData[0]['checkin_end'], 'HH:mm:ss');
+            const checkoutStart = moment(empData[0]['checkout_start'], 'HH:mm:ss');
+            const checkoutEnd = moment(empData[0]['checkout_end'], 'HH:mm:ss');
+            const shiftStartTime = moment(empData[0]['startTime'], 'HH:mm:ss'); // Fetch startTime from shift data
+            const shiftEndTime = moment(empData[0]['endTime'], 'HH:mm:ss');// Assuming endTime is fetched from shift data
+            const reqTimeMinutes = shiftEndTime.diff(shiftStartTime, 'minutes');
+
+            const checkInTime = empData.length >= 1 ? moment(empData[0]['punch_time']) : null;
+            const checkOutTime = empData.length >= 2 ? moment(empData[1]['punch_time']) : null;
+
+            let remark = '';
+            let lateCheckInMinutes = 0;
+            let earlyCheckOutMinutes = 0;
+            let actTimeMinutes = 0;
+
 
             // Calculate late check-in minutes
             if (checkInTime && checkInTime.isValid() && checkInTime.isAfter(checkinEnd)) {
@@ -204,7 +363,7 @@ cron.schedule('*/1 * * * *', async () => {
                 "emp_code": empEntry[0],
                 "first_name": empData[0]['first_name'].toString(),
                 "salary": empData[0]['salary'].toString(),
-                "salaryType": empData[0]['salaryType'].toString(),
+                //"salaryType": empData[0]['salaryType'].toString(),
                 'inDate': moment(empData[0]['punch_time']).format('YYYY-MM-DD'),
                 'shiftType': empData[0]['shiftType'],
                 'check_in': checkInTime && (checkInTime.isBetween(checkinStart, checkinEnd) || checkInTime.isSameOrAfter(checkinStart)) ? checkInTime.format('HH:mm:ss') : '',
@@ -227,6 +386,7 @@ cron.schedule('*/1 * * * *', async () => {
 
     console.log('Automated task completed at', new Date());
 });
+*/
 
 
 
@@ -290,6 +450,7 @@ app.get('/checkorderNo', (req, res) => {
     }
   });
 });
+
 app.get('/get_purchase_orderitem', (req, res) => {
   const orderNo = req.query.orderNo;
 
@@ -1885,6 +2046,9 @@ app.get('/getemployeename', (req, res) => {
   });
 });
 
+
+
+
 app.get('/getemployee', (req, res) => {
   const sql = 'select * from personnel_employee'; // Modify to your table name
 
@@ -1932,7 +2096,6 @@ app.get('/employee/:empID', (req, res) => {
       res.status(404).send('Employee not found');
       return;
     }
-
     res.json(results[0]);
   });
 });
@@ -3882,6 +4045,7 @@ app.post('/attandance_entry', (req, res) => {
       act_time = VALUES(act_time),
       salary = VALUES(salary),
       salaryType = VALUES(salaryType),
+      monthly_salary = VALUES(monthly_salary),
       remark = VALUES(remark)
   `;
 
@@ -3895,6 +4059,8 @@ app.post('/attandance_entry', (req, res) => {
     }
   });
 });
+
+
 //end elango
 
 
@@ -8049,6 +8215,55 @@ app.post('/update_admin', async (req, res) => {
 });
 
 //cumulative
+
+app.get('/get_cumulative_salary', (req, res) => {
+  const fromDate = req.query.fromDate;
+  const toDate = req.query.toDate;
+  const shiftType = req.query.shiftType;
+
+  const sql = `
+    SELECT
+      emp_code,
+      monthly_salary,
+      salary AS perDaySalary,
+      CONCAT(first_name, '(', emp_code, ')') AS employee,
+      MIN(inDate) AS from_date,
+      MAX(inDate) AS to_date,
+      a.shiftType AS shift_type,
+      COUNT(DISTINCT DATE(inDate)) AS no_of_work_days,
+      SUM(req_time) AS total_req_time,
+      SUM(act_time) AS total_act_time,
+      SUM(salary) AS total_salary,
+      ROUND(SUM(req_time) - SUM(act_time), 2) AS total_late
+    FROM
+      attendance AS a
+    WHERE
+      inDate BETWEEN ? AND ?
+      AND a.shiftType = ?
+    GROUP BY
+      emp_code,
+      first_name,
+      a.shiftType,
+      monthly_salary,
+      salary
+  `;
+
+  console.log('Executing query:', sql);
+  console.log('With parameters:', [fromDate, toDate, shiftType]);
+
+  db.query(sql, [fromDate, toDate, shiftType], (err, result) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Error fetching data' });
+    } else {
+      console.log('Data fetched successfully:', result);
+      res.status(200).json(result);
+    }
+  });
+});
+
+
+/*
 app.get('/get_cumulative_salary', (req, res) => {
   const fromDate = req.query.fromDate;
   const toDate = req.query.toDate;
@@ -8095,6 +8310,7 @@ app.get('/get_cumulative_salary', (req, res) => {
     }
   });
 });
+*/
 
 //raja (12.4)
 //item group creation
@@ -9803,127 +10019,10 @@ app.put('/time_update_tvs/:id', (req, res) => {
   });
 });
 
+app.get('/getshift', (req, res) => {
+  const sql = 'select * from shift'; // Modify to your table name
 
-/// 17-06-2024 gowtham done for present and absent home page work
-app.get('/attendance-summaryold', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-  const currentTime = new Date().toTimeString().split(' ')[0]; // Get current time in HH:MM:SS format
-
-  const queryTotalEmployees = `SELECT COUNT(*) AS totalEmployees FROM employee`;
-  const queryPresent = `SELECT COUNT(*) AS present FROM attendance WHERE inDate = ? AND check_in IS NOT NULL`;
-  const queryAbsent = `SELECT COUNT(*) AS absent FROM attendance WHERE inDate = ? AND (check_in IS NULL OR check_in >= '06:00:00')`;
-
-  db.query(queryTotalEmployees, (err, totalEmployeesResult) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    db.query(queryPresent, [currentDate], (err, presentResult) => {
-      if (err) {
-        return res.status(500).json({ error: err });
-      }
-      db.query(queryAbsent, [currentDate], (err, absentResult) => {
-        if (err) {
-          return res.status(500).json({ error: err });
-        }
-        res.json({
-          totalEmployees: totalEmployeesResult[0].totalEmployees,
-          present: presentResult[0].present,
-          absent: absentResult[0].absent
-        });
-      });
-    });
-  });
-});
-
-app.get('/attendance-summary', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
-  const queryTotalEmployees = `SELECT COUNT(*) AS totalEmployees FROM employee`;
-  const queryPresent = `SELECT COUNT(DISTINCT emp_code) AS present FROM attendance WHERE inDate = ?`;
-  const queryAbsent = `SELECT COUNT(*) AS absent FROM employee WHERE emp_code NOT IN (SELECT DISTINCT emp_code FROM attendance WHERE inDate = ?)`;
-
-  db.query(queryTotalEmployees, (err, totalEmployeesResult) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    db.query(queryPresent, [currentDate], (err, presentResult) => {
-      if (err) {
-        return res.status(500).json({ error: err });
-      }
-      db.query(queryAbsent, [currentDate], (err, absentResult) => {
-        if (err) {
-          return res.status(500).json({ error: err });
-        }
-        res.json({
-          totalEmployees: totalEmployeesResult[0].totalEmployees,
-          present: presentResult[0].present,
-          absent: absentResult[0].absent
-        });
-      });
-    });
-  });
-});
-
-app.get('/present-employees', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
-  const queryPresent = `
-    SELECT e.emp_code, e.first_name, e.empMobile
-    FROM employee e
-    JOIN attendance a ON e.emp_code = a.emp_code
-    WHERE a.inDate = ?`;
-
-  db.query(queryPresent, [currentDate], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    res.json(result);
-  });
-});
-
-app.get('/absent-employees', (req, res) => {
-  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
-  const queryAbsent = `
-    SELECT e.emp_code, e.first_name, e.empMobile
-    FROM employee e
-    WHERE e.emp_code NOT IN (
-      SELECT emp_code
-      FROM attendance
-      WHERE inDate = ?)`;
-
-  db.query(queryAbsent, [currentDate], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err });
-    }
-    res.json(result);
-  });
-});
-
-
-app.delete('/shift_tvs_delete/:id', (req, res) => {
-  const { id } = req.params;
-
-  const sql = 'DELETE FROM shift WHERE id = ?';
-  db.query(sql, [id], (err, result) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).send('Error deleting shift from database');
-      return;
-    }
-
-    if (result.affectedRows === 0) {
-      res.status(404).send('Shift not found');
-    } else {
-      res.status(200).send('Shift deleted successfully');
-    }
-  });
-});
-
-
-app.get('/get_employee', (req, res) => {
-  const sql = 'SELECT * from employee'; // Assuming id is the primary key of the attendance table
-  db.query(sql, (err, result) => {
+  db.query(sql, (err, results) => {
     if (err) {
       console.error('Error fetching data:', err);
       res.status(500).json({ error: 'Error fetching data' });
@@ -9934,6 +10033,25 @@ app.get('/get_employee', (req, res) => {
   });
 });
 
+app.get('/get_individual_salary', (req, res) => {
+  const sql = `
+    SELECT
+      a.*
+    FROM
+      attendance a
+    GROUP BY
+      a.id`; // Assuming id is the primary key of the attendance table
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Error fetching data' });
+    } else {
+      console.log('Data fetched successfully');
+      res.status(200).json(result);
+    }
+  });
+});
 
 
 
@@ -10027,38 +10145,95 @@ app.get('/get_attendance_overall', (req, res) => {
     }
   });
 });
-
-
-
-
-
-
+// Endpoint to insert shift into both shift and time tables
 app.post('/shift_insert_tvs', (req, res) => {
-  const { shiftType, startTime, endTime } = req.body;
+  const { shiftType, startTime, endTime, checkin_start, checkin_end, checkout_start, checkout_end } = req.body;
 
-  // Insert into MySQL
-  const sql = 'INSERT INTO shift (shiftType, startTime, endTime) VALUES (?, ?, ?)';
-  db.query(sql, [shiftType, startTime, endTime], (err, result) => {
+  // Check if shiftType already exists in time table
+  const checkSql = 'SELECT * FROM time WHERE shiftType = ?';
+  db.query(checkSql, [shiftType], (err, results) => {
     if (err) {
       console.error('Error executing query:', err);
-      res.status(500).send('Error inserting shift into database');
+      res.status(500).send('Error checking shift in database');
       return;
     }
 
-    console.log('Shift added:', result);
+    if (results.length > 0) {
+      // ShiftType already exists in time table, insert only into shift table
+      const sqlShift = 'INSERT INTO shift (shiftType, startTime, endTime) VALUES (?, ?, ?)';
+      db.query(sqlShift, [shiftType, startTime, endTime], (err, result) => {
+        if (err) {
+          console.error('Error inserting shift:', err);
+          res.status(500).send('Error inserting shift into database');
+          return;
+        }
 
-    // Respond with the inserted data (optional)
-    res.status(200).json({
-      id: result.insertId,
-      shiftType,
-      startTime,
-      endTime
-    });
+        console.log('Shift added:', result);
+
+        // Respond with success for shift insertion
+        res.status(200).json({
+          message: 'Shift added ',
+          shiftId: result.insertId,
+          shiftType,
+          startTime,
+          endTime,
+        });
+      });
+    } else {
+      // ShiftType does not exist in time table, proceed to insert into both tables
+      const sqlShift = 'INSERT INTO shift (shiftType, startTime, endTime) VALUES (?, ?, ?)';
+      db.query(sqlShift, [shiftType, startTime, endTime], (err, result) => {
+        if (err) {
+          console.error('Error inserting shift:', err);
+          res.status(500).send('Error inserting shift into database');
+          return;
+        }
+
+        console.log('Shift added:', result);
+
+        // Insert into time table
+        const sqlTime = 'INSERT INTO time (shiftType, checkin_start, checkin_end, checkout_start, checkout_end) VALUES (?, ?, ?, ?, ?)';
+        const values = [shiftType, checkin_start, checkin_end, checkout_start, checkout_end];
+        db.query(sqlTime, values, (err, result) => {
+          if (err) {
+            console.error('Error inserting time:', err);
+            res.status(500).send('Error inserting time into database');
+            return;
+          }
+
+          console.log('Time added:', result);
+
+          // Respond with success for both shift and time insertion
+          res.status(200).json({
+            message: 'Shift and Time added',
+            shiftId: result.insertId,
+            shiftType,
+            startTime,
+            endTime,
+            timeId: result.insertId,
+            checkin_start,
+            checkin_end,
+            checkout_start,
+            checkout_end,
+          });
+        });
+      });
+    }
   });
 });
 
-
-
+app.get('/get_shift_type', (req, res) => {
+  const sql = 'SELECT shiftType FROM shift'; // Only select shiftType
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Error fetching data' });
+    } else {
+      console.log('Data fetched successfully');
+      res.status(200).json(result);
+    }
+  });
+});
 
 
 // Starting the server

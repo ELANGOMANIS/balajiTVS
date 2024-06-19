@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:vinayaga_project/Attendance/salary.dart';
 import 'package:vinayaga_project/Attendance/salary_weekly_pdf.dart';
 
 
-import '../../home.dart';
-import '../../main.dart';
+import '../home.dart';
+import '../main.dart';
 
 class CumulativeSalaryCalculation extends StatefulWidget {
   const CumulativeSalaryCalculation({Key? key}) : super(key: key);
@@ -25,7 +26,7 @@ class _CumulativeSalaryCalculationState
   bool isCardVisible = false;
 
   List<Map<String, dynamic>> reportData = [];
-  final List<String> _shiftTypes = ['General', 'Morning', 'Night'];
+  final List<String> _shiftTypes = [];
   Future<void> fetchReport() async {
     if (fromDate == null || toDate == null) {
       print("Please select both From Date and To Date");
@@ -58,6 +59,9 @@ class _CumulativeSalaryCalculationState
       print('Error fetching report: $error');
     }
   }
+
+
+
 /*
   Future<void> fetchReport() async {
     if (fromDate == null || toDate == null) {
@@ -158,7 +162,8 @@ class _CumulativeSalaryCalculationState
                       ),
                       child: Column(
                         children: [
-                          const Row(
+
+                           Row(
                             children: [
                               Icon(Icons.report),
                               SizedBox(width: 10),
@@ -168,6 +173,17 @@ class _CumulativeSalaryCalculationState
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
+                              ),
+                              SizedBox(width: 10),
+                              MaterialButton(onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SalaryCalculation(),
+                                  ),
+                                );
+                              },
+                                child: Text('Individual',style: TextStyle(color: Colors.blue),),
                               ),
                             ],
                           ),
@@ -228,8 +244,7 @@ class _CumulativeSalaryCalculationState
                                 SizedBox(
                                   width: 180,
                                   height: 34,
-                                  child:
-                                  TypeAheadFormField(
+                                  child: TypeAheadFormField(
                                     textFieldConfiguration: TextFieldConfiguration(
                                       controller: _typeAheadController, // Use the controller here.
                                       decoration: const InputDecoration(
@@ -238,8 +253,12 @@ class _CumulativeSalaryCalculationState
                                         suffixIcon: Icon(Icons.arrow_drop_down),
                                       ),
                                     ),
-                                    suggestionsCallback: (pattern) {
-                                      return _shiftTypes.where((item) => item.toLowerCase().contains(pattern.toLowerCase()));
+                                    suggestionsCallback: (pattern) async {
+                                      List<String> suggestions = [];
+                                      if (pattern.isNotEmpty) {
+                                        suggestions = await Utils.getSuggestions();
+                                      }
+                                      return suggestions;
                                     },
                                     itemBuilder: (context, suggestion) {
                                       return ListTile(
@@ -252,7 +271,6 @@ class _CumulativeSalaryCalculationState
                                         _typeAheadController.text = selectedShiftType!; // Update the controller text when an item is selected.
                                       });
                                     },
-                                    // Optionally clear the selection based on your app's logic
                                     validator: (value) {
                                       if (value!.isEmpty) {
                                         return 'Please select a shift type';
@@ -262,6 +280,7 @@ class _CumulativeSalaryCalculationState
                                     onSaved: (value) => selectedShiftType = value,
                                   ),
                                 ),
+
                                 Padding(
                                   padding: const EdgeInsets.all(20.0),
                                   child: MaterialButton(
@@ -384,14 +403,15 @@ class _CumulativeSalaryCalculationState
                             columns: const [
                               DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Employee/code", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("No of Days\nPresent", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Required\nTime", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Actual\nTime", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Late", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Extra\nProduction", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("No of Days", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                               DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Extra\nProduction", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                             ],
                             source: _DataSource(reportData, fromDate, toDate),
                           ),
@@ -424,22 +444,23 @@ class _DataSource extends DataTableSource {
     }
     final data = _data[index];
     String shiftType = data['shift_type'].toString();
-    double totalWorkSalary = calculateSalary(data) + double.parse(data['calculated_extraproduction'].toString());
+    //double totalWorkSalary = calculateSalary(data) + double.parse(data['calculated_extraproduction'].toString());
 
     return DataRow(cells: [
       DataCell(Text((index + 1).toString())),
       DataCell(Text(data['employee'])),
       // DataCell(Text(_fromDate != null ? DateFormat('yyyy-MM-dd').format(_fromDate!) : '')),
       // DataCell(Text(_toDate != null ? DateFormat('yyyy-MM-dd').format(_toDate!) : '')),
-      //DataCell(Text(shiftType)),
+     // DataCell(Text(shiftType)),
       DataCell(Text((data['no_of_work_days'].toString()))),
       DataCell(Text(formatDuration(data['total_req_time'].toString()))),
       DataCell(Text(formatDuration(data['total_act_time'].toString()))),
-      DataCell(Text(formatDuration(data['total_late'].toString()))),
-      DataCell(Text('\u20B9 ${data['perDaySalary']}')), // Display per day salary with rupee symbol
-      DataCell(Text(calculateSalary(data).toString())),
-      DataCell(Text(double.parse(data['calculated_extraproduction']).toInt().toString())),
-      DataCell(Text(totalWorkSalary.toStringAsFixed(2))), // Display total work salary with two decimal places
+      //DataCell(Text(formatDuration(data['total_late'].toString()))),
+      DataCell(Text('\u20B9 ${data['monthly_salary']}')),
+      DataCell(Text('\u20B9 ${data['total_salary']}')), // Display per day salary with rupee symbol
+      // DataCell(Text(calculateSalary(data).toString())),
+      // DataCell(Text(double.parse(data['calculated_extraproduction']).toInt().toString())),
+      // DataCell(Text(totalWorkSalary.toStringAsFixed(2))), // Display total work salary with two decimal places
 // Display the calculated extra production without decimal places
     ]);
   }

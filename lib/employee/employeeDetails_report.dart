@@ -7,10 +7,11 @@ import 'employee_report.dart';
 class EmployeeDetails extends StatefulWidget {
   String? empID;
   String? empName;
-  String? empAddress;String? pincode;
-  int? empMobile;
+  String? empAddress;
+  String? pincode;
+  String? empMobile;
   String? dob;
-  int age;
+  String? age;
   String? bloodgroup;
   String? gender;
   String? maritalStatus;
@@ -23,14 +24,14 @@ class EmployeeDetails extends StatefulWidget {
   String? empPosition;
   String? shift;
   String? salary;
-  int daySalary;
+  String? daySalary;
   String? acNumber;
   String? acHoldername;
   String? bank;
   String? branch;
   String? ifsc;
   String? pan;
-  int aadhar;
+  String? aadhar;
 
   EmployeeDetails({Key? key,
     required this.empID,
@@ -188,7 +189,7 @@ class _EmployeeDetailsState extends State<EmployeeDetails> {
                                               SizedBox(height: 7,),
                                               Text(widget.empAddress.toString() != "" ? widget.empAddress.toString() : "-"),
                                               SizedBox(height: 7,),
-                                              Text(widget.pincode.toString() != "" ? widget.pincode.toString() : "-"),
+                                              Text(widget.pincode.toString() != null ? widget.pincode.toString() : "-"),
                                               SizedBox(height: 7,),
                                               Text(widget.empMobile.toString()),
                                               SizedBox(height: 7,),
@@ -213,9 +214,9 @@ class _EmployeeDetailsState extends State<EmployeeDetails> {
                                               SizedBox(height: 7,),
                                               Text("Employee Position",style:TextStyle(fontWeight: FontWeight.bold)),
                                               SizedBox(height: 7,),
-                                              Text("SalaryType",style:TextStyle(fontWeight: FontWeight.bold)),
+                                              Text("Salary",style:TextStyle(fontWeight: FontWeight.bold)),
                                               SizedBox(height: 7,),
-                                              Text("Salary Per Date",style:TextStyle(fontWeight: FontWeight.bold)),
+                                              Text("",style:TextStyle(fontWeight: FontWeight.bold)),
                                               SizedBox(height: 7,),
                                               Text("",style:TextStyle(fontWeight: FontWeight.bold)),
                                               SizedBox(height: 7,),
@@ -233,7 +234,7 @@ class _EmployeeDetailsState extends State<EmployeeDetails> {
                                               SizedBox(height: 7,),
                                               Text(":"),
                                               SizedBox(height: 7,),
-                                              Text(":"),
+                                              Text(""),
                                               SizedBox(height: 7,),
                                               Text("",style:TextStyle(fontWeight: FontWeight.bold)),
                                               SizedBox(height: 7,),
@@ -245,14 +246,14 @@ class _EmployeeDetailsState extends State<EmployeeDetails> {
                                             children: [
                                               Text(widget.doj != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.doj!)) : "-"),
                                               SizedBox(height: 7,),
-                                              Text(widget.aadhar.toString() != "" ? widget.aadhar.toString() : "-"),
+                                              Text((widget.aadhar != null) ? widget.aadhar.toString() : "-"),
                                               SizedBox(height: 7,),
                                               Text(widget.empPosition.toString() != "" ? widget.empPosition.toString() : "-"),
                                               SizedBox(height: 7,),
-                                              Text(widget.salary.toString() != "" ? widget.salary.toString() : "-"),
-                                              SizedBox(height: 7,),
                                               Text(widget.daySalary.toString() != "" ? widget.daySalary.toString() : "-"),
                                               SizedBox(height: 7,),
+                                              Text("",style:TextStyle(fontWeight: FontWeight.bold)),
+                                              SizedBox(height: 5,),
                                               Text("",style:TextStyle(fontWeight: FontWeight.bold)),
                                               SizedBox(height: 5,),
                                             ],
@@ -361,11 +362,13 @@ class _EmployeeDetailsState extends State<EmployeeDetails> {
                                                 SizedBox(height: 7,),
                                                 Text(widget.age.toString()),
                                                 SizedBox(height: 7,),
-                                                Text(widget.bloodgroup.toString() != "" ? widget.bloodgroup.toString() : "-"),
+                                                Text(widget.bloodgroup.toString() != "Blood Group" ? widget.bloodgroup.toString() : "-"),
                                                 SizedBox(height: 7,),
+                                                //Text(widget.education?.toString() ?? "-"),
                                                 Text(widget.education.toString() != "" ? widget.education.toString() : "-"),
                                                 SizedBox(height: 7,),
-                                                Text(widget.maritalStatus.toString()),
+                                                Text(widget.maritalStatus.toString() != "Marital Status" ? widget.maritalStatus.toString() : "-"),
+                                                //Text(widget.maritalStatus.toString()),
                                                 SizedBox(height: 7,),
                                                 Text(widget.gaurdian.toString() != "" ? widget.gaurdian.toString() : "-"),
                                                 SizedBox(height: 7,),
@@ -399,7 +402,7 @@ class _EmployeeDetailsState extends State<EmployeeDetails> {
                                               SizedBox(height: 7,),
                                               Text("PanCard No",style:TextStyle(fontWeight: FontWeight.bold)),
                                               SizedBox(height: 7,),
-                                              Text("Ending Date",style:TextStyle(fontWeight: FontWeight.bold)),
+                                              Text("",style:TextStyle(fontWeight: FontWeight.bold)),
                                               SizedBox(height: 7,),
                                               Text(""),
                                             ],
@@ -441,7 +444,8 @@ class _EmployeeDetailsState extends State<EmployeeDetails> {
                                               SizedBox(height: 7,),
                                               Text(widget.pan.toString() != "" ? widget.pan.toString() : "-"),
                                               SizedBox(height: 7,),
-                                              Text(widget.end != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.end!)) : "-",),
+                                              Text(""),
+                                              //Text(widget.end != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.end!)) : "-",),
                                               SizedBox(height: 7,),
                                               Text(""),
                                             ],

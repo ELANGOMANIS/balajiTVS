@@ -4,11 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vinayaga_project/Attendance/Attendance.dart';
 import 'package:vinayaga_project/profile.dart';
 import 'package:vinayaga_project/settings/settings.dart';
-
-import 'Attendance/Attendance_report.dart';
 import 'Attendance/Attendance_reportBalaji.dart';
 import 'Attendance/WeeklySalary.dart';
 import 'Attendance/employee_profile_update.dart';
+import 'employee/employee_report.dart';
+import 'Attendance/salary.dart';
 import 'home.dart';
 import 'login_page.dart';
 
@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Vinayaga Cones',
       //home: const LoginPage(),
      // home: const Home(),
-      home: const Settings(),
+      home: const CumulativeSalaryCalculation(),
       // initialRoute: 'loginpage',
       //   routes: {'loginpage':(context)=> LoginPAge()},
       theme: ThemeData (
@@ -141,6 +141,7 @@ class _MyScaffoldState extends State<MyScaffold> {
     'Employee': false,
     'Attendance': false,
     'Salary': false,
+    'Employee Report': false,
     'Settings': false,
     'Attendance Balaji': false,
   };
@@ -149,6 +150,7 @@ class _MyScaffoldState extends State<MyScaffold> {
     'Employee': false,
     'Attendance': false,
     'Salary': false,
+    'Employee Report': false,
     'Settings': false,
     'Attendance Balaji': false,
   };
@@ -229,6 +231,7 @@ class _MyScaffoldState extends State<MyScaffold> {
                   _buildHoverButton('Employee', Icons.person_add_alt_rounded),
                   _buildHoverButton('Attendance', Icons.punch_clock_rounded),
                   _buildHoverButton('Salary', Icons.monetization_on),
+                  _buildHoverButton('Employee Report', Icons.manage_accounts_sharp),
                   _buildHoverButton('Settings', Icons.settings),
                 ],
               ),
@@ -292,6 +295,9 @@ class _MyScaffoldState extends State<MyScaffold> {
         break;
       case 'Salary':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const CumulativeSalaryCalculation()));
+        break;
+      case 'Employee Report':
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const EmployeeReport()));
         break;
       case 'Settings':
         Navigator.push(context, MaterialPageRoute(builder: (context) => const Settings()));
