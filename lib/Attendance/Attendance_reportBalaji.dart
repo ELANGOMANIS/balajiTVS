@@ -30,6 +30,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
   void initState() {
     super.initState();
     attendanceDetailsFuture = fetchAttendanceBalaji();
+
   }
   void _applyFilters() {
     setState(() {
@@ -285,37 +286,21 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                       ),
                       child: Column(
                         children: [
-                           Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.arrow_back),
-                                onPressed: () {
-                                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
-                                  Navigator.pop(context);
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.refresh),
-                                onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>AttendanceBalaji()));
-                                },
-                              ),
-
-                              SizedBox(width: 20,),
-                              Icon(Icons.report),
-                              SizedBox(width: 10),
-                              Text(
-                                'Attendance Report',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 10,),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                             children: [
+                               Icon(Icons.report),
+                               SizedBox(width:10,),
+                               Text(
+                                 'Attendance Report',
+                                 style: TextStyle(
+                                   fontSize:20,
+                                   fontWeight: FontWeight.bold,
+                                 ),
+                               ),
+                             ],
+                           ),
+                          SizedBox(height: 15,),
+                          Wrap(
                             children: [
                               Flexible(
                                 child: SizedBox(
@@ -338,13 +323,14 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       });
                                     },
                                     decoration: InputDecoration(
-                                      labelText: 'From Date (YYYY-MM-DD)',
+                                      labelText: 'From Date ',
                                       labelStyle: TextStyle(fontSize: 12),
                                       suffixIcon: Icon(Icons.date_range),
                                     ),
                                   ),
                                 ),
                               ),
+                              SizedBox(width: 10,),
                               Flexible(
                                 child: SizedBox(
                                   height:50,
@@ -366,13 +352,14 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       });
                                     },
                                     decoration: InputDecoration(
-                                      labelText: 'To Date (YYYY-MM-DD)',
+                                      labelText: 'To Date ',
                                       labelStyle: TextStyle(fontSize: 12),
                                       suffixIcon: Icon(Icons.date_range),
                                     ),
                                   ),
                                 ),
                               ),
+                              SizedBox(width: 10,),
                               Flexible(
                                 child: SizedBox(
                                   height:50,
@@ -401,6 +388,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   ),
                                 ),
                               ),
+                              SizedBox(width: 10,),
                               Flexible(
                                 child: SizedBox(
                                   height:50,
@@ -413,7 +401,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       ),
                                     ),
                                     suggestionsCallback: (pattern) async {
-                                      return getSuggestions('first_name', pattern);
+                                      List<String> suggestions = [];
+                                      if (pattern.isNotEmpty) {
+                                        suggestions = await Utils.getSuggestions();
+                                      }
+                                      return suggestions;
                                     },
                                     itemBuilder: (context, suggestion) {
                                       return ListTile(
@@ -549,11 +541,11 @@ class AttendanceDataSource extends DataTableSource {
         DataCell(Center(child: Text(attendance['first_name'] + ' - ' + attendance['emp_code'] ?? '')),),
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
-        DataCell(Center(child: Text(attendance['check_out'] ?? ''))),
+        DataCell(Center(child: Text( attendance['check_out'] == '00:00:00' ? '-' : attendance['check_out'] ))),
         DataCell(Center(child: Text(formatDuration(attendance['latecheck_in'] ?? '')))),
         DataCell(Center(child: Text(formatDuration(attendance['earlycheck_out'] ?? '')))),
-        DataCell(Center(child: Text(attendance['req_time'] ?? ''))),
-        DataCell(Center(child: Text(attendance['act_time'] ?? ''))),
+        DataCell(Center(child: Text(formatDuration(attendance['req_time'] ?? '')))),
+        DataCell(Center(child: Text(formatDuration(attendance['act_time'] ?? '')))),
         DataCell(Center(child: Text(attendance['remark'] ?? ''))),
       ],
     );

@@ -448,10 +448,9 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 10,),
+                            SizedBox(height: 15,),
 
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
                               children: [
                                 Flexible(
                                   child: SizedBox(
@@ -492,6 +491,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                     ),
                                   ),
                                 ),
+                                SizedBox(width: 20,),
                                 Flexible(
                                   child: SizedBox(
                                     width: 240,
@@ -532,6 +532,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                     ),
                                   ),
                                 ),
+                                SizedBox(width: 20,),
                                 Flexible(
                                   child: SizedBox(
                                     width: 240,
@@ -550,7 +551,6 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                         },
                                         style: const TextStyle(fontSize: 13),
                                         decoration: const InputDecoration(
-                                          suffixIcon: Icon(Icons.search),
                                           fillColor: Colors.white,
                                           filled: true,
                                           labelText: "Employee/Code",
