@@ -542,7 +542,7 @@ class AttendanceDataSource extends DataTableSource {
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
         DataCell(Center(child: Text( attendance['check_out'] == '00:00:00' ? '-' : attendance['check_out'] ))),
-        DataCell(Center(child: Text(formatDuration(attendance['latecheck_in'] ?? '')))),
+        DataCell(Center(child: Text(formatDuration(attendance['latecheck_in'] ?? '-')))),
         DataCell(Center(child: Text(formatDuration(attendance['earlycheck_out'] ?? '')))),
         DataCell(Center(child: Text(formatDuration(attendance['req_time'] ?? '')))),
         DataCell(Center(child: Text(formatDuration(attendance['act_time'] ?? '')))),
