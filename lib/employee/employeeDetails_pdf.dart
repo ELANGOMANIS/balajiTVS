@@ -69,7 +69,6 @@ class EmployeeReportPdf extends StatefulWidget {
     required this.pan,
     required this.aadhar
     //required this.customerData,
-
   });
 
   @override
@@ -171,7 +170,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
               ),
               textAlign: pw.TextAlign.center
             ),
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 5),
             pw.Text(
               "Contact - ${companyData['contact']}",
               style: pw.TextStyle(
@@ -254,7 +253,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                       children: [
                                         pw.SizedBox(height: 7),
                                         pw.Text(
-                                          "Gender",
+                                          "Contact",
                                           style: pw.TextStyle(
                                             fontSize: 10,
                                             fontWeight: pw.FontWeight.bold,
@@ -262,7 +261,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                         ),
                                         pw.SizedBox(height: 7),
                                         pw.Text(
-                                          "Contact",
+                                          "Gender",
                                           style: pw.TextStyle(
                                             fontSize: 10,
                                             fontWeight: pw.FontWeight.bold,
@@ -327,9 +326,9 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                     child: pw.Column(
                                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                                       children: [
-                                        pw.Text(widget.gender.toString(), style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
                                         pw.Text(widget.empMobile.toString(), style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(widget.gender.toString(), style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height:7),
                                         pw.Text(
                                           widget.dob != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.dob!)) : "-",

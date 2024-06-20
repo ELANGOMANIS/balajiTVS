@@ -351,7 +351,7 @@ class Utils {
     var lineCount = 0;
 
     for (var word in words) {
-      if ((line + word).length > 100) {
+      if ((line + word).length > 40) {
         if (lineCount == 1) {
           break;
         }

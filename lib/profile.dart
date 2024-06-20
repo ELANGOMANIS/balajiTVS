@@ -245,7 +245,13 @@ class _ProfileState extends State<Profile> {
       throw Exception('Failed to update purchase entry');
     }
   }
-
+  String capitalizeAfterSeparators(String text) {
+    List<String> words = text.split(' ');
+    for (int i = 0; i < words.length; i++) {
+      words[i] = words[i][0].toUpperCase() + words[i].substring(1);
+    }
+    return words.join(','); // Join words back with commas
+  }
 
   @override
   void initState() {
@@ -407,6 +413,9 @@ class _ProfileState extends State<Profile> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
+                                  inputFormatters: [
+                                    UpperCaseTextFormatter(), // This will convert all input to uppercase
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 10,),
@@ -424,6 +433,7 @@ class _ProfileState extends State<Profile> {
                                     // Validate the form on every text change
                                     _formKey.currentState?.validate();
                                   },
+
                                   style: const TextStyle(fontSize: 12),
                                   keyboardType: TextInputType.multiline,
                                   maxLines: null, // Allow multiple lines
@@ -702,6 +712,8 @@ class _ProfileState extends State<Profile> {
   }
 }
 ///
+
+
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
