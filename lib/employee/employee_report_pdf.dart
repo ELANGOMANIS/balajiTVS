@@ -81,8 +81,8 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
 
   Future<Uint8List> _generatePdfWithCopies(PdfPageFormat format, int copies) async {
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
-    final image = await imageFromAssetBundle("assets/pillaiyar.png");
-    final image1 = await imageFromAssetBundle("assets/sarswathi.png");
+    // final image = await imageFromAssetBundle("assets/pillaiyar.png");
+    // final image1 = await imageFromAssetBundle("assets/sarswathi.png");
     final fontData = await rootBundle.load('assets/fonts/Algerian_Regular.ttf');
     final ttf = pw.Font.ttf(fontData.buffer.asByteData());
     final List<Map<String, dynamic>> customerData = widget.customerData;
@@ -99,51 +99,51 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Container(
-                  height: 70,
-                  width: 70,
-                  child: pw.Image(image), // Replace 'image' with your Image widget
-                ),
+                // pw.Container(
+                //   height: 70,
+                //   width: 70,
+                //   child: pw.Image(image), // Replace 'image' with your Image widget
+                // ),
                 pw.Padding(
                   padding: pw.EdgeInsets.only(right: 10),
                   child: pw.Column(
                     children: [
                       pw.Text(
-                        "VINAYAGA CONES",
+                        "${companyData['companyName']}",
                         style: pw.TextStyle(
                           font: ttf,
                           fontSize: 20,
                           fontWeight: pw.FontWeight.bold,
                         ),
-                      ),
-                      pw.SizedBox(height: 5),
-                      pw.Text(
-                        "(Manufactures of : QUALITY PAPER CONES)",
-                        style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-                      ),
-                      pw.SizedBox(height: 5),
-                      pw.Container(
-                        constraints: const pw.BoxConstraints(
-                          maxWidth: 300,
-                        ),
-                        child: pw.Text(
-                          "5/624-I5,SOWDESWARI \n"
-                              "NAGAR,VEPPADAI,ELANTHAKUTTAI(PO)TIRUCHENGODE(T.K)\n"
-                              "NAMAKKAL-638008 ",
-                          style: const pw.TextStyle(fontSize: 7),
-                          textAlign: pw.TextAlign.center,
-                        ),
-                      ),
+                      )
+                      // pw.SizedBox(height: 5),
+                      // pw.Text(
+                      //   "(Manufactures of : QUALITY PAPER CONES)",
+                      //   style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                      // ),
+                      // pw.SizedBox(height: 5),
+                      // pw.Container(
+                      //   constraints: const pw.BoxConstraints(
+                      //     maxWidth: 300,
+                      //   ),
+                      //   child: pw.Text(
+                      //     "5/624-I5,SOWDESWARI \n"
+                      //         "NAGAR,VEPPADAI,ELANTHAKUTTAI(PO)TIRUCHENGODE(T.K)\n"
+                      //         "NAMAKKAL-638008 ",
+                      //     style: const pw.TextStyle(fontSize: 7),
+                      //     textAlign: pw.TextAlign.center,
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
-                pw.Container(
-                  height: 70,
-                  width: 70,
-                  child: pw.Container(
-                    child: pw.Image(image1), // Replace 'image1' with your Image widget
-                  ),
-                ),
+                // pw.Container(
+                //   height: 70,
+                //   width: 70,
+                //   child: pw.Container(
+                //     child: pw.Image(image1), // Replace 'image1' with your Image widget
+                //   ),
+                // ),
               ],
             ),
           ],
@@ -192,7 +192,7 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
                                     padding: pw.EdgeInsets.all(8.0),
                                     child:pw.Center(child:
                                     pw.Text('S.No', style: pw.TextStyle(fontSize: 8,font:font,fontWeight: pw.FontWeight.bold)),
-                                  ),),
+                                    ),),
                                   pw.Container(
                                     padding: pw.EdgeInsets.all(8.0),
                                     child: pw.Center(child: pw.Text('Emp ID',

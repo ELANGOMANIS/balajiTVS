@@ -659,8 +659,8 @@ class _YourDataTableSource extends DataTableSource {
 
             IconButton(
               onPressed: (){
-                String fathername=row["fatherName"];
-                String fatherMobile=row["fatherMobile"];
+                String fathername=row["fatherName"]?? "";
+                String fatherMobile=row["fatherMobile"]?? "";
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> EmployeeReportPdf(
                   empID:row["emp_code"],
                   empName:row["first_name"],
@@ -695,12 +695,6 @@ class _YourDataTableSource extends DataTableSource {
               color: Colors.blue.shade600,
             ),
 
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                showDeleteConfirmationDialog(context, id);
-              },
-            ),
 
           ],),
 

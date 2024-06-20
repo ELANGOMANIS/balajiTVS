@@ -15,6 +15,8 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+
+  final _formKey = GlobalKey<FormState>();
   TextEditingController companyName =TextEditingController();
   TextEditingController address =TextEditingController();
   TextEditingController contact =TextEditingController();
@@ -29,8 +31,8 @@ class _ProfileState extends State<Profile> {
   TextEditingController companySearch =TextEditingController();
   TextEditingController uid =TextEditingController();
   String selectedCompany = '';
-
   Map<String,dynamic> profileData ={};
+
   Future<void> insert(Map<String,dynamic> profileData) async{
     const String apiUrl = 'http://localhost:3309/company_profile';
     try{
@@ -110,7 +112,6 @@ class _ProfileState extends State<Profile> {
         branch.clear();
         ifscCode.clear();
         uid.clear();
-
       } else {
         final existingSupplier = data.firstWhere(
               (item) => item['companyName']?.toString() == searchText,
@@ -128,13 +129,13 @@ class _ProfileState extends State<Profile> {
           accNo.text = existingSupplier['accNo']?.toString() ?? '';
           branch.text = existingSupplier['branch']?.toString() ?? '';
           ifscCode.text = existingSupplier['ifscCode']?.toString() ?? '';
-          uid.text = existingSupplier['uid']?.toString() ?? '';
+          uid.text = existingSupplier['id']?.toString() ?? '';
         } else {
-
         }
       }
     });
   }
+  String? userid;
   Future<void> fetchData() async {
     try {
       final url = Uri.parse('http://localhost:3309/company_fetch/');
@@ -147,7 +148,7 @@ class _ProfileState extends State<Profile> {
         setState(() {
           data = itemGroups.cast<Map<String, dynamic>>();
         });
-
+        companySearch.text= data[0]['companyName'].toString();
         print('Data: $data');
       } else {
         print('Error: ${response.statusCode}');
@@ -167,6 +168,7 @@ class _ProfileState extends State<Profile> {
     }
     return false; // Size is unique, return false
   }
+
   Future<List<Map<String, dynamic>>> fetchUid() async {
     try {
       final response = await http.get(Uri.parse('http://localhost:3309/fetch_company_duplicate'));
@@ -265,9 +267,32 @@ class _ProfileState extends State<Profile> {
       route: "settings_entry",
       backgroundColor: Colors.white,
       body: Form(
+          key: _formKey,
           child: Center(
             child: Column(
               children: [
+                /*    Container(
+            margin: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Company Name: ${data[0]['companyName']}',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8.0),
+                Text(
+                  'Address: ${data[0]['address']}',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ),*/
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
@@ -286,7 +311,7 @@ class _ProfileState extends State<Profile> {
                           ),),
                           SizedBox(height: 15,),
 
-                          Padding(
+                          /* Padding(
                             padding: const EdgeInsets.only(left: 160),
                             child: SizedBox(
                               width: 140,
@@ -320,7 +345,6 @@ class _ProfileState extends State<Profile> {
                                         .map((item) => item['companyName'].toString())
                                         .toSet()
                                         .toList();
-
                                     suggestions = suggestions.take(5).toList();
                                   } else {
                                     suggestions = [];
@@ -341,31 +365,31 @@ class _ProfileState extends State<Profile> {
                                 },
                               ),
                             ),
-                          ),
+                          ),*/
                           SizedBox(height: 10,),
 
                           Column(
                             children: [
-                              SizedBox(
-                                width: 300,
-                                child: TextFormField(
-                                  controller: uid,
-                                  enabled: isCompanySearchNotEmpty,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return '* Enter Company id';
-                                    }
-                                    return null;
-                                  },
-                                  style: const TextStyle(fontSize: 12),
-                                  decoration: InputDecoration(
-                                    labelText: "Company Id",
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              // SizedBox(
+                              //   width: 300,
+                              //   child: TextFormField(
+                              //     controller: uid,
+                              //     enabled: isCompanySearchNotEmpty,
+                              //     validator: (value) {
+                              //       if (value!.isEmpty) {
+                              //         return '* Enter Company id';
+                              //       }
+                              //       return null;
+                              //     },
+                              //     style: const TextStyle(fontSize: 12),
+                              //     decoration: InputDecoration(
+                              //       labelText: "Company Id",
+                              //       border: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(10),
+                              //       ),
+                              //     ),
+                              //   ),
+                              // ),
                               const SizedBox(height: 10,),
                               SizedBox(
                                 width: 300,
@@ -376,6 +400,10 @@ class _ProfileState extends State<Profile> {
                                       return '* Enter Company Name';
                                     }
                                     return null;
+                                  },
+                                  onChanged: (value) {
+                                    // Validate the form on every text change
+                                    _formKey.currentState?.validate();
                                   },
                                   style: const TextStyle(fontSize: 12),
                                   decoration: InputDecoration(
@@ -396,6 +424,10 @@ class _ProfileState extends State<Profile> {
                                       return '* Enter Address';
                                     }
                                     return null;
+                                  },
+                                  onChanged: (value) {
+                                    // Validate the form on every text change
+                                    _formKey.currentState?.validate();
                                   },
                                   style: const TextStyle(fontSize: 12),
                                   keyboardType: TextInputType.multiline,
@@ -419,6 +451,10 @@ class _ProfileState extends State<Profile> {
                                     }  else{
                                       return null;}
                                   },
+                                  onChanged: (value) {
+                                    // Validate the form on every text change
+                                    _formKey.currentState?.validate();
+                                  },
                                   style: const TextStyle(fontSize: 12),
                                   decoration: InputDecoration(
                                     labelText: "Contact ",
@@ -437,17 +473,21 @@ class _ProfileState extends State<Profile> {
                                 width: 300,
                                 child: TextFormField(
                                   controller: mailId,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Please enter your Email Address';
-                                    }
-                                    // Check if the entered email has the right format and domain
-                                    if (!RegExp(r'^[\w-\.]+@(gmail\.com|yahoo\.com)$').hasMatch(value)) {
-                                      return 'Please enter a valid mail Address';
-                                    }
-                                    // Return null if the entered email is valid
-                                    return null;
-                                  },
+                                  // validator: (value) {
+                                  //   if (value == null || value.trim().isEmpty) {
+                                  //     return '* Enter your Email Address';
+                                  //   }
+                                  //   // Check if the entered email has the right format and domain
+                                  //   if (!RegExp(r'^[\w-\.]+@(gmail\.com|yahoo\.com)$').hasMatch(value)) {
+                                  //     return '* Enter a valid mail Address';
+                                  //   }
+                                  //   // Return null if the entered email is valid
+                                  //   return null;
+                                  // },
+                                  // onChanged: (value) {
+                                  //   // Validate the form on every text change
+                                  //   _formKey.currentState?.validate();
+                                  // },
                                   style: const TextStyle(fontSize: 12),
 
                                   decoration: InputDecoration(
@@ -463,12 +503,16 @@ class _ProfileState extends State<Profile> {
                                 width: 300,
                                 child: TextFormField(
                                   controller: gstNo,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return '* Enter GST No';
-                                    }
-                                    return null;
-                                  },
+                                  // validator: (value) {
+                                  //   if (value!.isEmpty) {
+                                  //     return '* Enter GST No';
+                                  //   }
+                                  //   return null;
+                                  // },
+                                  // onChanged: (value) {
+                                  //   // Validate the form on every text change
+                                  //   _formKey.currentState?.validate();
+                                  // },
                                   style: const TextStyle(fontSize: 12),
 
                                   decoration: InputDecoration(
@@ -484,12 +528,7 @@ class _ProfileState extends State<Profile> {
                                 width: 300,
                                 child: TextFormField(
                                   controller: tinNo,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return '* Enter TN No';
-                                    }
-                                    return null;
-                                  },
+
                                   style: const TextStyle(fontSize: 12),
 
                                   decoration: InputDecoration(
@@ -505,12 +544,7 @@ class _ProfileState extends State<Profile> {
                                 width: 300,
                                 child: TextFormField(
                                   controller: cstNo,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return '* Enter CST No';
-                                    }
-                                    return null;
-                                  },
+
                                   style: const TextStyle(fontSize: 12),
 
                                   decoration: InputDecoration(
@@ -526,14 +560,17 @@ class _ProfileState extends State<Profile> {
                                 width: 300,
                                 child: TextFormField(
                                   controller: bankName,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return '* Enter Bank Name';
-                                    }
-                                    return null;
-                                  },
+                                  // validator: (value) {
+                                  //   if (value!.isEmpty) {
+                                  //     return '* Enter Bank Name';
+                                  //   }
+                                  //   return null;
+                                  // },
                                   style: const TextStyle(fontSize: 12),
-
+                                  // onChanged: (value) {
+                                  //   // Validate the form on every text change
+                                  //   _formKey.currentState?.validate();
+                                  // },
                                   decoration: InputDecoration(
                                     labelText: "Bank Name",
                                     border: OutlineInputBorder(
@@ -547,14 +584,17 @@ class _ProfileState extends State<Profile> {
                                 width: 300,
                                 child: TextFormField(
                                   controller: accNo,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return '* Enter Account No';
-                                    }
-                                    return null;
-                                  },
+                                  // validator: (value) {
+                                  //   if (value!.isEmpty) {
+                                  //     return '* Enter Account No';
+                                  //   }
+                                  //   return null;
+                                  // },
                                   style: const TextStyle(fontSize: 12),
-
+                                  // onChanged: (value) {
+                                  //   // Validate the form on every text change
+                                  //   _formKey.currentState?.validate();
+                                  // },
                                   decoration: InputDecoration(
                                     labelText: "Account No",
                                     border: OutlineInputBorder(
@@ -568,14 +608,17 @@ class _ProfileState extends State<Profile> {
                                 width: 300,
                                 child: TextFormField(
                                   controller: branch,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return '* Enter Branch';
-                                    }
-                                    return null;
-                                  },
+                                  // validator: (value) {
+                                  //   if (value!.isEmpty) {
+                                  //     return '* Enter Branch';
+                                  //   }
+                                  //   return null;
+                                  // },
                                   style: const TextStyle(fontSize: 12),
-
+                                  // onChanged: (value) {
+                                  //   // Validate the form on every text change
+                                  //   _formKey.currentState?.validate();
+                                  // },
                                   decoration: InputDecoration(
                                     labelText: "Branch",
                                     border: OutlineInputBorder(
@@ -589,14 +632,18 @@ class _ProfileState extends State<Profile> {
                                 width: 300,
                                 child: TextFormField(
                                   controller: ifscCode,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return '* Enter IFSC Code';
-                                    }
-                                    return null;
+                                  // validator: (value) {
+                                  //   // Regular expression to validate IFSC code
+                                  //   final ifscPattern = RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$');
+                                  //   if (!ifscPattern.hasMatch(value!)) {
+                                  //     return '* Enter a valid IFSC Code';
+                                  //   }
+                                  //   return null;
+                                  // },
+                                  onChanged: (value) {
+                                    _formKey.currentState?.validate();
                                   },
                                   style: const TextStyle(fontSize: 12),
-
                                   decoration: InputDecoration(
                                     labelText: "IFSC Code",
                                     border: OutlineInputBorder(
@@ -614,34 +661,33 @@ class _ProfileState extends State<Profile> {
                             children: [
                               MaterialButton(
                                 color:Colors.green,onPressed: () async {
-                                String enteredUid = uid.text;
-                                bool uidIsDuplicate = await checkForDuplicateCompany(enteredUid);
-                                if(uidIsDuplicate){
-                                  updateCompany(
-                                    uid.text,
-                                    companyName.text,
-                                    address.text,
-                                    contact.text,
-                                    mailId.text,
-                                    gstNo.text,
-                                    tinNo.text,
-                                    cstNo.text,
-                                    bankName.text,
-                                    accNo.text,
-                                    branch.text,
-                                    ifscCode.text,
-                                  );
+                                if (_formKey.currentState?.validate() ?? false) {
+                                  String enteredUid = uid.text;
+                                  bool uidIsDuplicate = await checkForDuplicateCompany(
+                                      enteredUid);
+                                  if (uidIsDuplicate) {
+                                    updateCompany(
+                                      uid.text,
+                                      companyName.text,
+                                      address.text,
+                                      contact.text,
+                                      mailId.text,
+                                      gstNo.text,
+                                      tinNo.text,
+                                      cstNo.text,
+                                      bankName.text,
+                                      accNo.text,
+                                      branch.text,
+                                      ifscCode.text,
+                                    );
+                                  }
+                                  else {
+                                    personalDataInsert();
+                                  }
                                 }
-                                else{
-                                  personalDataInsert();
-                                }
-
                               },child: Text("Submit",style: TextStyle(color: Colors.white),),),
                               SizedBox(width: 15,),
 
-                              MaterialButton(
-                                color:Colors.blue,onPressed:(){} ,child: Text("Reset",style: TextStyle(color: Colors.white),),),
-                              SizedBox(width: 10,),
                               MaterialButton(
                                 color: Colors.red.shade600,
                                 onPressed: (){
