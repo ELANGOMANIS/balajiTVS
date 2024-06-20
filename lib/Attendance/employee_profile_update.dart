@@ -164,7 +164,14 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       }),
     );
     if (response.statusCode == 200) {
-      showDialog(
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: Text("Employee Updated"),
+        ),
+      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => EmployeeProfileUpdate()));
+     /* showDialog(
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
@@ -182,7 +189,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
             ],
           );
         },
-      );
+      );*/
       print('Employee updated successfully');
     } else {
       throw Exception('Failed to update employee');
@@ -303,7 +310,13 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       );
       if (response.statusCode == 200) {
         print('TableData inserted successfully');
-        showSuccessDialog();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.green,
+            content: Text("Employee Added"),
+          ),
+        );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => EmployeeProfileUpdate()));
       } else {
         print('Failed to Table insert data');
         throw Exception('Failed to Table insert data');
@@ -314,27 +327,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
     }
   }
 
-  void showSuccessDialog() {
-    showDialog(
-      context: context, // Make sure to have access to the BuildContext
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Employee'),
-          content: Text('Save Successfully'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                empId.clear();
-                empName.clear();
-                Navigator.push(context, MaterialPageRoute(builder: (context) => EmployeeProfileUpdate()));
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
 
   Future<void> customerDataToDatabase() async {
     List<Future<void>> insertFutures = [];
@@ -1367,33 +1360,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                     ],
                                   ),
                                 ),
-                            ///Department Name
-                            // SizedBox(
-                            //   width: 200, height: 70,
-                            //   child: TextFormField(
-                            //       controller: depName,
-                            //       onChanged: (value) {
-                            //         String capitalizedValue = capitalizeFirstLetter(
-                            //             value);
-                            //         depName.value =
-                            //             depName.value.copyWith(
-                            //               text: capitalizedValue,
-                            //               selection: TextSelection.collapsed(
-                            //                   offset: capitalizedValue.length),
-                            //             );
-                            //       },
-                            //       style: TextStyle(fontSize: 13),
-                            //       decoration: InputDecoration(
-                            //         filled: true,
-                            //         fillColor: Colors.white,
-                            //         labelText: "Department Name",
-                            //         border: OutlineInputBorder(
-                            //           borderRadius: BorderRadius.circular(
-                            //               8.0),
-                            //         ),
-                            //       )
-                            //   ),
-                            // ),
+
                             SizedBox(
                               width: 200, height: 70,
                               child: TextFormField(

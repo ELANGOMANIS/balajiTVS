@@ -397,22 +397,25 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
                         children: [
-                          Row(
+                          Wrap(
                             children: [
                               const Text("Report Details", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                               const Spacer(),
                               Visibility(
                                 visible: isCardVisible,
                                 child: Card(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text("$formattedFromDate -"),
-                                        Text(" $formattedToDate -"),
-                                        Text(" $selectedShiftType"),
-                                      ],
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text("$formattedFromDate -"),
+                                          Text(" $formattedToDate -"),
+                                          Text(" $selectedShiftType"),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
