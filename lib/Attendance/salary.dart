@@ -2,12 +2,17 @@
 import   'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
 import 'package:vinayaga_project/Attendance/salarypdf.dart';
 import 'package:vinayaga_project/main.dart';
 import 'package:http/http.dart' as http;
 import '../../home.dart';
+import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 
 
@@ -104,13 +109,6 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     }
     return formatDuration(totalWorkTime);
   }
-  double calculateTotalSalary(List<Map<String, dynamic>> filteredData) {
-    double totalWorkTime = 0;
-    for (var row in filteredData) {
-      totalWorkTime += double.parse(row['salary'] ?? '0');
-    }
-    return totalWorkTime;
-  }
 
   List<String> supplierSuggestions = [];
   String selectedSupplier = "";
@@ -180,8 +178,13 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
       return dateB.compareTo(dateA);
     });
   }
-
-
+  double calculateTotalSalary(List<Map<String, dynamic>> filteredData) {
+    double totalWorkTime = 0;
+    for (var row in filteredData) {
+      totalWorkTime += double.parse(row['salary'] ?? '0');
+    }
+    return totalWorkTime;
+  }
 
   void filterData(String searchText) {
     print("Search Text: $searchText");
@@ -256,7 +259,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
       });
 
       totalWorkTime = calculateTotalWorkTime(filteredData) as double;
-      totalWorkSalary = calculateTotalSalary(filteredData) as double;
+      totalWorkSalary = calculateTotalSalary(filteredData);
       reqWorkTime = calculateReqWorkTime(filteredData) as double;
       totalLate = calculateTotalLate(filteredData);
     });
@@ -276,6 +279,129 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
 
   }
   final FocusNode _searchFocus = FocusNode();
+
+
+  Future<void> _generatePdfAndDownload() async {
+    final companyData = await Utils.fetchCompanyData(); // Fetch company data
+    final pdf = pw.Document();
+    final headers = [
+      'S.No',
+      'Date',
+      'Name',
+      'Shift',
+      'Req Time',
+      'Late',
+      'Early Leave',
+      'Worked Time',
+    ];
+
+    pw.Widget createHeader(String companyName, String address, String contact) {
+      return pw.Container(
+        padding: pw.EdgeInsets.all(10),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              companyName,
+              style: pw.TextStyle(
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              address,
+              style: pw.TextStyle(
+                fontSize: 10,
+              ),
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              contact,
+              style: pw.TextStyle(
+                fontSize: 10,
+              ),
+            ),
+            pw.Divider(thickness: 1),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              'Employee Salary Report',
+              style: pw.TextStyle(
+                fontSize: 14,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        header: (pw.Context context) {
+          return createHeader(
+            companyData['companyName'],
+            companyData['address'],
+            companyData['contact'],
+          );
+        },
+        build: (pw.Context context) {
+          return [
+            pw.Table.fromTextArray(
+              headers: headers,
+              cellStyle: pw.TextStyle(fontSize: 7),
+              headerStyle: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+              data: filteredData.map((row) {
+                return [
+                  '${filteredData.indexOf(row) + 1}',
+                  DateFormat('yyyy-MM-dd').format(DateTime.parse(row['inDate'] ?? "")),
+                  '${row["first_name"]} - ${row["emp_code"]}',
+                  '${row["shiftType"]}',
+                  formatDuration(double.parse(row['req_time'] ?? '0')),
+                  formatDuration(double.parse(row['latecheck_in'] ?? '0')),
+                  formatDuration(double.parse(row['earlycheck_out'] ?? '0')),
+                  formatDuration(double.parse(row['act_time'] ?? '0')),
+                ];
+              }).toList(),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Text(
+              'Summary',
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.Text(
+              "Total Days: ${calculateTotalDays(filteredData)}",
+              style: pw.TextStyle(fontSize: 12),
+            ),
+            pw.Text(
+              "Req Time: ${calculateReqWorkTime(filteredData)}",
+              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.Text(
+              "Late: ${calculateLateTime(filteredData)}",
+              style: pw.TextStyle(fontSize: 12, color: PdfColors.red),
+            ),
+            pw.Text(
+              "Early Leave: ${calculateEarlyTime(filteredData)}",
+              style: pw.TextStyle(fontSize: 12, color: PdfColors.red),
+            ),
+            pw.Text(
+              "Work Time: ${calculateTotalWorkTime(filteredData)}",
+              style: pw.TextStyle(fontSize: 12),
+            ),
+            pw.Text(
+              "Total Salary: ${calculateTotalSalary(filteredData)}",
+              style: pw.TextStyle(fontSize: 12),
+            ),
+          ];
+        },
+      ),
+    );
+
+    final Uint8List bytes = await pdf.save();
+    await Printing.sharePdf(bytes: bytes, filename: 'salary_report.pdf');
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -309,23 +435,8 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                         ),
                         child: Column(
                           children: [
-                             Wrap(
+                            const Wrap(
                               children: [
-                                IconButton(
-                                  icon: Icon(Icons.arrow_back),
-                                  onPressed: () {
-                                    // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.refresh),
-                                  onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
-                                  },
-                                ),
-
-                                SizedBox(width: 20,),
                                 Icon(Icons.report,),
                                 SizedBox(width:10,),
                                 Text(
@@ -337,228 +448,233 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                 ),
                               ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 15),
-                              child: Wrap(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SizedBox(
-                                        width: 180,
-                                        height: 34,
-                                        child: TextFormField(style: const TextStyle(fontSize: 13),
-                                          readOnly: true,
-                                          validator: (value) {
-                                            if (value!.isEmpty) {
-                                              return '* Enter Date';
-                                            }
-                                            return null;
-                                          },
-                                          onTap: () {
-                                            showDatePicker(
-                                              context: context,
-                                              initialDate: toDate ?? DateTime.now(),
-                                              firstDate: DateTime(2000), // Set the range of selectable dates
-                                              lastDate: DateTime(2100),
-                                            ).then((date) {
-                                              if (date != null) {
-                                                setState(() {
-                                                  fromDate = date;
-                                                  // applyDateFilter();
-                                                });
-                                              }
-                                            });
-                                          },
-                                          controller: TextEditingController(text: formattedDate.toString().split(' ')[0]), // Set the initial value of the field to the selected date
-                                          decoration: const InputDecoration(
-                                            suffixIcon: Icon(Icons.calendar_month),
-                                            filled: true,
-                                            fillColor: Colors.white,
-                                            labelText: "From Date",
-                                            border: OutlineInputBorder(
-                                              // borderRadius: BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                        ),
-                                      ),const SizedBox(width: 10,),
-                                      SizedBox(
-                                        width: 180,
-                                        height: 34,
-                                        child: TextFormField(style: TextStyle(fontSize: 13),
-                                          readOnly: true,
-                                          validator: (value) {
-                                            if (value!.isEmpty) {
-                                              return '* Enter Date';
-                                            }
-                                            return null;
-                                          },
-                                          onTap: () {
-                                            showDatePicker(
-                                              context: context,
-                                              initialDate: toDate ?? DateTime.now(),
-                                              firstDate: DateTime(2000), // Set the range of selectable dates
-                                              lastDate: DateTime(2100),
-                                            ).then((date) {
-                                              if (date != null) {
-                                                setState(() {
-                                                  toDate = date;
-                                                  //applyDateFilter();
-                                                });
-                                              }
-                                            });
-                                          },
-                                          controller: TextEditingController(text: formattedDate2.toString().split(' ')[0]), // Set the initial value of the field to the selected date
-                                          decoration: const InputDecoration(
-                                            suffixIcon: Icon(Icons.calendar_month),
-                                            fillColor: Colors.white,
-                                            filled: true,
-                                            labelText: "To Date",
-                                            border: OutlineInputBorder(
-                                              // borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            isDense: true,
-                                          ),
+                            SizedBox(height: 10,),
 
-                                        ),
-                                      ),SizedBox(width: 10,),
-                                      SizedBox(
-                                        width: 180,
-                                        height: 34,
-                                        child:
-                                        TypeAheadFormField<String>(
-                                          textFieldConfiguration: TextFieldConfiguration(
-                                            controller: searchController,
-                                            onChanged: (value) {
-                                              applyDateFilter();
-                                              String capitalizedValue = capitalizeFirstLetter(value);
-                                              searchController.value = searchController.value.copyWith(
-                                                text: capitalizedValue,
-                                                selection: TextSelection.collapsed(offset: capitalizedValue.length),
-                                              );
-                                            },
-                                            style: const TextStyle(fontSize: 13),
-                                            decoration: const InputDecoration(
-                                              suffixIcon: Icon(Icons.search),
-                                              fillColor: Colors.white,
-                                              filled: true,
-                                              labelText: "Employee/Code",
-                                              labelStyle: TextStyle(fontSize: 13),
-                                              border: OutlineInputBorder(
-                                                // borderRadius: BorderRadius.circular(10),
-                                              ),
-                                            ),
-                                          ),
-                                          suggestionsCallback: (pattern) async {
-                                            if (pattern.isEmpty) {
-                                              return [];
-                                            }
-                                            List<String> suggestions =data
-                                                .where((item) =>
-                                            (item['first_name']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()) ||
-                                                (item['emp_code']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()))
-                                                .map((item) => item['first_name'].toString())
-                                                .toSet()
-                                                .toList();
-                                            return suggestions;
-                                          },
-                                          itemBuilder: (context, suggestion) {
-                                            return ListTile(
-                                              title: Text(suggestion),
-                                            );
-                                          },
-                                          onSuggestionSelected: (suggestion) {
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: SizedBox(
+                                    height:50,
+                                    width: 240,
+                                    child: TextFormField(style: const TextStyle(fontSize: 13),
+                                      readOnly: true,
+                                      validator: (value) {
+                                        if (value!.isEmpty) {
+                                          return '* Enter Date';
+                                        }
+                                        return null;
+                                      },
+                                      onTap: () {
+                                        showDatePicker(
+                                          context: context,
+                                          initialDate: toDate ?? DateTime.now(),
+                                          firstDate: DateTime(2000), // Set the range of selectable dates
+                                          lastDate: DateTime(2100),
+                                        ).then((date) {
+                                          if (date != null) {
                                             setState(() {
-                                              selectedCustomer = suggestion;
-                                              searchController.text = suggestion;
-                                              applyDateFilter();
+                                              fromDate = date;
+                                              // applyDateFilter();
                                             });
-                                            print('Selected Customer: $selectedCustomer');
-                                          },
-                                        ),
-                                      ),
+                                          }
+                                        });
+                                      },
+                                      controller: TextEditingController(text: formattedDate.toString().split(' ')[0]), // Set the initial value of the field to the selected date
+                                      decoration: const InputDecoration(
+                                        suffixIcon: Icon(Icons.calendar_month),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        labelText: "From Date",
+                                        labelStyle: TextStyle(fontSize: 12),
 
-
-                                      Padding(
-                                        padding: const EdgeInsets.all(20.0),
-                                        child: MaterialButton(
-                                          color: Colors.green.shade500,
-                                          height: 40,
-                                          onPressed: () {
-                                            if (fromDate == null || toDate == null) {
-                                              setState(() {
-                                                errorMessage = '* Select both From and To Date.';
-                                              });
-                                            }
-                                            else {
-                                              setState(() {
-                                                errorMessage = null;
-                                                generatedButton = true;
-                                              });
-                                              applyDateFilter();
-                                            }
-                                          },
-                                          child: const Text("Calculate", style: TextStyle(color: Colors.white)),
-                                        ),
                                       ),
-                                      IconButton(
-                                        icon: Icon(Icons.refresh),
-                                        onPressed: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.arrow_back),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                      if (generatedButton && searchController.text.isNotEmpty)
-                                        Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: Card(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: Align(
-                                                alignment: Alignment.topLeft,
-                                                child: Column(
-                                                  children: [
-                                                    Text(
-                                                      "Total Days: ${calculateTotalDays(filteredData)}",
-                                                      style: TextStyle(fontSize: 14),
-                                                    ),
-                                                    Text(
-                                                      "Req Time: ${calculateReqWorkTime(filteredData)}",
-                                                      style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.bold),
-                                                    ),
-                                                    Text(
-                                                      "Late: ${calculateLateTime(filteredData)}",
-                                                      style: const TextStyle(fontSize: 13, color: Colors.red),
-                                                    ),
-                                                    Text(
-                                                      "Early Leave: ${calculateEarlyTime(filteredData)}",
-                                                      style: const TextStyle(fontSize: 13, color: Colors.red),
-                                                    ),
-                                                    SizedBox(height: 10),
-                                                    Text(
-                                                      "Work Time: ${calculateTotalWorkTime(filteredData)}",
-                                                      style: const TextStyle(fontSize: 13, color: Colors.black),
-                                                    ),
-                                                    Text(
-                                                      "Total Salary: ${calculateTotalSalary(filteredData)}",
-                                                      style: const TextStyle(fontSize: 13, color: Colors.black),
-                                                    ),
-
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                    ],
+                                    ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                Flexible(
+                                  child: SizedBox(
+                                    width: 240,
+                                    height: 50,
+                                    child: TextFormField(style: TextStyle(fontSize: 13),
+                                      readOnly: true,
+                                      validator: (value) {
+                                        if (value!.isEmpty) {
+                                          return '* Enter Date';
+                                        }
+                                        return null;
+                                      },
+                                      onTap: () {
+                                        showDatePicker(
+                                          context: context,
+                                          initialDate: toDate ?? DateTime.now(),
+                                          firstDate: DateTime(2000), // Set the range of selectable dates
+                                          lastDate: DateTime(2100),
+                                        ).then((date) {
+                                          if (date != null) {
+                                            setState(() {
+                                              toDate = date;
+                                              //applyDateFilter();
+                                            });
+                                          }
+                                        });
+                                      },
+                                      controller: TextEditingController(text: formattedDate2.toString().split(' ')[0]), // Set the initial value of the field to the selected date
+                                      decoration: const InputDecoration(
+                                        suffixIcon: Icon(Icons.calendar_month),
+                                        fillColor: Colors.white,
+                                        filled: true,
+                                        labelText: "To Date",
+                                        labelStyle: TextStyle(fontSize: 12),
+                                        isDense: true,
+                                      ),
+
+                                    ),
+                                  ),
+                                ),
+                                Flexible(
+                                  child: SizedBox(
+                                    width: 240,
+                                    height: 50,
+                                    child:
+                                    TypeAheadFormField<String>(
+                                      textFieldConfiguration: TextFieldConfiguration(
+                                        controller: searchController,
+                                        onChanged: (value) {
+                                          applyDateFilter();
+                                          String capitalizedValue = capitalizeFirstLetter(value);
+                                          searchController.value = searchController.value.copyWith(
+                                            text: capitalizedValue,
+                                            selection: TextSelection.collapsed(offset: capitalizedValue.length),
+                                          );
+                                        },
+                                        style: const TextStyle(fontSize: 13),
+                                        decoration: const InputDecoration(
+                                          suffixIcon: Icon(Icons.search),
+                                          fillColor: Colors.white,
+                                          filled: true,
+                                          labelText: "Employee/Code",
+                                          labelStyle: TextStyle(fontSize: 13),
+                                          border: OutlineInputBorder(
+                                            // borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                      ),
+                                      suggestionsCallback: (pattern) async {
+                                        if (pattern.isEmpty) {
+                                          return [];
+                                        }
+                                        List<String> suggestions =data
+                                            .where((item) =>
+                                        (item['first_name']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()) ||
+                                            (item['emp_code']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()))
+                                            .map((item) => item['first_name'].toString())
+                                            .toSet()
+                                            .toList();
+                                        return suggestions;
+                                      },
+                                      itemBuilder: (context, suggestion) {
+                                        return ListTile(
+                                          title: Text(suggestion),
+                                        );
+                                      },
+                                      onSuggestionSelected: (suggestion) {
+                                        setState(() {
+                                          selectedCustomer = suggestion;
+                                          searchController.text = suggestion;
+                                          applyDateFilter();
+                                        });
+                                        print('Selected Customer: $selectedCustomer');
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                Card(
+                                  child: IconButton(
+                                    icon: Icon(Icons.search),
+                                    onPressed: () {
+                                      if (fromDate == null || toDate == null) {
+                                        setState(() {
+                                          errorMessage = '* Select both From and To Date.';
+                                        });
+                                      }
+                                      else {
+                                        setState(() {
+                                          errorMessage = null;
+                                          generatedButton = true;
+                                        });
+                                        applyDateFilter();
+                                      }
+                                    },
+                                  ),
+                                ),
+
+                                Card(
+                                  child: IconButton(
+                                    icon: Icon(Icons.file_download),
+                                    onPressed: () {
+                                      _generatePdfAndDownload();
+                                    },
+                                  ),
+                                ),
+                                Card(
+                                  child: IconButton(
+                                    icon: Icon(Icons.refresh),
+                                    onPressed: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                                    },
+                                  ),
+                                ),
+                                Card(
+                                  child: IconButton(
+                                    icon: Icon(Icons.arrow_back),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ),
+                                if (generatedButton && searchController.text.isNotEmpty)
+                                  Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Card(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Align(
+                                          alignment: Alignment.topLeft,
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                "Total Days: ${calculateTotalDays(filteredData)}",
+                                                style: TextStyle(fontSize: 14),
+                                              ),
+                                              Text(
+                                                "Req Time: ${calculateReqWorkTime(filteredData)}",
+                                                style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.bold),
+                                              ),
+                                              Text(
+                                                "Late: ${calculateLateTime(filteredData)}",
+                                                style: const TextStyle(fontSize: 13, color: Colors.red),
+                                              ),
+                                              Text(
+                                                "Early Leave: ${calculateEarlyTime(filteredData)}",
+                                                style: const TextStyle(fontSize: 13, color: Colors.red),
+                                              ),
+                                              SizedBox(height: 10),
+                                              Text(
+                                                "Work Time: ${calculateTotalWorkTime(filteredData)}",
+                                                style: const TextStyle(fontSize: 13, color: Colors.black),
+                                              ), Text(
+                                                "Total Salary: ${calculateTotalSalary(filteredData)}",
+                                                style: const TextStyle(fontSize: 13, color: Colors.black),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                              ],
                             ),
                             if (errorMessage != null)
                               Row(
@@ -594,7 +710,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
                           children: [
-                             Align(
+                            Align(
                                 alignment:Alignment.topLeft,
                                 child: Padding(
                                   padding: EdgeInsets.only(left: 5),
@@ -620,11 +736,11 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                   DataColumn(label: Center(child: Text("S.No",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   DataColumn(label: Center(child: Text("Date",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   DataColumn(label: Center(child: Text("    Name",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                   DataColumn(label: Center(child: Text("Shift",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                   DataColumn(label: Center(child: Text("Req Time",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                    DataColumn(label: Center(child: Text("Late",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                    DataColumn(label: Center(child: Text("Early Leave",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                   DataColumn(label: Center(child: Text("Worked Time",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  DataColumn(label: Center(child: Text("Shift",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  DataColumn(label: Center(child: Text("Req Time",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  DataColumn(label: Center(child: Text("Late",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  DataColumn(label: Center(child: Text("Early Leave",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  DataColumn(label: Center(child: Text("Worked Time",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   // DataColumn(label: Center(child: Text("Daily Salary",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 ],
                                 source: _YourDataTableSource(
@@ -763,12 +879,12 @@ class _YourDataTableSource extends DataTableSource {
               : "",
         ),)),
 
-         DataCell(Center(child: Text("${row["first_name"]+' - '+row["emp_code"]} "))),
-         DataCell(Center(child: Text("${row["shiftType"]}"))),
-         DataCell(Center(child: Text(formatDuration(row["req_time"])))),
-         DataCell(Center(child: Text(formatDuration(row["latecheck_in"]?? '-')))),
-         DataCell(Center(child: Text(formatDuration(row["earlycheck_out"])))),
-         DataCell(Center(child: Text(formatDuration(row["act_time"])))),
+        DataCell(Center(child: Text("${row["first_name"]+' - '+row["emp_code"]} "))),
+        DataCell(Center(child: Text("${row["shiftType"]}"))),
+        DataCell(Center(child: Text(formatDuration(row["req_time"])))),
+        DataCell(Center(child: Text(formatDuration(row["latecheck_in"]?? '-')))),
+        DataCell(Center(child: Text(formatDuration(row["earlycheck_out"])))),
+        DataCell(Center(child: Text(formatDuration(row["act_time"])))),
 
       ],
     );

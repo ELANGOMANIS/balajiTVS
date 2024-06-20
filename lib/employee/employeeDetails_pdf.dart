@@ -173,12 +173,9 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
         ),
       );
     }
-    //
-    // for (var i = 0; i < copies; i++) {
-    //   for (var j = 0; j < customerData.length; j += recordsPerPage)
-    //   {
-    //     final List<Map<String, dynamic>> pageData =
-    //     customerData.skip(j).take(recordsPerPage).toList();
+
+
+
     pdf.addPage(
       pw.Page(
         pageFormat: format,
