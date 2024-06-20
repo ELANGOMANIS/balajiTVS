@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http;
+import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../../main.dart';
 import 'package:intl/intl.dart';
@@ -137,31 +138,77 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
     return suggestions;
   }
+  String formatDuration(double durationInMinutes) {
+    Duration duration = Duration(minutes: durationInMinutes.round());
+
+    int hours = duration.inHours;
+    int remainingMinutes = duration.inMinutes.remainder(60);
+
+    String formattedDuration = '';
+
+    if (hours > 0) {
+      formattedDuration += '$hours h';
+    }
+
+    if (remainingMinutes > 0) {
+      if (hours > 0) {
+        formattedDuration += ' ';
+      }
+      formattedDuration += '$remainingMinutes m';
+    }
+
+    return formattedDuration.trim();
+  }
 
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
     final companyData = await Utils.fetchCompanyData();
+
+    // Function to format the address
+    String formatAddress(String address) {
+      return address.split(',').map((part) {
+        final buffer = StringBuffer();
+        final words = part.trim().split(' ');
+        var line = '';
+        for (var word in words) {
+          if ((line + word).length > 40) {
+            buffer.writeln(line.trim());
+            line = '';
+          }
+          line += '$word ';
+        }
+        if (line.isNotEmpty) {
+          buffer.writeln(line.trim());
+        }
+        return buffer.toString().trim();
+      }).join('\n');
+    }
+
+    // Create header widget with formatted address
     pw.Widget createHeader(String companyName, String address, String contact) {
+      String formattedAddress = Utils.formatAddress(address); // Format the address
+
       return pw.Container(
         padding: pw.EdgeInsets.all(10),
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
             pw.Text(
               companyName,
               style: pw.TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
-              address,
+              formattedAddress,
               style: pw.TextStyle(
                 fontSize: 10,
               ),
+              textAlign: pw.TextAlign.center,
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 4),
             pw.Text(
               contact,
               style: pw.TextStyle(
@@ -169,7 +216,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
               ),
             ),
             pw.Divider(thickness: 1),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
               'Employee Salary Report',
               style: pw.TextStyle(
@@ -181,24 +228,13 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
         ),
       );
     }
-// Fetch company data
 
-    final columnWidths = <int, pw.TableColumnWidth>{
-      0: pw.FixedColumnWidth(40),
-      1: pw.FixedColumnWidth(90),
-      2: pw.FixedColumnWidth(80),
-      3: pw.FixedColumnWidth(90),
-      4: pw.FixedColumnWidth(80),
-      5: pw.FixedColumnWidth(75),
-      6: pw.FixedColumnWidth(75),
-      7: pw.FixedColumnWidth(80),
-      8: pw.FixedColumnWidth(75),
 
-    };
     // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
     // final imageBytes = imageData.buffer.asUint8List();
 
-    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Late\nin','Early\nout', 'required\nTime', 'Total Hrs', 'Remark'];
+    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Shortage', 'Total\nTime', 'Worked Hrs', 'Remark'];
+
 
     const int rowsPerPage = 20; // Define the number of rows per page
     int totalPages = (data.length / rowsPerPage).ceil();
@@ -207,7 +243,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       final startRow = page * rowsPerPage;
       final endRow = (startRow + rowsPerPage) > data.length ? data.length : (startRow + rowsPerPage);
       final pageData = data.sublist(startRow, endRow);
-
 
       pdf.addPage(
         pw.MultiPage(
@@ -221,28 +256,69 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
           build: (pw.Context context) {
             return [
               pw.Table.fromTextArray(
-                // columnWidths: columnWidths,
                 headers: headers,
-                cellStyle: pw.TextStyle(fontSize: 6),
-                headerStyle: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold),
+                headerStyle: pw.TextStyle(
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black,
+                ),
+
+                cellStyle: pw.TextStyle(fontSize: 7),
+                cellHeight: 16,
+                columnWidths: {
+                  0: pw.FixedColumnWidth(20),
+                  1: pw.FixedColumnWidth(55),
+                  2: pw.FixedColumnWidth(50),
+                  3: pw.FixedColumnWidth(60),
+                  4: pw.FixedColumnWidth(50),
+                  5: pw.FixedColumnWidth(40),
+                  6: pw.FixedColumnWidth(40),
+                  7: pw.FixedColumnWidth(40),
+                  8: pw.FixedColumnWidth(40),
+                  9: pw.FixedColumnWidth(50),
+                  10: pw.FixedColumnWidth(50),
+                  11: pw.FixedColumnWidth(42),
+                },
+                cellAlignments: {
+                  0: pw.Alignment.center,
+                  1: pw.Alignment.center,
+                  2: pw.Alignment.center,
+                  3: pw.Alignment.center,
+                  4: pw.Alignment.center,
+                  5: pw.Alignment.center,
+                  6: pw.Alignment.center,
+                  7: pw.Alignment.center,
+                  8: pw.Alignment.center,
+                  9: pw.Alignment.center,
+                  10: pw.Alignment.center,
+                  11: pw.Alignment.center,
+                },
                 data: pageData.map((attendance) {
+                  int totalTime = int.tryParse(attendance['req_time'] ?? '0') ?? 0;
+                  int workTime = int.tryParse(attendance['act_time'] ?? '0') ?? 0;
+                  int differentTime = workTime < totalTime ? totalTime - workTime : 0;
                   return [
                     '${data.indexOf(attendance) + 1}',
-                    attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
+                    attendance["inDate"] != null
+                        ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal())
+                        : "",
                     attendance['emp_code'] ?? '',
                     attendance['first_name'] ?? '',
                     attendance['shiftType'] ?? '',
                     attendance['check_in'] ?? '',
                     attendance['check_out'] ?? '',
-                    formatDuration(attendance['latecheck_in'] ?? '') ?? '',
-                    formatDuration(attendance['earlycheck_out'] ?? '') ?? '',
+                    formatDuration(differentTime.toDouble()),
+                    formatDuration(attendance['req_time'] ?? ''),
+                    attendance["check_out"] != "00:00:00"
+                        ? formatDuration(double.parse(attendance['act_time'] ?? '0'))
+                        : "",
+
                     attendance['req_time'] ?? '',
                     attendance['act_time'] ?? '',
-
                     attendance['remark'] ?? '',
                   ];
                 }).toList(),
-              )
+              ),
             ];
           },
         ),
@@ -410,12 +486,16 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   },
                                 ),
                               ),
+                              SizedBox(width: 10,),
+
                               Card(
                                 child: IconButton(
                                   icon: Icon(Icons.search),
                                   onPressed: _applyFilters,
                                 ),
                               ),
+                              SizedBox(width: 10,),
+
                               Card(
                                 child: IconButton(
                                   icon: Icon(Icons.file_download),
@@ -425,6 +505,8 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   },
                                 ),
                               ),
+                              SizedBox(width: 10,),
+
                               Card(
                                 child: IconButton(
                                   icon: Icon(Icons.refresh),
@@ -481,10 +563,9 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 DataColumn(label: Center(child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Name", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Shift", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("Check-in", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("Check-out", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("latecheck-in", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("earlycheck-out", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Check In", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Check Out", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Shortage",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Remark", style: TextStyle(fontWeight: FontWeight.bold),))),
@@ -515,6 +596,10 @@ class AttendanceDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= _data.length) return null;
     final attendance = _data[index];
+    int totalTime = int.tryParse(attendance["req_time"] ?? "0") ?? 0;
+    int workTime = int.tryParse(attendance["act_time"] ?? "0") ?? 0;
+
+    int differentTime = workTime < totalTime && totalTime != 0 ? totalTime - workTime : 0;
 
     return DataRow.byIndex(
       index: index,
@@ -534,8 +619,7 @@ class AttendanceDataSource extends DataTableSource {
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
         DataCell(Center(child: Text( attendance['check_out'] == '00:00:00' ? '-' : attendance['check_out'] ))),
-        DataCell(Center(child: Text(formatDuration(attendance['latecheck_in'] ?? '-')))),
-        DataCell(Center(child: Text(formatDuration(attendance['earlycheck_out'] ?? '')))),
+        DataCell(Center(child: Text(attendance["check_out"] != "00:00:00" ? formatDuration(differentTime.toString()) : ""))),
         DataCell(Center(child: Text(formatDuration(attendance['req_time'] ?? '')))),
         DataCell(Center(child: Text(formatDuration(attendance['act_time'] ?? '')))),
         DataCell(Center(child: Text(attendance['remark'] ?? ''))),

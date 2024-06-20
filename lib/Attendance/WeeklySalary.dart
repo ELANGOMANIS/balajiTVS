@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -94,29 +95,34 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
 
   Future<void> _generatePdfAndDownload() async {
     final pdf = pw.Document();
+
     final companyData = await Utils.fetchCompanyData(); // Fetch company data
 
     pw.Widget createHeader(String companyName, String address, String contact) {
+      String formattedAddress = Utils.formatAddress(address); // Format the address
+
       return pw.Container(
         padding: pw.EdgeInsets.all(10),
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
             pw.Text(
               companyName,
               style: pw.TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
-              address,
+              formattedAddress,
               style: pw.TextStyle(
                 fontSize: 10,
               ),
+              textAlign: pw.TextAlign.center,
+
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 4),
             pw.Text(
               contact,
               style: pw.TextStyle(
@@ -124,7 +130,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
               ),
             ),
             pw.Divider(thickness: 1),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
               'Employee Salary Report',
               style: pw.TextStyle(
@@ -159,8 +165,35 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
             return [
               pw.Table.fromTextArray(
                 headers: headers,
-                cellStyle: pw.TextStyle(fontSize: 6),
-                headerStyle: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold),
+                headerStyle: pw.TextStyle(
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black,
+                ),
+                cellStyle: pw.TextStyle(fontSize: 7),
+                cellHeight: 16,
+                columnWidths: {
+                  0: pw.FixedColumnWidth(20),
+                  1: pw.FixedColumnWidth(55),
+                  2: pw.FixedColumnWidth(50),
+                  3: pw.FixedColumnWidth(60),
+                  4: pw.FixedColumnWidth(50),
+                  5: pw.FixedColumnWidth(40),
+                  6: pw.FixedColumnWidth(40),
+                  7: pw.FixedColumnWidth(40),
+
+                },
+                cellAlignments: {
+                  0: pw.Alignment.center,
+                  1: pw.Alignment.center,
+                  2: pw.Alignment.center,
+                  3: pw.Alignment.center,
+                  4: pw.Alignment.center,
+                  5: pw.Alignment.center,
+                  6: pw.Alignment.center,
+                  7: pw.Alignment.center,
+
+                },
                 data: pageData.map((data) {
                   return [
                     '${reportData.indexOf(data) + 1}',
@@ -181,7 +214,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
     }
 
     final Uint8List bytes = await pdf.save();
-    await Printing.sharePdf(bytes: bytes, filename: 'employee_salary_report.pdf');
+    await Printing.sharePdf(bytes: bytes, filename: 'Employee_salary_report.pdf');
   }
 
   String formatDuration(String? duration) {
@@ -334,6 +367,8 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                                     onSaved: (value) => selectedShiftType = value,
                                   ),
                                 ),
+                                SizedBox(width: 20,),
+
                                 Card(
                                   child: IconButton(
                                     icon: Icon(Icons.search),
@@ -423,7 +458,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                             columns: const [
                               DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Employee/code", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("No of Days", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Present/Absent", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
@@ -459,7 +494,7 @@ class _DataSource extends DataTableSource {
     return DataRow.byIndex(index: index, cells: [
       DataCell(Center(child: Text((index + 1).toString()))),
       DataCell(Center(child: Text(data['employee'] ?? ''))),
-      DataCell(Center(child: Text(data['no_of_work_days']?.toString() ?? ''))),
+      DataCell(Center(child: Text("${data['no_of_work_days']?.toString() ?? ''}${data['no_of_absent_days']?.toString() ?? ''}"))),
       DataCell(Center(child: Text(formatDuration(data['total_req_time']!.toString()) ?? ''))),
       DataCell(Center(child: Text(formatDuration(data['total_act_time']!.toString()) ?? ''))),
       DataCell(Center(child: Text('₹ ${data['monthly_salary']?.toString() ?? ''}'))),
