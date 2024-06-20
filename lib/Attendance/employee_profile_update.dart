@@ -1360,33 +1360,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                     ],
                                   ),
                                 ),
-                            ///Department Name
-                            // SizedBox(
-                            //   width: 200, height: 70,
-                            //   child: TextFormField(
-                            //       controller: depName,
-                            //       onChanged: (value) {
-                            //         String capitalizedValue = capitalizeFirstLetter(
-                            //             value);
-                            //         depName.value =
-                            //             depName.value.copyWith(
-                            //               text: capitalizedValue,
-                            //               selection: TextSelection.collapsed(
-                            //                   offset: capitalizedValue.length),
-                            //             );
-                            //       },
-                            //       style: TextStyle(fontSize: 13),
-                            //       decoration: InputDecoration(
-                            //         filled: true,
-                            //         fillColor: Colors.white,
-                            //         labelText: "Department Name",
-                            //         border: OutlineInputBorder(
-                            //           borderRadius: BorderRadius.circular(
-                            //               8.0),
-                            //         ),
-                            //       )
-                            //   ),
-                            // ),
+
                             SizedBox(
                               width: 200, height: 70,
                               child: TextFormField(
