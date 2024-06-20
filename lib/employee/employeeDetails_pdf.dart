@@ -9,6 +9,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:http/http.dart' as http;
 
+import '../home.dart';
+
 class EmployeeReportPdf extends StatefulWidget {
 
   String? empID;
@@ -146,50 +148,37 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
     final companyData = await fetchCompanyData(); // Fetch company data
 
     pw.Widget createHeader(String companyName, String address, String contact) {
+      String formattedAddress = Utils.formatAddress(address);
       return pw.Container(
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                // pw.Padding(
-                //   padding: pw.EdgeInsets.only(right: 10),
-                pw.Column(
-                  children: [
-                    pw.Text(
-                      "${companyData['companyName']}",
-                      style: pw.TextStyle(
-                        // font: ttf,
-                        fontSize: 20,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text(
-                            "${companyData['address']}",
-                            style: pw.TextStyle(
-                              //font: ttf,
-                              fontSize: 12,
-                              // fontWeight: pw.FontWeight.bold,
-                            ),
-                          ),
-                          pw.Text(
-                            "Contact - ${companyData['contact']}",
-                            style: pw.TextStyle(
-                              //font: ttf,
-                              fontSize: 12,
-                              // fontWeight: pw.FontWeight.bold,
-                            ),
-                          ),
-                        ]),
-
-                  ],
-                ),
-                //),
-              ],
+            pw.Text(
+              "${companyData['companyName']}",
+              style: pw.TextStyle(
+                // font: ttf,
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              "$formattedAddress",
+              style: pw.TextStyle(
+                //font: ttf,
+                fontSize: 10,
+                // fontWeight: pw.FontWeight.bold,
+              ),
+              textAlign: pw.TextAlign.center
+            ),
+            pw.SizedBox(height: 10),
+            pw.Text(
+              "Contact - ${companyData['contact']}",
+              style: pw.TextStyle(
+                //font: ttf,
+                fontSize: 10,
+                // fontWeight: pw.FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -222,35 +211,47 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text("Personal  Details",style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 10)),
                         pw.SizedBox(height:10),
+                        pw.Row(children: [
+                          pw.Text("Employee ID    : ${widget.empID.toString()}", style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                          ),),
+                          pw.SizedBox(width: 10),
+                          pw.Text("Employee Name  : ${widget.empName.toString()}", style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                          ),),
+                        ]),
+                        pw.SizedBox(height: 10),
+                        pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text(
+                              "Address  :  ",
+                              style: pw.TextStyle(
+                                fontSize: 10,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                            ),
+                            pw.Text(
+                              "${widget.empAddress.toString() != "" ? widget.empAddress.toString() : "-"} -${widget.pincode.toString()}",
+                              // widget.empAddress.toString() != "" ? widget.empAddress.toString() : "-",
+                              style: pw.TextStyle(fontSize: 10),
+                              softWrap: true,
+                            ),
+                          ],
+                        ),
                         pw.Row(
                             children:[
                               pw.Row(
                                 mainAxisAlignment: pw.MainAxisAlignment.start,
-
                                 children: [
-
                                   pw.Padding(
                                     padding: pw.EdgeInsets.all(3.0),
                                     child: pw.Column(
                                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                                       children: [
-                                        pw.Text(
-                                          "Employee ID",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Employee Name",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
                                         pw.SizedBox(height: 7),
                                         pw.Text(
                                           "Gender",
@@ -260,7 +261,6 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                           ),
                                         ),
                                         pw.SizedBox(height: 7),
-
                                         pw.Text(
                                           "Contact",
                                           style: pw.TextStyle(
@@ -270,14 +270,35 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                         ),
                                         pw.SizedBox(height: 7),
                                         pw.Text(
-                                          "Pincode",
+                                          "DOB",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "AGE",
                                           style: pw.TextStyle(
                                             fontSize: 10,
                                             fontWeight: pw.FontWeight.bold,
                                           ),
                                         ),
-                                        //pw.SizedBox(height: 7),
-
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "Blood Group",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "Marital Status",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -295,9 +316,9 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                         pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height: 7),
                                         pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
                                         // pw.SizedBox(height: 7),
-
-
                                       ],
                                     ),
                                   ),
@@ -306,37 +327,39 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                     child: pw.Column(
                                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                                       children: [
-                                        pw.Text(widget.empID.toString(), style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.empName.toString(), style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
                                         pw.Text(widget.gender.toString(), style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height: 7),
                                         pw.Text(widget.empMobile.toString(), style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height:7),
-                                        pw.Text(widget.pincode.toString() != "" ? widget.pincode.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-
-
+                                        pw.Text(
+                                          widget.dob != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.dob!)) : "-",
+                                          style: pw.TextStyle(fontSize: 10),
+                                        ),
+                                        pw.SizedBox(height:7),
+                                        pw.Text(widget.age.toString(), style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height:7),
+                                        pw.Text(widget.bloodgroup.toString() != "Blood Group" ? widget.bloodgroup.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                        pw.SizedBox(height:7),
+                                        pw.Text(widget.maritalStatus.toString() != "Marital Status" ? widget.maritalStatus.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                       ],
                                     ),
                                   ),
                                 ],
                               ),
-                              pw.SizedBox(width: 85),
+                              pw.SizedBox(width: 50),
                               pw.Padding(
                                 padding:pw.EdgeInsets.only(bottom:10),
                                 child:
                                 pw.Row(
                                   mainAxisAlignment: pw.MainAxisAlignment.start,
-
                                   children: [
-
+                                    pw.SizedBox(height: 7),
                                     pw.Padding(
                                       padding: pw.EdgeInsets.all(3.0),
                                       child: pw.Column(
                                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                                         children: [
-
+                                          pw.SizedBox(height: 7),
                                           pw.Text(
                                             "Date of Join",
                                             style: pw.TextStyle(
@@ -345,14 +368,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                             ),
                                           ),
                                           pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Aadhar No",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
+
                                           pw.Text(
                                             "Employee Position",
                                             style: pw.TextStyle(
@@ -362,8 +378,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                           ),
                                           pw.SizedBox(height: 7),
                                           pw.Text(
-                                            "Salary Type",
-
+                                            "Employee Department",
                                             style: pw.TextStyle(
                                               fontSize: 10,
                                               fontWeight: pw.FontWeight.bold,
@@ -371,7 +386,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                           ),
                                           pw.SizedBox(height: 7),
                                           pw.Text(
-                                            "Salary per Day",
+                                            "Salary",
                                             style: pw.TextStyle(
                                               fontSize: 10,
                                               fontWeight: pw.FontWeight.bold,
@@ -379,14 +394,20 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                           ),
                                           pw.SizedBox(height: 7),
                                           pw.Text(
-                                            "",
+                                            "Spouse Name/Father Name",
                                             style: pw.TextStyle(
                                               fontSize: 10,
                                               fontWeight: pw.FontWeight.bold,
                                             ),
                                           ),
                                           pw.SizedBox(height: 7),
-
+                                          pw.Text(
+                                            "Spouse Name/Father MobileNo",
+                                            style: pw.TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: pw.FontWeight.bold,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -406,8 +427,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                           pw.SizedBox(height: 7),
                                           pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
                                           pw.SizedBox(height: 7),
-                                          pw.Text("", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
+                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
                                         ],
                                       ),
                                     ),
@@ -421,201 +441,35 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                             style: pw.TextStyle(fontSize: 10),
                                           ),
                                           pw.SizedBox(height: 7),
-                                          pw.Text(widget.aadhar.toString() != "" ? widget.aadhar.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
                                           pw.Text(widget.empPosition.toString() != "" ? widget.empPosition.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                           pw.SizedBox(height: 7),
-                                          pw.Text(widget.salary.toString() != "" ? widget.salary.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                          pw.Text(widget.deptName.toString() != "" ? widget.deptName.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                           pw.SizedBox(height: 7),
                                           pw.Text(widget.daySalary.toString() != "" ? widget.daySalary.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                           pw.SizedBox(height: 7),
-                                          pw.Text("" , style: pw.TextStyle(fontSize: 10)),
+                                          pw.Text(widget.gaurdian.toString() != "" ? widget.gaurdian.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                           pw.SizedBox(height: 7),
-
+                                          pw.Text(widget.gaurdianmobile.toString() != "" ? widget.gaurdianmobile.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-
-
                             ]
                         ),
-
-
-
                       ],
                     ),
-                    pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          " Address                       ",
-                          style: pw.TextStyle(
-                            fontSize: 10,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                        ),
-                        pw.Text(
-                          "              : ",
-                          style: pw.TextStyle(
-                            fontSize: 10,
-                          ),
-                        ),
-                        pw.Container(
-                          width: 200,
-                          child: pw.Text(
-                            "${widget.empAddress.toString() != "" ? widget.empAddress.toString() : "-"}",
-                            // widget.empAddress.toString() != "" ? widget.empAddress.toString() : "-",
-                            style: pw.TextStyle(fontSize: 10),
-                            softWrap: true,
-                          ),
-                        ),
-                      ],
-                    ),
+
+
                     pw.Divider(),
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text("Other Details",style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 10)),
+                        pw.Text("Bank Details",style: pw.TextStyle(fontWeight: pw.FontWeight.bold,fontSize: 10)),
                         pw.SizedBox(height:10),
                         pw.Row(
                             children:[
-                              pw.Row(
-                                mainAxisAlignment: pw.MainAxisAlignment.start,
-
-                                children: [
-
-                                  pw.Padding(
-                                    padding: pw.EdgeInsets.all(3.0),
-                                    child: pw.Column(
-                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                      children: [
-                                        pw.Text(
-                                          "DOB",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Age",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Blood Group",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Qualification",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Marital Status",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Spouse Name/Father Name",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Spouse Name/Father MobileNo",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-
-                                        ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Department Name",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),
-
-                                      ],
-                                    ),
-                                  ),
-                                  pw.Padding(
-                                    padding: pw.EdgeInsets.only(top:10,left:10,right:3,bottom:10),
-                                    child: pw.Column(
-                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                      children: [
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                      ],
-                                    ),
-                                  ),
-                                  pw.Padding(
-                                    padding: pw.EdgeInsets.only(bottom:8,left:3,right:3,top:10),
-                                    child: pw.Column(
-                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                      children: [
-                                        pw.Text(
-                                          widget.dob != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.dob!)) : "-",
-                                          style: pw.TextStyle(fontSize: 10),
-                                        ),
-                                        // pw.Text(widget.dob.toString() ?? "-", style: pw.TextStyle(fontSize: 10,)),
-
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.age.toString(), style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.bloodgroup.toString() != "Blood Group" ? widget.bloodgroup.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.education.toString() != "" ? widget.education.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.maritalStatus.toString() != "Marital Status" ? widget.maritalStatus.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.gaurdian.toString() != "" ? widget.gaurdian.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.gaurdianmobile.toString() != "" ? widget.gaurdianmobile.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.deptName.toString() != "" ? widget.deptName.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-
-
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              pw.SizedBox(width: 85),
                               pw.Padding(
                                 padding:pw.EdgeInsets.only(bottom:0),
                                 child:
@@ -629,7 +483,14 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                       child: pw.Column(
                                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                                         children: [
-
+                                          pw.Text(
+                                            "Adhaar No",
+                                            style: pw.TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: pw.FontWeight.bold,
+                                            ),
+                                          ),
+                                          pw.SizedBox(height: 7),
                                           pw.Text(
                                             "Account No",
                                             style: pw.TextStyle(
@@ -640,7 +501,6 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                           pw.SizedBox(height: 7),
                                           pw.Text(
                                             "Holder Name",
-
                                             style: pw.TextStyle(
                                               fontSize: 10,
                                               fontWeight: pw.FontWeight.bold,
@@ -714,7 +574,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                           pw.SizedBox(height: 7),
                                           pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
                                           pw.SizedBox(height: 7),
-                                          pw.Text("", style: pw.TextStyle(fontSize: 10,)),
+                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
                                           pw.SizedBox(height: 7),
                                           pw.Text("", style: pw.TextStyle(fontSize: 10,),),
                                         ],
@@ -725,6 +585,8 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                       child: pw.Column(
                                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                                         children: [
+                                          pw.Text(widget.aadhar.toString() != "" ? widget.aadhar.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                          pw.SizedBox(height: 7),
                                           pw.Text(widget.acNumber.toString() != "" ? widget.acNumber.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                           pw.SizedBox(height: 7),
                                           pw.Text(widget.acHoldername.toString() != "" ? widget.acHoldername.toString() : "-", style: pw.TextStyle(fontSize: 10)),
@@ -740,23 +602,16 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                           pw.Text("", style: pw.TextStyle(fontSize: 10,)),
                                           pw.SizedBox(height: 7),
                                           pw.Text("", style: pw.TextStyle(fontSize: 10,)),
-
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-
-
                             ]
                         ),
-
-
-
                       ],
                     ),
-                    pw.Divider(),
                   ],
 
                 ),),

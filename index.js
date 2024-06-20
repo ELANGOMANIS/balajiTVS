@@ -127,7 +127,6 @@ async function fetchUnitEntriesGeneral() {
 
 app.get('/attendance_view_general', (req, res) => {
     const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
-
     const sql = `
         SELECT
             e.emp_code,
@@ -330,7 +329,7 @@ app.get('/present-employees', (req, res) => {
   const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
   const queryPresent = `
-    SELECT e.emp_code, e.first_name, e.empMobile
+    SELECT e.emp_code, e.first_name, e.empMobile, a.check_in, a.check_out
     FROM employee e
     JOIN attendance a ON e.emp_code = a.emp_code
     WHERE a.inDate = ?`;
@@ -360,6 +359,9 @@ app.get('/absent-employees', (req, res) => {
     res.json(result);
   });
 });
+
+
+
 app.get('/attendance-summary', (req, res) => {
   const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
@@ -396,6 +398,7 @@ app.get('/attendance-summary', (req, res) => {
     });
   });
 });
+
 app.get('/get_attendance_overall', (req, res) => {
   const { fromDate, toDate, emp_code, first_name, shiftType } = req.query;
 
@@ -459,6 +462,27 @@ app.get('/get_attendance_overall', (req, res) => {
                 resultEmployees.forEach(emp => {
                   const key = `${emp.emp_code}-${date}`;
                   const attendance = attendanceMap.get(key);
+                  let remark = 'A'; // Default to Absent
+
+                  if (attendance) {
+                    if (attendance.check_in && (!attendance.check_out || attendance.check_out === '00:00:00')) {
+                      remark = 'P/A';
+                    } else if (attendance.check_in && attendance.check_out && attendance.check_out !== '00:00:00') {
+                      const checkInTime = new Date(`1970-01-01T${attendance.check_in}:00`);
+                      const checkOutTime = new Date(`1970-01-01T${attendance.check_out}:00`);
+                      const totalTime = (checkOutTime - checkInTime) / (1000 * 60); // total time in minutes
+                      const requiredTime = attendance.req_time ? parseInt(attendance.req_time, 10) : 0;
+
+                      if (totalTime < requiredTime / 2) {
+                        remark = 'H'; // Halfday
+                      } else {
+                        remark = 'P'; // Present
+                      }
+                    } else {
+                      remark = 'P'; // Only check-in available
+                    }
+                  }
+
                   if (!shiftType || (attendance && attendance.shiftType === shiftType)) {
                     combinedData.push({
                       ...emp,
@@ -470,7 +494,7 @@ app.get('/get_attendance_overall', (req, res) => {
                       latecheck_in: attendance ? attendance.latecheck_in : '',
                       earlycheck_out: attendance ? attendance.earlycheck_out : '',
                       req_time: attendance ? attendance.req_time : '',
-                      remark: attendance ? 'Present' : 'Absent'
+                      remark
                     });
                   }
                 });
@@ -484,6 +508,7 @@ app.get('/get_attendance_overall', (req, res) => {
     }
   });
 });
+
 app.get('/get_employee', (req, res) => {
   const sql = 'SELECT * from employee'; // Assuming id is the primary key of the attendance table
   db.query(sql, (err, result) => {
@@ -542,6 +567,7 @@ app.get('/getemployeename', (req, res) => {
     }
   });
 });
+
 app.get('/getemployee', (req, res) => {
   const sql = 'select * from personnel_employee'; // Modify to your table name
 
@@ -901,6 +927,7 @@ app.post('/shift_insert_tvs', (req, res) => {
     }
   });
 });
+
 app.get('/shift_tvs', (req, res) => {
   const sql = 'select * from shift'; // Modify to your table name
 

@@ -11,6 +11,8 @@ import 'package:printing/printing.dart';
 
 import 'package:http/http.dart' as http;
 
+import '../home.dart';
+
 
 class EmployeeReportPDF extends StatefulWidget {
   final List<Map<String, dynamic>> customerData;
@@ -92,48 +94,36 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
     int serialNumber=1;
     final companyData = await fetchCompanyData(); // Fetch company data
     pw.Widget createHeader(String companyName, String address, String contact) {
+      String formattedAddress = Utils.formatAddress(address);
       return pw.Container(
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                // pw.Container(
-                //   height: 70,
-                //   width: 70,
-                //   child: pw.Image(image), // Replace 'image' with your Image widget
-                // ),
-                pw.Text(
-                  "${companyData['companyName']}",
-                  style: pw.TextStyle(
-                    font: ttf,
-                    fontSize: 20,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                // pw.Container(
-                //   height: 70,
-                //   width: 70,
-                //   child: pw.Container(
-                //     child: pw.Image(image1), // Replace 'image1' with your Image widget
-                //   ),
-                // ),
-              ],
-            ),
             pw.Text(
-              "${companyData['address']}",
+              "${companyData['companyName']}",
               style: pw.TextStyle(
-                fontSize: 12,
-               fontWeight: pw.FontWeight.bold,
+                // font: ttf,
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
               ),
             ),
-
+            pw.SizedBox(height: 8),
+            pw.Text(
+                "$formattedAddress",
+                style: pw.TextStyle(
+                  //font: ttf,
+                  fontSize: 10,
+                  // fontWeight: pw.FontWeight.bold,
+                ),
+                textAlign: pw.TextAlign.center
+            ),
+            pw.SizedBox(height: 4),
             pw.Text(
               "Contact - ${companyData['contact']}",
               style: pw.TextStyle(
-                fontSize: 12,
-                fontWeight: pw.FontWeight.bold,
+                //font: ttf,
+                fontSize: 10,
+                // fontWeight: pw.FontWeight.bold,
               ),
             ),
           ],
@@ -213,7 +203,7 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
                                   pw.Container(
                                       padding: pw.EdgeInsets.all(8.0),
                                       child: pw.Center(
-                                        child: pw.Text('Salary \n per Day',
+                                        child: pw.Text('Salary',
                                             style: pw.TextStyle(fontSize: 8,font:font,
                                                 fontWeight: pw.FontWeight.bold)),)
                                   ),

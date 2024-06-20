@@ -301,26 +301,29 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     ];
 
     pw.Widget createHeader(String companyName, String address, String contact) {
+      String formattedAddress = Utils.formatAddress(address); // Format the address
+
       return pw.Container(
         padding: pw.EdgeInsets.all(10),
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
             pw.Text(
               companyName,
               style: pw.TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
-              address,
+              formattedAddress,
               style: pw.TextStyle(
                 fontSize: 10,
               ),
+              textAlign: pw.TextAlign.center,
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 4),
             pw.Text(
               contact,
               style: pw.TextStyle(
@@ -328,7 +331,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
               ),
             ),
             pw.Divider(thickness: 1),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
               'Employee Salary Report',
               style: pw.TextStyle(
@@ -354,8 +357,37 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
           return [
             pw.Table.fromTextArray(
               headers: headers,
-              cellStyle: const pw.TextStyle(fontSize: 7),
-              headerStyle: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+
+
+              headerStyle: pw.TextStyle(
+                fontSize: 8,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.black,
+              ),
+              cellStyle: pw.TextStyle(fontSize: 7),
+              cellHeight: 16,
+              columnWidths: {
+                0: pw.FixedColumnWidth(20),
+                1: pw.FixedColumnWidth(55),
+                2: pw.FixedColumnWidth(50),
+                3: pw.FixedColumnWidth(60),
+                4: pw.FixedColumnWidth(50),
+                5: pw.FixedColumnWidth(40),
+                6: pw.FixedColumnWidth(40),
+                7: pw.FixedColumnWidth(40),
+
+              },
+              cellAlignments: {
+                0: pw.Alignment.center,
+                1: pw.Alignment.center,
+                2: pw.Alignment.center,
+                3: pw.Alignment.center,
+                4: pw.Alignment.center,
+                5: pw.Alignment.center,
+                6: pw.Alignment.center,
+                7: pw.Alignment.center,
+
+              },
               data: filteredData.map((row) {
                 int totalTime = int.tryParse(row['req_time'] ?? '0') ?? 0;
                 int workTime = int.tryParse(row['act_time'] ?? '0') ?? 0;
@@ -458,141 +490,135 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
 
                             Wrap(
                               children: [
-                                Flexible(
-                                  child: SizedBox(
-                                    height:50,
-                                    width: 240,
-                                    child: TextFormField(style: const TextStyle(fontSize: 13),
-                                      readOnly: true,
-                                      validator: (value) {
-                                        if (value!.isEmpty) {
-                                          return '* Enter Date';
+                                SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TextFormField(style: const TextStyle(fontSize: 13),
+                                    readOnly: true,
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return '* Enter Date';
+                                      }
+                                      return null;
+                                    },
+                                    onTap: () {
+                                      showDatePicker(
+                                        context: context,
+                                        initialDate: toDate ?? DateTime.now(),
+                                        firstDate: DateTime(2000), // Set the range of selectable dates
+                                        lastDate: DateTime(2100),
+                                      ).then((date) {
+                                        if (date != null) {
+                                          setState(() {
+                                            fromDate = date;
+                                            // applyDateFilter();
+                                          });
                                         }
-                                        return null;
-                                      },
-                                      onTap: () {
-                                        showDatePicker(
-                                          context: context,
-                                          initialDate: toDate ?? DateTime.now(),
-                                          firstDate: DateTime(2000), // Set the range of selectable dates
-                                          lastDate: DateTime(2100),
-                                        ).then((date) {
-                                          if (date != null) {
-                                            setState(() {
-                                              fromDate = date;
-                                              // applyDateFilter();
-                                            });
-                                          }
-                                        });
-                                      },
-                                      controller: TextEditingController(text: formattedDate.toString().split(' ')[0]), // Set the initial value of the field to the selected date
-                                      decoration: const InputDecoration(
-                                        suffixIcon: Icon(Icons.calendar_month),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        labelText: "From Date",
-                                        labelStyle: TextStyle(fontSize: 12),
-
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 20,),
-                                Flexible(
-                                  child: SizedBox(
-                                    width: 240,
-                                    height: 50,
-                                    child: TextFormField(style: TextStyle(fontSize: 13),
-                                      readOnly: true,
-                                      validator: (value) {
-                                        if (value!.isEmpty) {
-                                          return '* Enter Date';
-                                        }
-                                        return null;
-                                      },
-                                      onTap: () {
-                                        showDatePicker(
-                                          context: context,
-                                          initialDate: toDate ?? DateTime.now(),
-                                          firstDate: DateTime(2000), // Set the range of selectable dates
-                                          lastDate: DateTime(2100),
-                                        ).then((date) {
-                                          if (date != null) {
-                                            setState(() {
-                                              toDate = date;
-                                              //applyDateFilter();
-                                            });
-                                          }
-                                        });
-                                      },
-                                      controller: TextEditingController(text: formattedDate2.toString().split(' ')[0]), // Set the initial value of the field to the selected date
-                                      decoration: const InputDecoration(
-                                        suffixIcon: Icon(Icons.calendar_month),
-                                        fillColor: Colors.white,
-                                        filled: true,
-                                        labelText: "To Date",
-                                        labelStyle: TextStyle(fontSize: 12),
-                                        isDense: true,
-                                      ),
+                                      });
+                                    },
+                                    controller: TextEditingController(text: formattedDate.toString().split(' ')[0]), // Set the initial value of the field to the selected date
+                                    decoration: const InputDecoration(
+                                      suffixIcon: Icon(Icons.calendar_month),
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      labelText: "From Date",
+                                      labelStyle: TextStyle(fontSize: 12),
 
                                     ),
                                   ),
                                 ),
                                 SizedBox(width: 20,),
-                                Flexible(
-                                  child: SizedBox(
-                                    width: 240,
-                                    height: 50,
-                                    child:
-                                    TypeAheadFormField<String>(
-                                      textFieldConfiguration: TextFieldConfiguration(
-                                        controller: searchController,
-                                        onChanged: (value) {
-                                          applyDateFilter();
-                                          String capitalizedValue = capitalizeFirstLetter(value);
-                                          searchController.value = searchController.value.copyWith(
-                                            text: capitalizedValue,
-                                            selection: TextSelection.collapsed(offset: capitalizedValue.length),
-                                          );
-                                        },
-                                        style: const TextStyle(fontSize: 13),
-                                        decoration: const InputDecoration(
-                                          fillColor: Colors.white,
-                                          filled: true,
-                                          labelText: "Employee/Code",
-                                          labelStyle: TextStyle(fontSize: 13),
-                                          border: OutlineInputBorder(
-                                            // borderRadius: BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                      ),
-                                      suggestionsCallback: (pattern) async {
-                                        if (pattern.isEmpty) {
-                                          return [];
+                                SizedBox(
+                                  width: 240,
+                                  height: 50,
+                                  child: TextFormField(style: TextStyle(fontSize: 13),
+                                    readOnly: true,
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return '* Enter Date';
+                                      }
+                                      return null;
+                                    },
+                                    onTap: () {
+                                      showDatePicker(
+                                        context: context,
+                                        initialDate: toDate ?? DateTime.now(),
+                                        firstDate: DateTime(2000), // Set the range of selectable dates
+                                        lastDate: DateTime(2100),
+                                      ).then((date) {
+                                        if (date != null) {
+                                          setState(() {
+                                            toDate = date;
+                                            //applyDateFilter();
+                                          });
                                         }
-                                        List<String> suggestions =data
-                                            .where((item) =>
-                                        (item['first_name']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()) ||
-                                            (item['emp_code']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()))
-                                            .map((item) => item['first_name'].toString())
-                                            .toSet()
-                                            .toList();
-                                        return suggestions;
-                                      },
-                                      itemBuilder: (context, suggestion) {
-                                        return ListTile(
-                                          title: Text(suggestion),
+                                      });
+                                    },
+                                    controller: TextEditingController(text: formattedDate2.toString().split(' ')[0]), // Set the initial value of the field to the selected date
+                                    decoration: const InputDecoration(
+                                      suffixIcon: Icon(Icons.calendar_month),
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "To Date",
+                                      labelStyle: TextStyle(fontSize: 12),
+                                      isDense: true,
+                                    ),
+
+                                  ),
+                                ),
+                                SizedBox(width: 20,),
+                                SizedBox(
+                                  width: 240,
+                                  height: 50,
+                                  child:
+                                  TypeAheadFormField<String>(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                      controller: searchController,
+                                      onChanged: (value) {
+                                        applyDateFilter();
+                                        String capitalizedValue = capitalizeFirstLetter(value);
+                                        searchController.value = searchController.value.copyWith(
+                                          text: capitalizedValue,
+                                          selection: TextSelection.collapsed(offset: capitalizedValue.length),
                                         );
                                       },
-                                      onSuggestionSelected: (suggestion) {
-                                        setState(() {
-                                          selectedCustomer = suggestion;
-                                          searchController.text = suggestion;
-                                          applyDateFilter();
-                                        });
-                                        print('Selected Customer: $selectedCustomer');
-                                      },
+                                      style: const TextStyle(fontSize: 13),
+                                      decoration: const InputDecoration(
+                                        fillColor: Colors.white,
+                                        filled: true,
+                                        labelText: "Employee/Code",
+                                        labelStyle: TextStyle(fontSize: 13),
+                                        border: OutlineInputBorder(
+                                          // borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
                                     ),
+                                    suggestionsCallback: (pattern) async {
+                                      if (pattern.isEmpty) {
+                                        return [];
+                                      }
+                                      List<String> suggestions =data
+                                          .where((item) =>
+                                      (item['first_name']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()) ||
+                                          (item['emp_code']?.toString().toLowerCase() ?? '').contains(pattern.toLowerCase()))
+                                          .map((item) => item['first_name'].toString())
+                                          .toSet()
+                                          .toList();
+                                      return suggestions;
+                                    },
+                                    itemBuilder: (context, suggestion) {
+                                      return ListTile(
+                                        title: Text(suggestion),
+                                      );
+                                    },
+                                    onSuggestionSelected: (suggestion) {
+                                      setState(() {
+                                        selectedCustomer = suggestion;
+                                        searchController.text = suggestion;
+                                        applyDateFilter();
+                                      });
+                                      print('Selected Customer: $selectedCustomer');
+                                    },
                                   ),
                                 ),
                                 Card(
