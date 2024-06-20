@@ -257,8 +257,23 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                       ),
                       child: Column(
                         children: [
-                          const Row(
+                           Row(
                             children: [
+                              IconButton(
+                                icon: Icon(Icons.arrow_back),
+                                onPressed: () {
+                                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.refresh),
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>AttendanceBalaji()));
+                                },
+                              ),
+
+                              SizedBox(width: 20,),
                               Icon(Icons.report),
                               SizedBox(width: 10),
                               Text(

@@ -104,6 +104,13 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     }
     return formatDuration(totalWorkTime);
   }
+  double calculateTotalSalary(List<Map<String, dynamic>> filteredData) {
+    double totalWorkTime = 0;
+    for (var row in filteredData) {
+      totalWorkTime += double.parse(row['salary'] ?? '0');
+    }
+    return totalWorkTime;
+  }
 
   List<String> supplierSuggestions = [];
   String selectedSupplier = "";
@@ -144,35 +151,17 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
   }
 
 
-  void fetchData() async {
+  Future<void> fetchData() async {
     try {
       final url = Uri.parse('http://localhost:3309/get_individual_salary/');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        final List<dynamic> itemGroups = responseData;
-        Set<String> uniqueCustNames = Set();
-        final List uniqueData = itemGroups
-            .where((item) {
-          String custName = item['check_in']?.toString() ?? '';
-          String inDate = item['inDate']?.toString() ?? '';
-          String uniqueIdentifier = '$custName-$inDate';
-
-          if (!uniqueCustNames.contains(uniqueIdentifier)) {
-            uniqueCustNames.add(uniqueIdentifier);
-            return true;
-          }
-          return false;
-        })
-            .toList();
-
         setState(() {
-          data = uniqueData.cast<Map<String, dynamic>>();
+          data = List<Map<String, dynamic>>.from(responseData);
           filteredData = List<Map<String, dynamic>>.from(data);
           applySorting();
         });
-
-        print('Data: $data');
       } else {
         print('Error: ${response.statusCode}');
       }
@@ -180,7 +169,6 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
       print('Error: $error');
     }
   }
-
 
   void applySorting() {
     filteredData.sort((a, b) {
@@ -227,6 +215,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
   }
 
   double totalWorkTime = 0;
+  double totalWorkSalary = 0;
   double reqWorkTime = 0;
   double totalLate = 0;
 
@@ -267,6 +256,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
       });
 
       totalWorkTime = calculateTotalWorkTime(filteredData) as double;
+      totalWorkSalary = calculateTotalSalary(filteredData) as double;
       reqWorkTime = calculateReqWorkTime(filteredData) as double;
       totalLate = calculateTotalLate(filteredData);
     });
@@ -319,8 +309,23 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                         ),
                         child: Column(
                           children: [
-                            const Wrap(
+                             Wrap(
                               children: [
+                                IconButton(
+                                  icon: Icon(Icons.arrow_back),
+                                  onPressed: () {
+                                    // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.refresh),
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                                  },
+                                ),
+
+                                SizedBox(width: 20,),
                                 Icon(Icons.report,),
                                 SizedBox(width:10,),
                                 Text(
@@ -508,7 +513,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                           Navigator.pop(context);
                                         },
                                       ),
-                                      if (generatedButton || searchController.text.isNotEmpty)
+                                      if (generatedButton && searchController.text.isNotEmpty)
                                         Align(
                                           alignment: Alignment.bottomRight,
                                           child: Card(
@@ -537,6 +542,10 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                                     SizedBox(height: 10),
                                                     Text(
                                                       "Work Time: ${calculateTotalWorkTime(filteredData)}",
+                                                      style: const TextStyle(fontSize: 13, color: Colors.black),
+                                                    ),
+                                                    Text(
+                                                      "Total Salary: ${calculateTotalSalary(filteredData)}",
                                                       style: const TextStyle(fontSize: 13, color: Colors.black),
                                                     ),
 

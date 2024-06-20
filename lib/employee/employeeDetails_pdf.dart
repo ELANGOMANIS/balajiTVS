@@ -134,9 +134,9 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
 
   Future<Uint8List> _generatePdfWithCopies(PdfPageFormat format, int copies) async {
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
-   /// final image = await imageFromAssetBundle("assets/pillaiyar.png");
- //   final image1 = await imageFromAssetBundle("assets/sarswathi.png");
-       final fontData = await rootBundle.load('assets/fonts/Algerian_Regular.ttf');
+    /// final image = await imageFromAssetBundle("assets/pillaiyar.png");
+    //   final image1 = await imageFromAssetBundle("assets/sarswathi.png");
+    final fontData = await rootBundle.load('assets/fonts/Algerian_Regular.ttf');
     final ttf = pw.Font.ttf(fontData.buffer.asByteData());
 
 
@@ -185,7 +185,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
         build: (pw.Context context) {
           return pw.Column(
             children: [
-          //    if (j == 0)
+              //    if (j == 0)
               createHeader(
                 companyData['companyName'],
                 companyData['address'],
@@ -234,7 +234,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                         ),
                                         pw.SizedBox(height: 7),
                                         pw.Text(
-                                          "Address",
+                                          "Gender",
                                           style: pw.TextStyle(
                                             fontSize: 10,
                                             fontWeight: pw.FontWeight.bold,
@@ -256,10 +256,9 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                             fontWeight: pw.FontWeight.bold,
                                           ),
                                         ),
-
                                         pw.SizedBox(height: 7),
                                         pw.Text(
-                                          "Genter",
+                                          "Address",
                                           style: pw.TextStyle(
                                             fontSize: 10,
                                             fontWeight: pw.FontWeight.bold,
@@ -299,14 +298,25 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                         pw.Text(widget.empID.toString(), style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height: 7),
                                         pw.Text(widget.empName.toString(), style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.empAddress.toString() != "" ? widget.empAddress.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                         pw.SizedBox(height:7),
                                         pw.Text(widget.pincode.toString() != "" ? widget.pincode.toString() : "-", style: pw.TextStyle(fontSize: 10)),
                                         pw.SizedBox(height: 7),
                                         pw.Text(widget.gender.toString(), style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height: 7),
                                         pw.Text(widget.empMobile.toString(), style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Container(
+                                          constraints: pw.BoxConstraints(
+                                            minWidth: 100, // minimum width
+                                            maxWidth: 100, // maximum width
+                                            minHeight: 20, // minimum height
+                                            maxHeight: 50, // maximum height
+                                          ),
+                                          child: pw.Text(
+                                              widget.empAddress.toString() != "" ? widget.empAddress.toString() : "-",
+                                              style: pw.TextStyle(fontSize: 10)
+                                          ),
+                                        ),
                                         pw.SizedBox(height: 5),
 
                                       ],
@@ -545,7 +555,6 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                         pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height: 7),
                                         pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-
                                       ],
                                     ),
                                   ),
@@ -554,7 +563,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                     child: pw.Column(
                                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                                       children: [
-                                        pw.Text(widget.dob.toString(), style: pw.TextStyle(fontSize: 10,)),
+                                        pw.Text(widget.dob.toString() ?? "-", style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height: 7),
                                         pw.Text(widget.age.toString(), style: pw.TextStyle(fontSize: 10,)),
                                         pw.SizedBox(height: 7),

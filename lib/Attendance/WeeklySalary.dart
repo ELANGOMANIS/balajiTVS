@@ -165,6 +165,22 @@ class _CumulativeSalaryCalculationState
 
                            Row(
                             children: [
+                              IconButton(
+                                icon: Icon(Icons.arrow_back),
+                                onPressed: () {
+                                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.refresh),
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>CumulativeSalaryCalculation()));
+                                },
+                              ),
+
+
+                              SizedBox(width: 20,),
                               Icon(Icons.report),
                               SizedBox(width: 10),
                               Text(
@@ -398,16 +414,16 @@ class _CumulativeSalaryCalculationState
 
                           const SizedBox(height: 20,),
                           PaginatedDataTable(
-                            columnSpacing: 65.0,
+                            columnSpacing: 90.0,
                             rowsPerPage: 25,
                             columns: const [
                               DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Employee/code", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Employee", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("No of Days", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Deduction Amount", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Deduction", style: TextStyle(fontWeight: FontWeight.bold)))),
                                DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
                               // DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),

@@ -200,6 +200,20 @@ class _EmployeeReportState extends State<EmployeeReport> {
                               children: [
                                 Row(
                                   children: [
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_back),
+                                      onPressed: () {
+                                        // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.refresh),
+                                      onPressed: () {
+                                        Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReport()));
+                                      },
+                                    ),
+
                                     Icon(Icons.report,),
                                     SizedBox(width:10,),
                                     Text(
@@ -281,25 +295,19 @@ class _EmployeeReportState extends State<EmployeeReport> {
                                       ],
                                     ),
 
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom:20),
-                                      child: IconButton(
+                                      IconButton(
                                         icon: Icon(Icons.refresh),
                                         onPressed: () {
                                           Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReport()));
                                         },
                                       ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom:20),
-                                      child: IconButton(
+                                      IconButton(
                                         icon: Icon(Icons.arrow_back),
                                         onPressed: () {
                                           // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
                                           Navigator.pop(context);
                                         },
                                       ),
-                                    ),
                                   ],
                                 ),
                               ],
@@ -659,8 +667,8 @@ class _YourDataTableSource extends DataTableSource {
 
             IconButton(
               onPressed: (){
-                String fathername=row["fatherName"];
-                String fatherMobile=row["fatherMobile"];
+                String fathername=row["fatherName"] ?? "";
+                String fatherMobile=row["fatherMobile"]?? "";
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> EmployeeReportPdf(
                   empID:row["emp_code"],
                   empName:row["first_name"],
@@ -695,12 +703,12 @@ class _YourDataTableSource extends DataTableSource {
               color: Colors.blue.shade600,
             ),
 
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                showDeleteConfirmationDialog(context, id);
-              },
-            ),
+            // IconButton(
+            //   icon: Icon(Icons.delete, color: Colors.red),
+            //   onPressed: () {
+            //     showDeleteConfirmationDialog(context, id);
+            //   },
+            // ),
 
           ],),
 

@@ -89,23 +89,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
     });
   }
 
-/*  void clearEmployeeDetails() {
-    setState(() {
-      fatherName.text = "";
-      fatherMobile.text = "";
-      shifttype = "Shift Type";
-      empName.text = "";
-      empAddress.text = "";
-      empMobile.text = "";
-      bloodGroup = "Blood Group";
-      gender = "Gender";
-      maritalstatus = "Marital Status";
-      salary = "Salary Type";
-      empposition = "Employee Position";
-      spouseName.text = "";
-      spouseMobile.text = "";
-    });
-  }*/
+
 
   TextEditingController _textController = TextEditingController();
 
@@ -239,7 +223,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
 
   Future<void> getshiftData() async {
     try {
-      final response = await http.get(Uri.parse('http://localhost:3309/getshift'));
+      final response = await http.get(Uri.parse('http://localhost:3309/get_shift_type'));
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = jsonDecode(response.body);
         setState(() {
@@ -467,7 +451,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       "maritalStatus":maritalstatus,
       "spouseName":spouseName.text,
       "spouseMobile":spouseMobile.text,
-     // "empPhoto":_imageUrl,
+      // "empPhoto":_imageUrl,
       "education":education.text,
       "aadhar":aadhar.text,
       "doj": dOJ != null ? DateFormat('yyyy-MM-dd').format(dOJ) : null,
@@ -668,77 +652,94 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                     ),
                     child:Column(
                       children: [
-                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            const Text("Personal Details", style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                            ),),
-                            SizedBox(
-                              width: 200,
-                              child: TypeAheadFormField<String>(
-                                textFieldConfiguration: TextFieldConfiguration(
-                                  controller: searchController,
-                                  onChanged: (value) {
-                                    fetchEmployeeDetailsbyname(empId.text);
-                                    // fetchData5();
-                                    String capitalizedValue = capitalizeFirstLetter(value);
-                                    searchController.value = searchController.value.copyWith(
-                                      text: capitalizedValue,
-                                      selection: TextSelection.collapsed(offset: capitalizedValue.length),
-                                    );
-                                  },
-                                  style: const TextStyle(fontSize: 13),
-                                  decoration: InputDecoration(
-                                    suffixIcon: Icon(Icons.search),
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    labelText: "Employee Name or ID", // Update label
-                                    labelStyle: TextStyle(fontSize: 13, color: Colors.black),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                            IconButton(
+                              icon: Icon(Icons.arrow_back),
+                              onPressed: () {
+                                // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                                Navigator.pop(context);
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.refresh),
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeProfileUpdate()));
+                              },
+                            ),
+                            SizedBox(height: 30,),
+                            Column(
+                              children: [
+
+                                SizedBox(
+                                  width: 200,
+                                  child: TypeAheadFormField<String>(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                      controller: searchController,
+                                      onChanged: (value) {
+                                        fetchEmployeeDetailsbyname(empId.text);
+                                        // fetchData5();
+                                        String capitalizedValue = capitalizeFirstLetter(value);
+                                        searchController.value = searchController.value.copyWith(
+                                          text: capitalizedValue,
+                                          selection: TextSelection.collapsed(offset: capitalizedValue.length),
+                                        );
+                                      },
+                                      style: const TextStyle(fontSize: 13),
+                                      decoration: InputDecoration(
+                                        suffixIcon: Icon(Icons.search),
+                                        fillColor: Colors.white,
+                                        filled: true,
+                                        labelText: "Employee Name or ID", // Update label
+                                        labelStyle: TextStyle(fontSize: 13, color: Colors.black),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
                                     ),
+                                    suggestionsCallback: (pattern) async {
+                                      if (pattern.isEmpty) {
+                                        return [];
+                                      }
+                                      final processedPattern = pattern.replaceAll(' ', '').toLowerCase();
+                                      List<String> suggestions = data5
+                                          .where((item) {
+                                        String empName = item['first_name']?.toString()?.toLowerCase() ?? '';
+                                        String empId = item['emp_code']?.toString()?.toLowerCase() ?? '';
+
+                                        // Modify this condition to check if the first letter matches
+                                        return empName.isNotEmpty && empName[0] == processedPattern[0] ||
+                                            empId.isNotEmpty && empId[0] == processedPattern[0];
+                                      })
+                                          .map<String>((item) =>
+                                      '${item['first_name']} (${item['emp_code']})') // Modify this line to match your data structure
+                                          .toSet() // Remove duplicates using a Set
+                                          .toList();
+                                      return suggestions;
+                                    },
+
+                                    itemBuilder: (context, suggestion) {
+                                      return ListTile(
+                                        title: Text(suggestion),
+                                      );
+                                    },
+                                    onSuggestionSelected: (suggestion) {
+                                      //   fetchData5();
+                                      String selectedEmpName = suggestion.split(' ')[0];
+                                      String selectedEmpID = suggestion.split('(')[1].split(')')[0];
+                                      setState(() {
+                                        selectedCustomer = selectedEmpName;
+                                        searchController.text = selectedEmpName;
+                                      });
+                                      print('Selected Customer: $selectedCustomer, ID: $selectedEmpID');
+                                    },
                                   ),
                                 ),
-                                suggestionsCallback: (pattern) async {
-                                  if (pattern.isEmpty) {
-                                    return [];
-                                  }
-                                  final processedPattern = pattern.replaceAll(' ', '').toLowerCase();
-                                  List<String> suggestions = data5
-                                      .where((item) {
-                                    String empName = item['first_name']?.toString()?.toLowerCase() ?? '';
-                                    String empId = item['emp_code']?.toString()?.toLowerCase() ?? '';
-
-                                    // Modify this condition to check if the first letter matches
-                                    return empName.isNotEmpty && empName[0] == processedPattern[0] ||
-                                        empId.isNotEmpty && empId[0] == processedPattern[0];
-                                  })
-                                      .map<String>((item) =>
-                                  '${item['first_name']} (${item['emp_code']})') // Modify this line to match your data structure
-                                      .toSet() // Remove duplicates using a Set
-                                      .toList();
-                                  return suggestions;
-                                },
-
-                                itemBuilder: (context, suggestion) {
-                                  return ListTile(
-                                    title: Text(suggestion),
-                                  );
-                                },
-                                onSuggestionSelected: (suggestion) {
-                                  //   fetchData5();
-                                  String selectedEmpName = suggestion.split(' ')[0];
-                                  String selectedEmpID = suggestion.split('(')[1].split(')')[0];
-                                  setState(() {
-                                    selectedCustomer = selectedEmpName;
-                                    searchController.text = selectedEmpName;
-                                  });
-                                  print('Selected Customer: $selectedCustomer, ID: $selectedEmpID');
-                                },
-                              ),
+                              ],
                             ),
+                            SizedBox(width: 20,),
+
                           ],
                         ),
                         SizedBox(height: 20,),
@@ -958,26 +959,65 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                               ),
                             ),
                             SizedBox(
-                              width: 200, height: 70,
-                              child: TextFormField(
-                                  controller: aadhar,
-                                  style: TextStyle(fontSize: 13),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(12)
-                                  ],
+                              width: 200,
+                              child: TypeAheadFormField<String>(
+                                textFieldConfiguration: TextFieldConfiguration(
+                                  controller: depName,
+                                  onChanged: (value) {
+                                    // fetchData5();
+                                    String capitalizedValue = capitalizeFirstLetter(value);
+                                    depName.value = depName.value.copyWith(
+                                      text: capitalizedValue,
+                                      selection: TextSelection.collapsed(offset: capitalizedValue.length),
+                                    );
+                                  },
+                                  style: const TextStyle(fontSize: 13),
                                   decoration: InputDecoration(
-                                    labelText: "Aadhar Number",
-                                    filled: true,
                                     fillColor: Colors.white,
+                                    filled: true,
+                                    labelText: "Department", // Update label
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          8.0),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                  )
+                                  ),
+                                ),
+                                suggestionsCallback: (pattern) async {
+                                  if (pattern.isEmpty) {
+                                    // Show all data when field is clicked, excluding null values
+                                    return emp_Position.where((item) => item['deptName'] != null)
+                                        .map<String>((item) => '${item['deptName']}') // Modify this line to match your data structure
+                                        .toSet() // Remove duplicates efficiently
+                                        .toList();
+                                  }
+                                  final processedPattern = pattern.replaceAll(' ', '').toLowerCase();
+                                  List<String> suggestions = emp_Position
+                                      .where((item) {
+                                    String empName = item['deptName']?.toString()?.toLowerCase() ?? '';
+                                    return empName.isNotEmpty && empName[0] == processedPattern[0];
+                                  })
+                                      .map<String>((item) =>
+                                  '${item['deptName']}') // Modify this line to match your data structure
+                                      .toSet() // Remove duplicates using a Set
+                                      .toList();
+                                  return suggestions;
+                                },
+
+                                itemBuilder: (context, suggestion) {
+                                  return ListTile(
+                                    title: Text(suggestion),
+                                  );
+                                },
+                                onSuggestionSelected: (suggestion) {
+                                  String selectedEmpName = suggestion.split(' ')[0];
+                                  setState(() {
+                                    selectedCustomer = selectedEmpName;
+                                    depName.text = selectedEmpName;
+                                  });
+                                  print('Selected Customer: $selectedCustomer');
+                                },
                               ),
                             ),
+
                             SizedBox(
                               width: 200,
                               child: TypeAheadFormField<String>(
@@ -1467,66 +1507,29 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                             //       )
                             //   ),
                             // ),
-
                             SizedBox(
-                              width: 200,
-                              child: TypeAheadFormField<String>(
-                                textFieldConfiguration: TextFieldConfiguration(
-                                  controller: depName,
-                                  onChanged: (value) {
-                                    // fetchData5();
-                                    String capitalizedValue = capitalizeFirstLetter(value);
-                                    depName.value = depName.value.copyWith(
-                                      text: capitalizedValue,
-                                      selection: TextSelection.collapsed(offset: capitalizedValue.length),
-                                    );
-                                  },
-                                  style: const TextStyle(fontSize: 13),
+                              width: 200, height: 70,
+                              child: TextFormField(
+                                  controller: aadhar,
+                                  style: TextStyle(fontSize: 13),
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(12)
+                                  ],
                                   decoration: InputDecoration(
-                                    fillColor: Colors.white,
+                                    labelText: "Aadhar Number",
                                     filled: true,
-                                    labelText: "Employee Position", // Update label
+                                    fillColor: Colors.white,
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(
+                                          8.0),
                                     ),
-                                  ),
-                                ),
-                                suggestionsCallback: (pattern) async {
-                                  if (pattern.isEmpty) {
-                                    // Show all data when field is clicked, excluding null values
-                                    return emp_Position.where((item) => item['deptName'] != null)
-                                        .map<String>((item) => '${item['deptName']}') // Modify this line to match your data structure
-                                        .toSet() // Remove duplicates efficiently
-                                        .toList();
-                                  }
-                                  final processedPattern = pattern.replaceAll(' ', '').toLowerCase();
-                                  List<String> suggestions = emp_Position
-                                      .where((item) {
-                                    String empName = item['deptName']?.toString()?.toLowerCase() ?? '';
-                                    return empName.isNotEmpty && empName[0] == processedPattern[0];
-                                  })
-                                      .map<String>((item) =>
-                                  '${item['deptName']}') // Modify this line to match your data structure
-                                      .toSet() // Remove duplicates using a Set
-                                      .toList();
-                                  return suggestions;
-                                },
-
-                                itemBuilder: (context, suggestion) {
-                                  return ListTile(
-                                    title: Text(suggestion),
-                                  );
-                                },
-                                onSuggestionSelected: (suggestion) {
-                                  String selectedEmpName = suggestion.split(' ')[0];
-                                  setState(() {
-                                    selectedCustomer = selectedEmpName;
-                                    depName.text = selectedEmpName;
-                                  });
-                                  print('Selected Customer: $selectedCustomer');
-                                },
+                                  )
                               ),
                             ),
+
+
 
                           ],
                         ),
@@ -1716,6 +1719,11 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                       errorMessage = "* Select a Gender ";
                                     });
                                   }
+                                  else if(depName.text.isEmpty){
+                                    setState(() {
+                                      errorMessage ="* Select a Employee Department";
+                                    });
+                                  }
                                   else if(empPosition.text.isEmpty){
                                     setState(() {
                                       errorMessage ="* Select a Employee Position";
@@ -1731,12 +1739,12 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                       errorMessage ="* Enter  a Salary";
                                     });
                                   }
-                                  else if(aadhar.text.isNotEmpty){
-                                    if(aadhar.text.length !=12){
-                                      setState(() {
-                                        errorMessage ="* Aadhaar should be 12 digits";
-                                      });
-                                    }}
+                                  // else if(aadhar.text.isNotEmpty){
+                                  //   if(aadhar.text.length !=12){
+                                  //     setState(() {
+                                  //       errorMessage ="* Aadhaar should be 12 digits";
+                                  //     });
+                                  //   }}
                                   else {
                                     //customerDataToDatabase();
                                     //String formattedDOB = "${dOB.year}-${dOB.month.toString().padLeft(2, '0')}-${dOB.day.toString().padLeft(2, '0')}";
