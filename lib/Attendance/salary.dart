@@ -296,26 +296,29 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     ];
 
     pw.Widget createHeader(String companyName, String address, String contact) {
+      String formattedAddress = Utils.formatAddress(address); // Format the address
+
       return pw.Container(
         padding: pw.EdgeInsets.all(10),
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
             pw.Text(
               companyName,
               style: pw.TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
-              address,
+              formattedAddress,
               style: pw.TextStyle(
                 fontSize: 10,
               ),
+              textAlign: pw.TextAlign.center,
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 4),
             pw.Text(
               contact,
               style: pw.TextStyle(
@@ -323,7 +326,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
               ),
             ),
             pw.Divider(thickness: 1),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
               'Employee Salary Report',
               style: pw.TextStyle(
@@ -349,8 +352,35 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
           return [
             pw.Table.fromTextArray(
               headers: headers,
+              headerStyle: pw.TextStyle(
+                fontSize: 8,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.black,
+              ),
               cellStyle: pw.TextStyle(fontSize: 7),
-              headerStyle: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+              cellHeight: 16,
+              columnWidths: {
+                0: pw.FixedColumnWidth(20),
+                1: pw.FixedColumnWidth(55),
+                2: pw.FixedColumnWidth(50),
+                3: pw.FixedColumnWidth(60),
+                4: pw.FixedColumnWidth(50),
+                5: pw.FixedColumnWidth(40),
+                6: pw.FixedColumnWidth(40),
+                7: pw.FixedColumnWidth(40),
+
+              },
+              cellAlignments: {
+                0: pw.Alignment.center,
+                1: pw.Alignment.center,
+                2: pw.Alignment.center,
+                3: pw.Alignment.center,
+                4: pw.Alignment.center,
+                5: pw.Alignment.center,
+                6: pw.Alignment.center,
+                7: pw.Alignment.center,
+
+              },
               data: filteredData.map((row) {
                 return [
                   '${filteredData.indexOf(row) + 1}',

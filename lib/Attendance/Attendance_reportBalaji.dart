@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http;
+import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../../main.dart';
 import 'package:intl/intl.dart';
@@ -141,27 +142,52 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
     final companyData = await Utils.fetchCompanyData();
+
+    // Function to format the address
+    String formatAddress(String address) {
+      return address.split(',').map((part) {
+        final buffer = StringBuffer();
+        final words = part.trim().split(' ');
+        var line = '';
+        for (var word in words) {
+          if ((line + word).length > 40) {
+            buffer.writeln(line.trim());
+            line = '';
+          }
+          line += '$word ';
+        }
+        if (line.isNotEmpty) {
+          buffer.writeln(line.trim());
+        }
+        return buffer.toString().trim();
+      }).join('\n');
+    }
+
+    // Create header widget with formatted address
     pw.Widget createHeader(String companyName, String address, String contact) {
+      String formattedAddress = Utils.formatAddress(address); // Format the address
+
       return pw.Container(
         padding: pw.EdgeInsets.all(10),
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
             pw.Text(
               companyName,
               style: pw.TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
-              address,
+              formattedAddress,
               style: pw.TextStyle(
                 fontSize: 10,
               ),
+              textAlign: pw.TextAlign.center,
             ),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 4),
             pw.Text(
               contact,
               style: pw.TextStyle(
@@ -169,7 +195,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
               ),
             ),
             pw.Divider(thickness: 1),
-            pw.SizedBox(height: 5),
+            pw.SizedBox(height: 8),
             pw.Text(
               'Employee Salary Report',
               style: pw.TextStyle(
@@ -181,24 +207,12 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
         ),
       );
     }
-// Fetch company data
 
-    final columnWidths = <int, pw.TableColumnWidth>{
-      0: pw.FixedColumnWidth(40),
-      1: pw.FixedColumnWidth(90),
-      2: pw.FixedColumnWidth(80),
-      3: pw.FixedColumnWidth(90),
-      4: pw.FixedColumnWidth(80),
-      5: pw.FixedColumnWidth(75),
-      6: pw.FixedColumnWidth(75),
-      7: pw.FixedColumnWidth(80),
-      8: pw.FixedColumnWidth(75),
-
-    };
-    // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
-    // final imageBytes = imageData.buffer.asUint8List();
-
-    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Late\nin','Early\nout', 'required\nTime', 'Total Hrs', 'Remark'];
+    final headers = [
+      'S.No', 'Date', 'Emp Code', 'Name', 'Shift', 'Check\nin',
+      'Check\nout', 'Late\nin','Early\nout', 'Required\nTime',
+      'Total Hrs', 'Remark'
+    ];
 
     const int rowsPerPage = 20; // Define the number of rows per page
     int totalPages = (data.length / rowsPerPage).ceil();
@@ -207,7 +221,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       final startRow = page * rowsPerPage;
       final endRow = (startRow + rowsPerPage) > data.length ? data.length : (startRow + rowsPerPage);
       final pageData = data.sublist(startRow, endRow);
-
 
       pdf.addPage(
         pw.MultiPage(
@@ -221,14 +234,49 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
           build: (pw.Context context) {
             return [
               pw.Table.fromTextArray(
-                // columnWidths: columnWidths,
                 headers: headers,
-                cellStyle: pw.TextStyle(fontSize: 6),
-                headerStyle: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold),
+                headerStyle: pw.TextStyle(
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black,
+                ),
+
+                cellStyle: pw.TextStyle(fontSize: 7),
+                cellHeight: 16,
+                columnWidths: {
+                  0: pw.FixedColumnWidth(20),
+                  1: pw.FixedColumnWidth(55),
+                  2: pw.FixedColumnWidth(50),
+                  3: pw.FixedColumnWidth(60),
+                  4: pw.FixedColumnWidth(50),
+                  5: pw.FixedColumnWidth(40),
+                  6: pw.FixedColumnWidth(40),
+                  7: pw.FixedColumnWidth(40),
+                  8: pw.FixedColumnWidth(40),
+                  9: pw.FixedColumnWidth(50),
+                  10: pw.FixedColumnWidth(50),
+                  11: pw.FixedColumnWidth(42),
+                },
+                cellAlignments: {
+                  0: pw.Alignment.center,
+                  1: pw.Alignment.center,
+                  2: pw.Alignment.center,
+                  3: pw.Alignment.center,
+                  4: pw.Alignment.center,
+                  5: pw.Alignment.center,
+                  6: pw.Alignment.center,
+                  7: pw.Alignment.center,
+                  8: pw.Alignment.center,
+                  9: pw.Alignment.center,
+                  10: pw.Alignment.center,
+                  11: pw.Alignment.center,
+                },
                 data: pageData.map((attendance) {
                   return [
                     '${data.indexOf(attendance) + 1}',
-                    attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
+                    attendance["inDate"] != null
+                        ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal())
+                        : "",
                     attendance['emp_code'] ?? '',
                     attendance['first_name'] ?? '',
                     attendance['shiftType'] ?? '',
@@ -238,11 +286,10 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                     formatDuration(attendance['earlycheck_out'] ?? '') ?? '',
                     attendance['req_time'] ?? '',
                     attendance['act_time'] ?? '',
-
                     attendance['remark'] ?? '',
                   ];
                 }).toList(),
-              )
+              ),
             ];
           },
         ),
@@ -302,128 +349,124 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                           SizedBox(height: 15,),
                           Wrap(
                             children: [
-                              Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TextFormField(
-                                    controller: fromDateController,
-                                    onTap: () {
-                                      showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime(2015, 8),
-                                        lastDate: DateTime(2101),
-                                      ).then((value) {
-                                        if (value != null) {
-                                          setState(() {
-                                            fromDateController.text = DateFormat('yyyy-MM-dd').format(value);
-                                          });
-                                        }
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: 'From Date ',
-                                      labelStyle: TextStyle(fontSize: 12),
-                                      suffixIcon: Icon(Icons.date_range),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TextFormField(
-                                    controller: toDateController,
-                                    onTap: () {
-                                      showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime(2015, 8),
-                                        lastDate: DateTime(2101),
-                                      ).then((value) {
-                                        if (value != null) {
-                                          setState(() {
-                                            toDateController.text = DateFormat('yyyy-MM-dd').format(value);
-                                          });
-                                        }
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: 'To Date ',
-                                      labelStyle: TextStyle(fontSize: 12),
-                                      suffixIcon: Icon(Icons.date_range),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TypeAheadFormField(
-                                    textFieldConfiguration: TextFieldConfiguration(
-                                      controller: firstNameController,
-                                      decoration: InputDecoration(labelText: 'First Name / Employee Code',
-                                        labelStyle: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                    suggestionsCallback: (pattern) async {
-                                      return getSuggestions('first_name', pattern);
-                                    },
-                                    itemBuilder: (context, suggestion) {
-                                      return ListTile(
-                                        title: Text(suggestion),
-                                      );
-                                    },
-                                    onSuggestionSelected: (suggestion) {
-                                      setState(() {
-                                        selectedSuggestion = suggestion;
-                                        firstNameController.text = extractEmpCode(suggestion); // Set empCodeController
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TypeAheadFormField(
-                                    textFieldConfiguration: TextFieldConfiguration(
-                                      controller: shiftController,
-                                      decoration: InputDecoration(labelText: 'Shift',
-                                        labelStyle: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                    suggestionsCallback: (pattern) async {
-                                      List<String> suggestions = [];
-                                      if (pattern.isNotEmpty) {
-                                        suggestions = await Utils.getSuggestions();
+                              SizedBox(
+                                height:50,
+                                width: 240,
+                                child: TextFormField(
+                                  controller: fromDateController,
+                                  onTap: () {
+                                    showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2015, 8),
+                                      lastDate: DateTime(2101),
+                                    ).then((value) {
+                                      if (value != null) {
+                                        setState(() {
+                                          fromDateController.text = DateFormat('yyyy-MM-dd').format(value);
+                                        });
                                       }
-                                      return suggestions;
-                                    },
-                                    itemBuilder: (context, suggestion) {
-                                      return ListTile(
-                                        title: Text(suggestion),
-                                      );
-                                    },
-                                    onSuggestionSelected: (suggestion) {
-                                      shiftController.text = suggestion;
-                                    },
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: 'From Date ',
+                                    labelStyle: TextStyle(fontSize: 12),
+                                    suffixIcon: Icon(Icons.date_range),
                                   ),
                                 ),
                               ),
+                              SizedBox(width: 10,),
+                              SizedBox(
+                                height:50,
+                                width: 240,
+                                child: TextFormField(
+                                  controller: toDateController,
+                                  onTap: () {
+                                    showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2015, 8),
+                                      lastDate: DateTime(2101),
+                                    ).then((value) {
+                                      if (value != null) {
+                                        setState(() {
+                                          toDateController.text = DateFormat('yyyy-MM-dd').format(value);
+                                        });
+                                      }
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: 'To Date ',
+                                    labelStyle: TextStyle(fontSize: 12),
+                                    suffixIcon: Icon(Icons.date_range),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              SizedBox(
+                                height:50,
+                                width: 240,
+                                child: TypeAheadFormField(
+                                  textFieldConfiguration: TextFieldConfiguration(
+                                    controller: firstNameController,
+                                    decoration: InputDecoration(labelText: 'First Name / Employee Code',
+                                      labelStyle: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  suggestionsCallback: (pattern) async {
+                                    return getSuggestions('first_name', pattern);
+                                  },
+                                  itemBuilder: (context, suggestion) {
+                                    return ListTile(
+                                      title: Text(suggestion),
+                                    );
+                                  },
+                                  onSuggestionSelected: (suggestion) {
+                                    setState(() {
+                                      selectedSuggestion = suggestion;
+                                      firstNameController.text = extractEmpCode(suggestion); // Set empCodeController
+                                    });
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              SizedBox(
+                                height:50,
+                                width: 240,
+                                child: TypeAheadFormField(
+                                  textFieldConfiguration: TextFieldConfiguration(
+                                    controller: shiftController,
+                                    decoration: InputDecoration(labelText: 'Shift',
+                                      labelStyle: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  suggestionsCallback: (pattern) async {
+                                    List<String> suggestions = [];
+                                    if (pattern.isNotEmpty) {
+                                      suggestions = await Utils.getSuggestions();
+                                    }
+                                    return suggestions;
+                                  },
+                                  itemBuilder: (context, suggestion) {
+                                    return ListTile(
+                                      title: Text(suggestion),
+                                    );
+                                  },
+                                  onSuggestionSelected: (suggestion) {
+                                    shiftController.text = suggestion;
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+
                               Card(
                                 child: IconButton(
                                   icon: Icon(Icons.search),
                                   onPressed: _applyFilters,
                                 ),
                               ),
+                              SizedBox(width: 10,),
+
                               Card(
                                 child: IconButton(
                                   icon: Icon(Icons.file_download),
@@ -433,6 +476,8 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                   },
                                 ),
                               ),
+                              SizedBox(width: 10,),
+
                               Card(
                                 child: IconButton(
                                   icon: Icon(Icons.refresh),

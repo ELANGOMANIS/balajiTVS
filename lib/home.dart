@@ -205,6 +205,9 @@ class PresentEmployeesPage extends StatefulWidget {
 
 class _PresentEmployeesPageState extends State<PresentEmployeesPage> {
   List<dynamic> presentEmployees = [];
+  bool isLoading = true;
+  bool hasError = false;
+
 
   @override
   void initState() {
@@ -217,8 +220,14 @@ class _PresentEmployeesPageState extends State<PresentEmployeesPage> {
     if (response.statusCode == 200) {
       setState(() {
         presentEmployees = json.decode(response.body);
+        isLoading = false;
+        hasError = false;
       });
     } else {
+      setState(() {
+        isLoading = false;
+        hasError = true;
+      });
       throw Exception('Failed to load present employees');
     }
   }
@@ -232,14 +241,30 @@ class _PresentEmployeesPageState extends State<PresentEmployeesPage> {
         backgroundColor:Colors.deepOrangeAccent,
         title: Text('Present Employees',style: TextStyle(color: Colors.white,fontSize: 16),),
       ),
-      body: ListView.builder(
+      body:
+      isLoading
+          ? Center(child: CircularProgressIndicator())
+          : hasError
+          ? Center(child: Text('Failed to load present employees'))
+          : presentEmployees.isEmpty
+          ? Center(child: Text('No Present employees available'))
+          :
+      ListView.builder(
         itemCount: presentEmployees.length,
         itemBuilder: (context, index) {
           return Card(
             child: ListTile(
               leading: Text((index + 1).toString(),style: TextStyle(fontWeight: FontWeight.bold),),
               title: Text(presentEmployees[index]['first_name'],style: TextStyle(fontWeight: FontWeight.bold),),
-              subtitle: Text('Emp Code: ${presentEmployees[index]['emp_code']} | Mobile: ${presentEmployees[index]['empMobile']}',style: TextStyle(fontWeight: FontWeight.bold),),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Emp Code: ${presentEmployees[index]['emp_code']} '),
+                  Text('Check-in: ${presentEmployees[index]['check_in']}'),
+                  Text('Check-out: ${presentEmployees[index]['check_out']}')
+
+                ],
+              ),
             ),
           );
         },
@@ -255,6 +280,8 @@ class AbsentEmployeesPage extends StatefulWidget {
 
 class _AbsentEmployeesPageState extends State<AbsentEmployeesPage> {
   List<dynamic> absentEmployees = [];
+  bool isLoading = true;
+  bool hasError = false;
 
   @override
   void initState() {
@@ -267,8 +294,14 @@ class _AbsentEmployeesPageState extends State<AbsentEmployeesPage> {
     if (response.statusCode == 200) {
       setState(() {
         absentEmployees = json.decode(response.body);
+        isLoading = false;
+        hasError = false;
       });
     } else {
+      setState(() {
+        isLoading = false;
+        hasError = true;
+      });
       throw Exception('Failed to load absent employees');
     }
   }
@@ -282,14 +315,21 @@ class _AbsentEmployeesPageState extends State<AbsentEmployeesPage> {
         backgroundColor:Colors.deepOrangeAccent,
         title: Text('Absent Employees',style: TextStyle(color: Colors.white,fontSize: 16),),
       ),
-      body: ListView.builder(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : hasError
+          ? Center(child: Text('Failed to load present employees'))
+          : absentEmployees.isEmpty
+          ? Center(child: Text('No data available'))
+          :
+      ListView.builder(
         itemCount: absentEmployees.length,
         itemBuilder: (context, index) {
           return Card(
             child: ListTile(
               leading: Text((index + 1).toString(),style: TextStyle(fontWeight: FontWeight.bold),),
               title: Text(absentEmployees[index]['first_name'],style: TextStyle(fontWeight: FontWeight.bold),),
-              subtitle: Text('Emp Code: ${absentEmployees[index]['emp_code']} | Mobile: ${absentEmployees[index]['empMobile']}',style: TextStyle(fontWeight: FontWeight.bold),),
+              subtitle: Text('Emp Code: ${absentEmployees[index]['emp_code']} '),
             ),
           );
         },
@@ -344,7 +384,28 @@ class Utils {
       throw Exception('Failed to load company data: $e');
     }
   }
+  static  String formatAddress(String address) {
+    final words = address.split(' ');
+    final buffer = StringBuffer();
+    var line = '';
+    var lineCount = 0;
 
+    for (var word in words) {
+      if ((line + word).length > 100) {
+        if (lineCount == 1) {
+          break;
+        }
+        buffer.writeln(line.trim());
+        line = '';
+        lineCount++;
+      }
+      line += '$word ';
+    }
+    if (line.isNotEmpty && lineCount < 2) {
+      buffer.writeln(line.trim());
+    }
+    return buffer.toString().trim();
+  }
 }
 
 
