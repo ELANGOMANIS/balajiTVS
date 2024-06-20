@@ -36,9 +36,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
         double workTime = double.parse(row['act_time'] ?? '0');
 
         if (reqTime < workTime) {
-          // If workTime is greater than reqTime, this means the task was completed before required time.
-          // We should not subtract anything from totalLate in this case.
-          // You can add a condition here if you need to handle this case differently.
+
         } else {
           totalLate += reqTime - workTime;
         }
@@ -147,6 +145,9 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
   int calculateTotalDays(List<Map<String, dynamic>> filteredData) {
     return filteredData.length;
   }
+  int calculateTotalDaysInRange(DateTime fromDate, DateTime toDate) {
+    return toDate.difference(fromDate).inDays + 1;
+  }
 
 
   Future<void> fetchData() async {
@@ -184,6 +185,11 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
       totalWorkTime += double.parse(row['salary'] ?? '0');
     }
     return totalWorkTime;
+  }
+  int calculateAbsentDays(List<Map<String, dynamic>> filteredData, DateTime fromDate, DateTime toDate) {
+    int totalDaysInRange = calculateTotalDaysInRange(fromDate, toDate);
+    int presentDays = calculateTotalDays(filteredData);
+    return totalDaysInRange - presentDays;
   }
 
   void filterData(String searchText) {
@@ -291,7 +297,6 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
       'Shift',
       'Req Time',
       'Late',
-      'Early Leave',
       'Worked Time',
     ];
 
@@ -352,6 +357,8 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
           return [
             pw.Table.fromTextArray(
               headers: headers,
+
+
               headerStyle: pw.TextStyle(
                 fontSize: 8,
                 fontWeight: pw.FontWeight.bold,
@@ -382,15 +389,19 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
 
               },
               data: filteredData.map((row) {
+                int totalTime = int.tryParse(row['req_time'] ?? '0') ?? 0;
+                int workTime = int.tryParse(row['act_time'] ?? '0') ?? 0;
+                int differentTime = workTime < totalTime ? totalTime - workTime : 0;
                 return [
                   '${filteredData.indexOf(row) + 1}',
                   DateFormat('yyyy-MM-dd').format(DateTime.parse(row['inDate'] ?? "")),
                   '${row["first_name"]} - ${row["emp_code"]}',
                   '${row["shiftType"]}',
                   formatDuration(double.parse(row['req_time'] ?? '0')),
-                  formatDuration(double.parse(row['latecheck_in'] ?? '0')),
-                  formatDuration(double.parse(row['earlycheck_out'] ?? '0')),
-                  formatDuration(double.parse(row['act_time'] ?? '0')),
+                  formatDuration(differentTime.toDouble()), // Include differentTime
+                  row["check_out"] != "00:00:00"
+                      ? formatDuration(double.parse(row['act_time'] ?? '0'))
+                      : "",
                 ];
               }).toList(),
             ),
@@ -404,17 +415,14 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
               style: pw.TextStyle(fontSize: 12),
             ),
             pw.Text(
-              "Req Time: ${calculateReqWorkTime(filteredData)}",
+              "Total Hrs: ${calculateReqWorkTime(filteredData)}",
               style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
             ),
             pw.Text(
-              "Late: ${calculateLateTime(filteredData)}",
+              "Shortage: ${formatDuration(calculateTotalLate(filteredData))}",
               style: pw.TextStyle(fontSize: 12, color: PdfColors.red),
             ),
-            pw.Text(
-              "Early Leave: ${calculateEarlyTime(filteredData)}",
-              style: pw.TextStyle(fontSize: 12, color: PdfColors.red),
-            ),
+
             pw.Text(
               "Work Time: ${calculateTotalWorkTime(filteredData)}",
               style: pw.TextStyle(fontSize: 12),
@@ -668,19 +676,16 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                           child: Column(
                                             children: [
                                               Text(
-                                                "Total Days: ${calculateTotalDays(filteredData)}",
+                                                "Present/Absent: ${calculateTotalDays(filteredData)}/${calculateAbsentDays(filteredData, fromDate!, toDate!)}",
                                                 style: TextStyle(fontSize: 14),
                                               ),
+
                                               Text(
-                                                "Req Time: ${calculateReqWorkTime(filteredData)}",
+                                                "Total Hrs: ${calculateReqWorkTime(filteredData)}",
                                                 style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.bold),
                                               ),
                                               Text(
-                                                "Late: ${calculateLateTime(filteredData)}",
-                                                style: const TextStyle(fontSize: 13, color: Colors.red),
-                                              ),
-                                              Text(
-                                                "Early Leave: ${calculateEarlyTime(filteredData)}",
+                                                "Shortage: ${formatDuration(calculateTotalLate(filteredData))}",
                                                 style: const TextStyle(fontSize: 13, color: Colors.red),
                                               ),
                                               SizedBox(height: 10),
@@ -761,9 +766,8 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                   DataColumn(label: Center(child: Text("Date",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   DataColumn(label: Center(child: Text("    Name",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   DataColumn(label: Center(child: Text("Shift",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("Req Time",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("Late",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  DataColumn(label: Center(child: Text("Early Leave",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  DataColumn(label: Center(child: Text("Total Hrs",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                  DataColumn(label: Center(child: Text("Shortage",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   DataColumn(label: Center(child: Text("Worked Time",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   // DataColumn(label: Center(child: Text("Daily Salary",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 ],
@@ -888,6 +892,10 @@ class _YourDataTableSource extends DataTableSource {
     int lateLunch = int.tryParse(row["late_lunch"] ?? "0") ?? 0;
     int totalLate = lateCheckIn + earlyCheckOut + lateLunch;
 
+    int totalTime = int.tryParse(row["req_time"] ?? "0") ?? 0;
+    int workTime = int.tryParse(row["act_time"] ?? "0") ?? 0;
+
+    int differentTime = workTime < totalTime && totalTime != 0 ? totalTime - workTime : 0;
 
 
     return DataRow(
@@ -906,8 +914,7 @@ class _YourDataTableSource extends DataTableSource {
         DataCell(Center(child: Text("${row["first_name"]+' - '+row["emp_code"]} "))),
         DataCell(Center(child: Text("${row["shiftType"]}"))),
         DataCell(Center(child: Text(formatDuration(row["req_time"])))),
-        DataCell(Center(child: Text(formatDuration(row["latecheck_in"]?? '-')))),
-        DataCell(Center(child: Text(formatDuration(row["earlycheck_out"])))),
+        DataCell(Center(child: Text(row["check_out"] != "00:00:00" ? formatDuration(differentTime.toString()) : ""))),
         DataCell(Center(child: Text(formatDuration(row["act_time"])))),
 
       ],

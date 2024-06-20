@@ -458,7 +458,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                             columns: const [
                               DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Employee/code", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("No of Days", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Present/Absent", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
@@ -494,7 +494,7 @@ class _DataSource extends DataTableSource {
     return DataRow.byIndex(index: index, cells: [
       DataCell(Center(child: Text((index + 1).toString()))),
       DataCell(Center(child: Text(data['employee'] ?? ''))),
-      DataCell(Center(child: Text(data['no_of_work_days']?.toString() ?? ''))),
+      DataCell(Center(child: Text("${data['no_of_work_days']?.toString() ?? ''}${data['no_of_absent_days']?.toString() ?? ''}"))),
       DataCell(Center(child: Text(formatDuration(data['total_req_time']!.toString()) ?? ''))),
       DataCell(Center(child: Text(formatDuration(data['total_act_time']!.toString()) ?? ''))),
       DataCell(Center(child: Text('₹ ${data['monthly_salary']?.toString() ?? ''}'))),
