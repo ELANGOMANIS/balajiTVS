@@ -344,6 +344,29 @@ class Utils {
       throw Exception('Failed to load company data: $e');
     }
   }
+  static  String formatAddress(String address) {
+    final words = address.split(' ');
+    final buffer = StringBuffer();
+    var line = '';
+    var lineCount = 0;
+
+    for (var word in words) {
+      if ((line + word).length > 100) {
+        if (lineCount == 1) {
+          break;
+        }
+        buffer.writeln(line.trim());
+        line = '';
+        lineCount++;
+      }
+      line += '$word ';
+    }
+    if (line.isNotEmpty && lineCount < 2) {
+      buffer.writeln(line.trim());
+    }
+    return buffer.toString().trim();
+  }
+
 
 }
 

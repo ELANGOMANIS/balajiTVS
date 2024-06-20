@@ -127,7 +127,6 @@ async function fetchUnitEntriesGeneral() {
 
 app.get('/attendance_view_general', (req, res) => {
     const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
-
     const sql = `
         SELECT
             e.emp_code,
@@ -531,6 +530,7 @@ app.get('/getemployeename', (req, res) => {
     }
   });
 });
+
 app.get('/getemployee', (req, res) => {
   const sql = 'select * from personnel_employee'; // Modify to your table name
 
@@ -882,6 +882,7 @@ app.post('/shift_insert_tvs', (req, res) => {
     }
   });
 });
+
 app.get('/shift_tvs', (req, res) => {
   const sql = 'select * from shift'; // Modify to your table name
 

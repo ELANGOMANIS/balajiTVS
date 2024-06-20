@@ -302,120 +302,112 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                           SizedBox(height: 15,),
                           Wrap(
                             children: [
-                              Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TextFormField(
-                                    controller: fromDateController,
-                                    onTap: () {
-                                      showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime(2015, 8),
-                                        lastDate: DateTime(2101),
-                                      ).then((value) {
-                                        if (value != null) {
-                                          setState(() {
-                                            fromDateController.text = DateFormat('yyyy-MM-dd').format(value);
-                                          });
-                                        }
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: 'From Date ',
-                                      labelStyle: TextStyle(fontSize: 12),
-                                      suffixIcon: Icon(Icons.date_range),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TextFormField(
-                                    controller: toDateController,
-                                    onTap: () {
-                                      showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime(2015, 8),
-                                        lastDate: DateTime(2101),
-                                      ).then((value) {
-                                        if (value != null) {
-                                          setState(() {
-                                            toDateController.text = DateFormat('yyyy-MM-dd').format(value);
-                                          });
-                                        }
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: 'To Date ',
-                                      labelStyle: TextStyle(fontSize: 12),
-                                      suffixIcon: Icon(Icons.date_range),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TypeAheadFormField(
-                                    textFieldConfiguration: TextFieldConfiguration(
-                                      controller: firstNameController,
-                                      decoration: InputDecoration(labelText: 'First Name / Employee Code',
-                                        labelStyle: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                    suggestionsCallback: (pattern) async {
-                                      return getSuggestions('first_name', pattern);
-                                    },
-                                    itemBuilder: (context, suggestion) {
-                                      return ListTile(
-                                        title: Text(suggestion),
-                                      );
-                                    },
-                                    onSuggestionSelected: (suggestion) {
-                                      setState(() {
-                                        selectedSuggestion = suggestion;
-                                        firstNameController.text = extractEmpCode(suggestion); // Set empCodeController
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TypeAheadFormField(
-                                    textFieldConfiguration: TextFieldConfiguration(
-                                      controller: shiftController,
-                                      decoration: InputDecoration(labelText: 'Shift',
-                                        labelStyle: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                    suggestionsCallback: (pattern) async {
-                                      List<String> suggestions = [];
-                                      if (pattern.isNotEmpty) {
-                                        suggestions = await Utils.getSuggestions();
+                              SizedBox(
+                                height:50,
+                                width: 240,
+                                child: TextFormField(
+                                  controller: fromDateController,
+                                  onTap: () {
+                                    showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2015, 8),
+                                      lastDate: DateTime(2101),
+                                    ).then((value) {
+                                      if (value != null) {
+                                        setState(() {
+                                          fromDateController.text = DateFormat('yyyy-MM-dd').format(value);
+                                        });
                                       }
-                                      return suggestions;
-                                    },
-                                    itemBuilder: (context, suggestion) {
-                                      return ListTile(
-                                        title: Text(suggestion),
-                                      );
-                                    },
-                                    onSuggestionSelected: (suggestion) {
-                                      shiftController.text = suggestion;
-                                    },
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: 'From Date ',
+                                    labelStyle: TextStyle(fontSize: 12),
+                                    suffixIcon: Icon(Icons.date_range),
                                   ),
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              SizedBox(
+                                height:50,
+                                width: 240,
+                                child: TextFormField(
+                                  controller: toDateController,
+                                  onTap: () {
+                                    showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2015, 8),
+                                      lastDate: DateTime(2101),
+                                    ).then((value) {
+                                      if (value != null) {
+                                        setState(() {
+                                          toDateController.text = DateFormat('yyyy-MM-dd').format(value);
+                                        });
+                                      }
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: 'To Date ',
+                                    labelStyle: TextStyle(fontSize: 12),
+                                    suffixIcon: Icon(Icons.date_range),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              SizedBox(
+                                height:50,
+                                width: 240,
+                                child: TypeAheadFormField(
+                                  textFieldConfiguration: TextFieldConfiguration(
+                                    controller: firstNameController,
+                                    decoration: InputDecoration(labelText: 'First Name / Employee Code',
+                                      labelStyle: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  suggestionsCallback: (pattern) async {
+                                    return getSuggestions('first_name', pattern);
+                                  },
+                                  itemBuilder: (context, suggestion) {
+                                    return ListTile(
+                                      title: Text(suggestion),
+                                    );
+                                  },
+                                  onSuggestionSelected: (suggestion) {
+                                    setState(() {
+                                      selectedSuggestion = suggestion;
+                                      firstNameController.text = extractEmpCode(suggestion); // Set empCodeController
+                                    });
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              SizedBox(
+                                height:50,
+                                width: 240,
+                                child: TypeAheadFormField(
+                                  textFieldConfiguration: TextFieldConfiguration(
+                                    controller: shiftController,
+                                    decoration: InputDecoration(labelText: 'Shift',
+                                      labelStyle: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  suggestionsCallback: (pattern) async {
+                                    List<String> suggestions = [];
+                                    if (pattern.isNotEmpty) {
+                                      suggestions = await Utils.getSuggestions();
+                                    }
+                                    return suggestions;
+                                  },
+                                  itemBuilder: (context, suggestion) {
+                                    return ListTile(
+                                      title: Text(suggestion),
+                                    );
+                                  },
+                                  onSuggestionSelected: (suggestion) {
+                                    shiftController.text = suggestion;
+                                  },
                                 ),
                               ),
                               Card(

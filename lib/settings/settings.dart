@@ -578,18 +578,22 @@ class _SettingsState extends State<Settings> {
                         ],
                       ),
                     ),
-                Card(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Align(
-                                alignment: Alignment.topLeft,
-                                child: DropdownButton<String>(
+                    SizedBox(height: 10),
+                    isLoading
+                        ? Center(child: CircularProgressIndicator())
+                        : Align(
+                      alignment: Alignment.topLeft,
+                  child: Card(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                DropdownButton<String>(
                                   hint: const Text("Shift Type"),
                                   value: selectedShiftType,
                                   items: shifts.map<DropdownMenuItem<String>>((shift) {
@@ -607,11 +611,8 @@ class _SettingsState extends State<Settings> {
                                     }
                                   },
                                 ),
-                              ),
-                              SizedBox(width: 10),
-                              Align(
-                                alignment: Alignment.topLeft,
-                                child: MaterialButton(
+                                SizedBox(width: 10),
+                                MaterialButton(
                                   color: Colors.blue.shade900,
                                   onPressed: () {
                                     // Prepare updated data
@@ -645,246 +646,246 @@ class _SettingsState extends State<Settings> {
                                   },
                                   child: Text("Save", style: TextStyle(color: Colors.white)),
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 20),
-                          Row(
-                            children: [
-                              Text("Check In", style: TextStyle(fontSize: 14)),
-                              SizedBox(width: 10),
-                              Text("Start:    ", style: TextStyle(fontSize: 14)),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_drop_up),
-                                    onPressed: () => incrementTime2(time2[0], 'checkin_start'),
-                                  ),
-                                  SizedBox(
-                                    width: 80,
-                                    child: time2.isNotEmpty
-                                        ? TextField(
-                                      style: TextStyle(fontSize: 12),
-                                      controller: TextEditingController(text: time2[0]['checkin_start']),
-                                      onChanged: (value) {
-                                        time2[0]['checkin_start'] = value;
-                                      },
-                                    )
-                                        : SizedBox.shrink(),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_drop_down),
-                                    onPressed: () => decrementTime2(time2[0], 'checkin_start'),
-                                  ),
-                                ],
-                              ),
-                              Text("End", style: TextStyle(fontSize: 14)),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_drop_up),
-                                    onPressed: () => incrementTime2(time2[0], 'checkin_end'),
-                                  ),
-                                  SizedBox(
-                                    width: 80,
-                                    child: time2.isNotEmpty
-                                        ? TextField(
-                                      style: TextStyle(fontSize: 12),
-                                      controller: TextEditingController(text: time2[0]['checkin_end']),
-                                      onChanged: (value) {
-                                        time2[0]['checkin_end'] = value;
-                                      },
-                                    )
-                                        : SizedBox.shrink(),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_drop_down),
-                                    onPressed: () => incrementTime2(time2[0], 'checkin_end'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 20),
-                          Row(
-                            children: [
-                              Text("Check Out", style: TextStyle(fontSize: 14)),
-                              SizedBox(width: 10),
-                              Text("Start: ", style: TextStyle(fontSize: 14)),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_drop_up),
-                                    onPressed: () => incrementTime2(time2[0], 'checkout_start'),
-                                  ),
-                                  SizedBox(
-                                    width: 80,
-                                    child: time2.isNotEmpty
-                                        ? TextField(
-                                      style: TextStyle(fontSize: 12),
-                                      controller: TextEditingController(text: time2[0]['checkout_start']),
-                                      onChanged: (value) {
-                                        time2[0]['checkout_start'] = value;
-                                      },
-                                    )
-                                        : SizedBox.shrink(),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_drop_down),
-                                    onPressed: () => incrementTime2(time2[0], 'checkout_start'),
-                                  ),
-                                ],
-                              ),
-                              Text("End", style: TextStyle(fontSize: 14)),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_drop_up),
-                                    onPressed: () => incrementTime2(time2[0], 'checkout_end'),
-                                  ),
-                                  SizedBox(
-                                    width: 80,
-                                    child: time2.isNotEmpty
-                                        ? TextField(
-                                      style: TextStyle(fontSize: 12),
-                                      controller: TextEditingController(text: time2[0]['checkout_end']),
-                                      onChanged: (value) {
-                                        time2[0]['checkout_end'] = value;
-                                      },
-                                    )
-                                        : SizedBox.shrink(),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_drop_down),
-                                    onPressed: () => incrementTime2(time2[0], 'checkout_end'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 20),
-                          if (showLunchOutRows)
-                            Column(
+                              ],
+                            ),
+                            SizedBox(height: 20),
+                            Row(
                               children: [
+                                Text("Check In", style: TextStyle(fontSize: 14)),
+                                SizedBox(width: 10),
+                                Text("Start:    ", style: TextStyle(fontSize: 14)),
                                 Row(
                                   children: [
-                                    Text("Lunch Out", style: TextStyle(fontSize: 14)),
-                                    SizedBox(width: 10),
-                                    Text("Start:  ", style: TextStyle(fontSize: 14)),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_up),
-                                          onPressed: () => incrementTime2(time2[0], 'lunchout_start'),
-                                        ),
-                                        SizedBox(
-                                          width: 80,
-                                          child: time2.isNotEmpty
-                                              ? TextField(
-                                            style: TextStyle(fontSize: 12),
-                                            controller: TextEditingController(text: time2[0]['lunchout_start']),
-                                            onChanged: (value) {
-                                              time2[0]['lunchout_start'] = value;
-                                            },
-                                          )
-                                              : SizedBox.shrink(),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_down),
-                                          onPressed: () => incrementTime2(time2[0], 'lunchout_start'),
-                                        ),
-                                      ],
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_drop_up),
+                                      onPressed: () => incrementTime2(time2[0], 'checkin_start'),
                                     ),
-                                    Text("End", style: TextStyle(fontSize: 14)),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_up),
-                                          onPressed: () => incrementTime2(time2[0], 'lunchout_end'),
-                                        ),
-                                        SizedBox(
-                                          width: 80,
-                                          child: time2.isNotEmpty
-                                              ?
-                                          TextField(
-                                            style: TextStyle(fontSize: 12),
-                                            controller: TextEditingController(text: time2[0]['lunchout_end']),
-                                            onChanged: (value) {
-                                              time2[0]['lunchout_end'] = value;
-                                            },
-                                          )
-                                              : SizedBox.shrink(),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_down),
-                                          onPressed: () => incrementTime2(time2[0], 'lunchout_end'),
-                                        ),
-                                      ],
+                                    SizedBox(
+                                      width: 80,
+                                      child: time2.isNotEmpty
+                                          ? TextField(
+                                        style: TextStyle(fontSize: 12),
+                                        controller: TextEditingController(text: time2[0]['checkin_start']),
+                                        onChanged: (value) {
+                                          time2[0]['checkin_start'] = value;
+                                        },
+                                      )
+                                          : SizedBox.shrink(),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_drop_down),
+                                      onPressed: () => decrementTime2(time2[0], 'checkin_start'),
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: 20),
+                                Text("End", style: TextStyle(fontSize: 14)),
                                 Row(
                                   children: [
-                                    Text("Lunch In", style: TextStyle(fontSize: 14)),
-                                    SizedBox(width: 10),
-                                    Text("Start:     ", style: TextStyle(fontSize: 14)),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_up),
-                                          onPressed: () => incrementTime2(time2[0], 'lunchin_start'),
-                                        ),
-                                        SizedBox(
-                                          width: 80,
-                                          child: time2.isNotEmpty
-                                              ? TextField(
-                                            style: TextStyle(fontSize: 12),
-                                            controller: TextEditingController(text: time2[0]['lunchin_start']),
-                                            onChanged: (value) {
-                                              time2[0]['lunchin_start'] = value;
-                                            },
-                                          )
-                                              : SizedBox.shrink(),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_down),
-                                          onPressed: () => incrementTime2(time2[0], 'lunchin_start'),
-                                        ),
-                                      ],
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_drop_up),
+                                      onPressed: () => incrementTime2(time2[0], 'checkin_end'),
                                     ),
-                                    Text("End", style: TextStyle(fontSize: 14)),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_up),
-                                          onPressed: () => incrementTime2(time2[0], 'lunchin_end'),
-                                        ),
-                                        SizedBox(
-                                          width: 80,
-                                          child: time2.isNotEmpty
-                                              ? TextField(
-                                            style: TextStyle(fontSize: 12),
-                                            controller: TextEditingController(text: time2[0]['lunchin_end']),
-                                            onChanged: (value) {
-                                              time2[0]['lunchin_end'] = value;
-                                            },
-                                          )
-                                              : SizedBox.shrink(),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.arrow_drop_down),
-                                          onPressed: () => incrementTime2(time2[0], 'lunchin_end'),
-                                        ),
-                                      ],
+                                    SizedBox(
+                                      width: 80,
+                                      child: time2.isNotEmpty
+                                          ? TextField(
+                                        style: TextStyle(fontSize: 12),
+                                        controller: TextEditingController(text: time2[0]['checkin_end']),
+                                        onChanged: (value) {
+                                          time2[0]['checkin_end'] = value;
+                                        },
+                                      )
+                                          : SizedBox.shrink(),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_drop_down),
+                                      onPressed: () => incrementTime2(time2[0], 'checkin_end'),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
-                          // Rest of your code for input fields and increment/decrement buttons
-                          // ...
-                        ],
+                            SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Text("Check Out", style: TextStyle(fontSize: 14)),
+                                SizedBox(width: 10),
+                                Text("Start: ", style: TextStyle(fontSize: 14)),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_drop_up),
+                                      onPressed: () => incrementTime2(time2[0], 'checkout_start'),
+                                    ),
+                                    SizedBox(
+                                      width: 80,
+                                      child: time2.isNotEmpty
+                                          ? TextField(
+                                        style: TextStyle(fontSize: 12),
+                                        controller: TextEditingController(text: time2[0]['checkout_start']),
+                                        onChanged: (value) {
+                                          time2[0]['checkout_start'] = value;
+                                        },
+                                      )
+                                          : SizedBox.shrink(),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_drop_down),
+                                      onPressed: () => incrementTime2(time2[0], 'checkout_start'),
+                                    ),
+                                  ],
+                                ),
+                                Text("End", style: TextStyle(fontSize: 14)),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_drop_up),
+                                      onPressed: () => incrementTime2(time2[0], 'checkout_end'),
+                                    ),
+                                    SizedBox(
+                                      width: 80,
+                                      child: time2.isNotEmpty
+                                          ? TextField(
+                                        style: TextStyle(fontSize: 12),
+                                        controller: TextEditingController(text: time2[0]['checkout_end']),
+                                        onChanged: (value) {
+                                          time2[0]['checkout_end'] = value;
+                                        },
+                                      )
+                                          : SizedBox.shrink(),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.arrow_drop_down),
+                                      onPressed: () => incrementTime2(time2[0], 'checkout_end'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20),
+                            if (showLunchOutRows)
+                              Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text("Lunch Out", style: TextStyle(fontSize: 14)),
+                                      SizedBox(width: 10),
+                                      Text("Start:  ", style: TextStyle(fontSize: 14)),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.arrow_drop_up),
+                                            onPressed: () => incrementTime2(time2[0], 'lunchout_start'),
+                                          ),
+                                          SizedBox(
+                                            width: 80,
+                                            child: time2.isNotEmpty
+                                                ? TextField(
+                                              style: TextStyle(fontSize: 12),
+                                              controller: TextEditingController(text: time2[0]['lunchout_start']),
+                                              onChanged: (value) {
+                                                time2[0]['lunchout_start'] = value;
+                                              },
+                                            )
+                                                : SizedBox.shrink(),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.arrow_drop_down),
+                                            onPressed: () => incrementTime2(time2[0], 'lunchout_start'),
+                                          ),
+                                        ],
+                                      ),
+                                      Text("End", style: TextStyle(fontSize: 14)),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.arrow_drop_up),
+                                            onPressed: () => incrementTime2(time2[0], 'lunchout_end'),
+                                          ),
+                                          SizedBox(
+                                            width: 80,
+                                            child: time2.isNotEmpty
+                                                ?
+                                            TextField(
+                                              style: TextStyle(fontSize: 12),
+                                              controller: TextEditingController(text: time2[0]['lunchout_end']),
+                                              onChanged: (value) {
+                                                time2[0]['lunchout_end'] = value;
+                                              },
+                                            )
+                                                : SizedBox.shrink(),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.arrow_drop_down),
+                                            onPressed: () => incrementTime2(time2[0], 'lunchout_end'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 20),
+                                  Row(
+                                    children: [
+                                      Text("Lunch In", style: TextStyle(fontSize: 14)),
+                                      SizedBox(width: 10),
+                                      Text("Start:     ", style: TextStyle(fontSize: 14)),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.arrow_drop_up),
+                                            onPressed: () => incrementTime2(time2[0], 'lunchin_start'),
+                                          ),
+                                          SizedBox(
+                                            width: 80,
+                                            child: time2.isNotEmpty
+                                                ? TextField(
+                                              style: TextStyle(fontSize: 12),
+                                              controller: TextEditingController(text: time2[0]['lunchin_start']),
+                                              onChanged: (value) {
+                                                time2[0]['lunchin_start'] = value;
+                                              },
+                                            )
+                                                : SizedBox.shrink(),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.arrow_drop_down),
+                                            onPressed: () => incrementTime2(time2[0], 'lunchin_start'),
+                                          ),
+                                        ],
+                                      ),
+                                      Text("End", style: TextStyle(fontSize: 14)),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.arrow_drop_up),
+                                            onPressed: () => incrementTime2(time2[0], 'lunchin_end'),
+                                          ),
+                                          SizedBox(
+                                            width: 80,
+                                            child: time2.isNotEmpty
+                                                ? TextField(
+                                              style: TextStyle(fontSize: 12),
+                                              controller: TextEditingController(text: time2[0]['lunchin_end']),
+                                              onChanged: (value) {
+                                                time2[0]['lunchin_end'] = value;
+                                              },
+                                            )
+                                                : SizedBox.shrink(),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.arrow_drop_down),
+                                            onPressed: () => incrementTime2(time2[0], 'lunchin_end'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            // Rest of your code for input fields and increment/decrement buttons
+                            // ...
+                          ],
+                        ),
                       ),
                     ),
                   ),

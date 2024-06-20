@@ -246,98 +246,92 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                             padding: const EdgeInsets.only(right: 15),
                             child: Wrap(
                               children: [
-                                Flexible(
-                                  child: SizedBox(
-                                    height:50,
-                                    width: 240,
-                                    child: TextFormField(
-                                      style: const TextStyle(fontSize: 13),
-                                      readOnly: true,
-                                      onTap: () async {
-                                        await _selectFromDate(context);
-                                      },
-                                      controller: fromDate != null
-                                          ? TextEditingController(
-                                          text: DateFormat('yyyy-MM-dd')
-                                              .format(fromDate!))
-                                          : TextEditingController(),
-                                      decoration: const InputDecoration(
-                                        suffixIcon: Icon(Icons.calendar_month),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        labelText: "From Date",
-                                        labelStyle: TextStyle(fontSize: 12),
-                                      ),
+                                SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TextFormField(
+                                    style: const TextStyle(fontSize: 13),
+                                    readOnly: true,
+                                    onTap: () async {
+                                      await _selectFromDate(context);
+                                    },
+                                    controller: fromDate != null
+                                        ? TextEditingController(
+                                        text: DateFormat('yyyy-MM-dd')
+                                            .format(fromDate!))
+                                        : TextEditingController(),
+                                    decoration: const InputDecoration(
+                                      suffixIcon: Icon(Icons.calendar_month),
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      labelText: "From Date",
+                                      labelStyle: TextStyle(fontSize: 12),
                                     ),
                                   ),
                                 ),
                                 SizedBox(width: 20,),
-                                Flexible(
-                                  child: SizedBox(
-                                    height:50,
-                                    width: 240,
-                                    child: TextFormField(
-                                      style: TextStyle(fontSize: 13),
-                                      readOnly: true,
-                                      onTap: () async {
-                                        await _selectToDate(context);
-                                      },
-                                      controller: toDate != null
-                                          ? TextEditingController(
-                                          text: DateFormat('yyyy-MM-dd')
-                                              .format(toDate!))
-                                          : TextEditingController(),
-                                      decoration: const InputDecoration(
-                                        suffixIcon: Icon(Icons.calendar_month),
-                                        fillColor: Colors.white,
-                                        filled: true,
-                                        labelText: "To Date",
-                                        labelStyle: TextStyle(fontSize: 12),
-                                        isDense: true,
-                                      ),
+                                SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TextFormField(
+                                    style: TextStyle(fontSize: 13),
+                                    readOnly: true,
+                                    onTap: () async {
+                                      await _selectToDate(context);
+                                    },
+                                    controller: toDate != null
+                                        ? TextEditingController(
+                                        text: DateFormat('yyyy-MM-dd')
+                                            .format(toDate!))
+                                        : TextEditingController(),
+                                    decoration: const InputDecoration(
+                                      suffixIcon: Icon(Icons.calendar_month),
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      labelText: "To Date",
+                                      labelStyle: TextStyle(fontSize: 12),
+                                      isDense: true,
                                     ),
                                   ),
                                 ),
                                 SizedBox(width: 20,),
 
-                                Flexible(
-                                  child: SizedBox(
-                                    height:50,
-                                    width: 240,
-                                    child: TypeAheadFormField(
-                                      textFieldConfiguration: TextFieldConfiguration(
-                                        controller: _typeAheadController, // Use the controller here.
-                                        decoration: const InputDecoration(
-                                          labelText: 'Shift Type',
-                                          labelStyle: TextStyle(fontSize: 12),
-                                        ),
+                                SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TypeAheadFormField(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                      controller: _typeAheadController, // Use the controller here.
+                                      decoration: const InputDecoration(
+                                        labelText: 'Shift Type',
+                                        labelStyle: TextStyle(fontSize: 12),
                                       ),
-                                      suggestionsCallback: (pattern) async {
-                                        List<String> suggestions = [];
-                                        if (pattern.isNotEmpty) {
-                                          suggestions = await Utils.getSuggestions();
-                                        }
-                                        return suggestions;
-                                      },
-                                      itemBuilder: (context, suggestion) {
-                                        return ListTile(
-                                          title: Text(suggestion.toString()),
-                                        );
-                                      },
-                                      onSuggestionSelected: (suggestion) {
-                                        setState(() {
-                                          selectedShiftType = suggestion.toString();
-                                          _typeAheadController.text = selectedShiftType!; // Update the controller text when an item is selected.
-                                        });
-                                      },
-                                      validator: (value) {
-                                        if (value!.isEmpty) {
-                                          return 'Please select a shift type';
-                                        }
-                                        return null;
-                                      },
-                                      onSaved: (value) => selectedShiftType = value,
                                     ),
+                                    suggestionsCallback: (pattern) async {
+                                      List<String> suggestions = [];
+                                      if (pattern.isNotEmpty) {
+                                        suggestions = await Utils.getSuggestions();
+                                      }
+                                      return suggestions;
+                                    },
+                                    itemBuilder: (context, suggestion) {
+                                      return ListTile(
+                                        title: Text(suggestion.toString()),
+                                      );
+                                    },
+                                    onSuggestionSelected: (suggestion) {
+                                      setState(() {
+                                        selectedShiftType = suggestion.toString();
+                                        _typeAheadController.text = selectedShiftType!; // Update the controller text when an item is selected.
+                                      });
+                                    },
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return 'Please select a shift type';
+                                      }
+                                      return null;
+                                    },
+                                    onSaved: (value) => selectedShiftType = value,
                                   ),
                                 ),
                                 Card(
