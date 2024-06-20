@@ -226,17 +226,21 @@ class _PresentEmployeesPageState extends State<PresentEmployeesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     // route: "",backgroundColor: Colors.white,
+      // route: "",backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Present Employees'),
+        iconTheme: IconThemeData(color: Colors.white),
+        backgroundColor:Colors.deepOrangeAccent,
+        title: Text('Present Employees',style: TextStyle(color: Colors.white,fontSize: 16),),
       ),
       body: ListView.builder(
         itemCount: presentEmployees.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            leading: Text((index + 1).toString()),
-            title: Text(presentEmployees[index]['first_name']),
-            subtitle: Text('Emp Code: ${presentEmployees[index]['emp_code']} | Mobile: ${presentEmployees[index]['empMobile']}'),
+          return Card(
+            child: ListTile(
+              leading: Text((index + 1).toString(),style: TextStyle(fontWeight: FontWeight.bold),),
+              title: Text(presentEmployees[index]['first_name'],style: TextStyle(fontWeight: FontWeight.bold),),
+              subtitle: Text('Emp Code: ${presentEmployees[index]['emp_code']} | Mobile: ${presentEmployees[index]['empMobile']}',style: TextStyle(fontWeight: FontWeight.bold),),
+            ),
           );
         },
       ),
@@ -272,18 +276,21 @@ class _AbsentEmployeesPageState extends State<AbsentEmployeesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     // route: '',backgroundColor: Colors.white,
+      // route: '',backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Absent Employees'),
+        iconTheme: IconThemeData(color: Colors.white),
+        backgroundColor:Colors.deepOrangeAccent,
+        title: Text('Absent Employees',style: TextStyle(color: Colors.white,fontSize: 16),),
       ),
-
       body: ListView.builder(
         itemCount: absentEmployees.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            leading: Text((index + 1).toString()),
-            title: Text(absentEmployees[index]['first_name']),
-            subtitle: Text('Emp Code: ${absentEmployees[index]['emp_code']} | Mobile: ${absentEmployees[index]['empMobile']}'),
+          return Card(
+            child: ListTile(
+              leading: Text((index + 1).toString(),style: TextStyle(fontWeight: FontWeight.bold),),
+              title: Text(absentEmployees[index]['first_name'],style: TextStyle(fontWeight: FontWeight.bold),),
+              subtitle: Text('Emp Code: ${absentEmployees[index]['emp_code']} | Mobile: ${absentEmployees[index]['empMobile']}',style: TextStyle(fontWeight: FontWeight.bold),),
+            ),
           );
         },
       ),

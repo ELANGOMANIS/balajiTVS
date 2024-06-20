@@ -487,7 +487,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                         fillColor: Colors.white,
                                         labelText: "From Date",
                                         labelStyle: TextStyle(fontSize: 12),
-                                        
+
                                       ),
                                     ),
                                   ),
@@ -528,7 +528,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                         labelStyle: TextStyle(fontSize: 12),
                                         isDense: true,
                                       ),
-                                                              
+
                                     ),
                                   ),
                                 ),
@@ -667,7 +667,7 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                                 "Total Salary: ${calculateTotalSalary(filteredData)}",
                                                 style: const TextStyle(fontSize: 13, color: Colors.black),
                                               ),
-                            
+
                                             ],
                                           ),
                                         ),
