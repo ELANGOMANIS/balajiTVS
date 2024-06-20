@@ -137,6 +137,27 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
     return suggestions;
   }
+  String formatDuration(double durationInMinutes) {
+    Duration duration = Duration(minutes: durationInMinutes.round());
+
+    int hours = duration.inHours;
+    int remainingMinutes = duration.inMinutes.remainder(60);
+
+    String formattedDuration = '';
+
+    if (hours > 0) {
+      formattedDuration += '$hours h';
+    }
+
+    if (remainingMinutes > 0) {
+      if (hours > 0) {
+        formattedDuration += ' ';
+      }
+      formattedDuration += '$remainingMinutes m';
+    }
+
+    return formattedDuration.trim();
+  }
 
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
@@ -198,7 +219,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
     // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
     // final imageBytes = imageData.buffer.asUint8List();
 
-    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Late\nin','Early\nout', 'required\nTime', 'Total Hrs', 'Remark'];
+    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Shortage', 'Total\nTime', 'Worked Hrs', 'Remark'];
 
     const int rowsPerPage = 20; // Define the number of rows per page
     int totalPages = (data.length / rowsPerPage).ceil();
@@ -226,6 +247,9 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                 cellStyle: pw.TextStyle(fontSize: 6),
                 headerStyle: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold),
                 data: pageData.map((attendance) {
+                  int totalTime = int.tryParse(attendance['req_time'] ?? '0') ?? 0;
+                  int workTime = int.tryParse(attendance['act_time'] ?? '0') ?? 0;
+                  int differentTime = workTime < totalTime ? totalTime - workTime : 0;
                   return [
                     '${data.indexOf(attendance) + 1}',
                     attendance["inDate"] != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal()) : "",
@@ -234,11 +258,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                     attendance['shiftType'] ?? '',
                     attendance['check_in'] ?? '',
                     attendance['check_out'] ?? '',
-                    formatDuration(attendance['latecheck_in'] ?? '') ?? '',
-                    formatDuration(attendance['earlycheck_out'] ?? '') ?? '',
-                    attendance['req_time'] ?? '',
-                    attendance['act_time'] ?? '',
-
+                    formatDuration(differentTime.toDouble()),
+                    formatDuration(attendance['req_time'] ?? ''),
+                    attendance["check_out"] != "00:00:00"
+                        ? formatDuration(double.parse(attendance['act_time'] ?? '0'))
+                        : "",
                     attendance['remark'] ?? '',
                   ];
                 }).toList(),
@@ -489,10 +513,9 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 DataColumn(label: Center(child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Name", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Shift", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("Check-in", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("Check-out", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("latecheck-in", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("earlycheck-out", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Check In", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Check Out", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Shortage",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Remark", style: TextStyle(fontWeight: FontWeight.bold),))),
@@ -523,6 +546,10 @@ class AttendanceDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= _data.length) return null;
     final attendance = _data[index];
+    int totalTime = int.tryParse(attendance["req_time"] ?? "0") ?? 0;
+    int workTime = int.tryParse(attendance["act_time"] ?? "0") ?? 0;
+
+    int differentTime = workTime < totalTime && totalTime != 0 ? totalTime - workTime : 0;
 
     return DataRow.byIndex(
       index: index,
@@ -542,8 +569,7 @@ class AttendanceDataSource extends DataTableSource {
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
         DataCell(Center(child: Text( attendance['check_out'] == '00:00:00' ? '-' : attendance['check_out'] ))),
-        DataCell(Center(child: Text(formatDuration(attendance['latecheck_in'] ?? '-')))),
-        DataCell(Center(child: Text(formatDuration(attendance['earlycheck_out'] ?? '')))),
+        DataCell(Center(child: Text(attendance["check_out"] != "00:00:00" ? formatDuration(differentTime.toString()) : ""))),
         DataCell(Center(child: Text(formatDuration(attendance['req_time'] ?? '')))),
         DataCell(Center(child: Text(formatDuration(attendance['act_time'] ?? '')))),
         DataCell(Center(child: Text(attendance['remark'] ?? ''))),

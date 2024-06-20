@@ -32,7 +32,7 @@ const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
    password: 'root',
-   database: 'balajitvs',
+   database: 'vkcones',
 });
 // Connect to MySQL
 db.connect((err) => {
@@ -230,10 +230,23 @@ cron.schedule('*/1 * * * *', async () => {
             const currentMonth = moment().month() + 1; // current month (1-12)
             const currentYear = moment().year(); // current year
             const daysInMonth = moment(`${currentYear}-${currentMonth}`, 'YYYY-MM').daysInMonth();
-            let dailySalary = monthlySalary / daysInMonth;
 
-            // Custom rounding logic
-            dailySalary = dailySalary < Math.ceil(dailySalary) - 0.50 ? Math.floor(dailySalary) : Math.ceil(dailySalary);
+            // Calculate number of Sundays in the current month
+            let sundaysCount = 0;
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDay = moment(`${currentYear}-${currentMonth}-${day}`, 'YYYY-MM-DD');
+                if (currentDay.day() === 0) { // Sunday
+                    sundaysCount++;
+                }
+            }
+
+            // Adjust days in month count by subtracting Sundays
+            const daysInMonthCount = daysInMonth - sundaysCount;
+
+            let dailySalary = monthlySalary / daysInMonthCount;
+
+            // Custom rounding logic - include decimal values
+            dailySalary = dailySalary.toFixed(2); // to ensure it keeps the decimal places
 
             // Prepare data for insertion
             console.log('checkInTime:', checkInTime ? checkInTime.format('HH:mm:ss') : 'null');
@@ -254,8 +267,6 @@ cron.schedule('*/1 * * * *', async () => {
                 'shiftType': empData[0]['shiftType'],
                 'check_in': checkInTime && checkInTime.isValid() ? checkInTime.format('HH:mm:ss') : '',
                 'check_out': checkOutTime && checkOutTime.isValid() ? checkOutTime.format('HH:mm:ss') : '',
-//                'check_in': checkInTime && (checkInTime.isBetween(checkinStart, checkinEnd) || checkInTime.isSameOrAfter(checkinStart)) ? checkInTime.format('HH:mm:ss') : '',
-//                'check_out': checkOutTime && checkOutTime.isValid() ? checkOutTime.format('HH:mm:ss') : '',
                 'latecheck_in': lateCheckInMinutes,
                 'earlycheck_out': earlyCheckOutMinutes,
                 'act_time': actTimeMinutes,
@@ -618,6 +629,8 @@ app.get('/get_cumulative_salary', (req, res) => {
       MAX(inDate) AS to_date,
       a.shiftType AS shift_type,
       COUNT(DISTINCT DATE(inDate)) AS no_of_work_days,
+      (DATEDIFF(?, ?) + 1) AS total_days_in_range,
+      ((DATEDIFF(?, ?) + 1) - COUNT(DISTINCT DATE(inDate))) AS no_of_absent_days,
       SUM(req_time) AS total_req_time,
       SUM(act_time) AS total_act_time,
       SUM(salary) AS total_salary,
@@ -639,10 +652,16 @@ app.get('/get_cumulative_salary', (req, res) => {
       salary
   `;
 
-  console.log('Executing query:', sql);
-  console.log('With parameters:', [fromDate, toDate, shiftType]);
+  const params = [
+    fromDate, toDate, // Parameters for total_days_in_range calculation
+    fromDate, toDate, // Parameters for total_days_in_range and no_of_absent_days calculation
+    fromDate, toDate, shiftType // Parameters for filtering by date range and shift type
+  ];
 
-  db.query(sql, [fromDate, toDate, shiftType], (err, result) => {
+  console.log('Executing query:', sql);
+  console.log('With parameters:', params);
+
+  db.query(sql, params, (err, result) => {
     if (err) {
       console.error('Error fetching data:', err);
       res.status(500).json({ error: 'Error fetching data' });
