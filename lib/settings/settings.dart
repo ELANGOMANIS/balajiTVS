@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
@@ -615,30 +616,30 @@ class _SettingsState extends State<Settings> {
                                   ),
                                 ),
                                 SizedBox(width: 10),
-                                Align(
-                                  alignment: Alignment.topLeft,
-                                  child: MaterialButton(
-                                    color: Colors.blue.shade900,
-                                    onPressed: () {
-                                      // Prepare updated data
-                                      final updatedData = {
-                                        'shiftType': selectedShiftType,
-                                        'checkin_start': time2.isNotEmpty ? time2[0]['checkin_start'] : '',
-                                        'checkin_end': time2.isNotEmpty ? time2[0]['checkin_end'] : '',
-                                        'checkout_start': time2.isNotEmpty ? time2[0]['checkout_start'] : '',
-                                        'checkout_end': time2.isNotEmpty ? time2[0]['checkout_end'] : '',
-                                        'lunchout_start': time2.isNotEmpty ? time2[0]['lunchout_start'] : '',
-                                        'lunchout_end': time2.isNotEmpty ? time2[0]['lunchout_end'] : '',
-                                        'lunchin_start': time2.isNotEmpty ? time2[0]['lunchin_start'] : '',
-                                        'lunchin_end': time2.isNotEmpty ? time2[0]['lunchin_end'] : '',
-                                      };
+                                  Align(
+                                    alignment: Alignment.topLeft,
+                                    child: MaterialButton(
+                                      color: Colors.blue.shade900,
+                                      onPressed: () {
+                                        // Prepare updated data
+                                        final updatedData = {
+                                          'shiftType': selectedShiftType,
+                                          'checkin_start': time2.isNotEmpty ? time2[0]['checkin_start'] : '',
+                                          'checkin_end': time2.isNotEmpty ? time2[0]['checkin_end'] : '',
+                                          'checkout_start': time2.isNotEmpty ? time2[0]['checkout_start'] : '',
+                                          'checkout_end': time2.isNotEmpty ? time2[0]['checkout_end'] : '',
+                                          'lunchout_start': time2.isNotEmpty ? time2[0]['lunchout_start'] : '',
+                                          'lunchout_end': time2.isNotEmpty ? time2[0]['lunchout_end'] : '',
+                                          'lunchin_start': time2.isNotEmpty ? time2[0]['lunchin_start'] : '',
+                                          'lunchin_end': time2.isNotEmpty ? time2[0]['lunchin_end'] : '',
+                                        };
 
-                                      // Update time data
-                                      updateTime(time2.isNotEmpty ? time2[0]['id'] : 0, updatedData); // Replace with actual ID
-                                    },
-                                    child: Text("Save", style: TextStyle(color: Colors.white)),
+                                        // Update time data
+                                        updateTime(time2.isNotEmpty ? time2[0]['id'] : 0, updatedData); // Replace with actual ID
+                                      },
+                                      child: Text("Save", style: TextStyle(color: Colors.white)),
+                                    ),
                                   ),
-                                ),
                               ],
                             ),
                             SizedBox(height: 20),
@@ -862,6 +863,12 @@ class _SettingsState extends State<Settings> {
                                             onChanged: (value) {
                                               time2[0]['lunchin_end'] = value;
                                             },
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter.allow(RegExp(r'\d')),
+                                              LengthLimitingTextInputFormatter(8),
+                                              TimeInputFormatter(),
+                                            ],
+                                            keyboardType: TextInputType.datetime,
                                           )
                                               : SizedBox.shrink(),
                                         ),
@@ -891,4 +898,20 @@ class _SettingsState extends State<Settings> {
   }
 }
 
+class TimeInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text;
 
+    if (text.length == 2 || text.length == 5) {
+      return newValue.copyWith(
+        text: '$text:',
+        selection: TextSelection.fromPosition(
+          TextPosition(offset: newValue.selection.end + 1),
+        ),
+      );
+    }
+    return newValue;
+  }
+}

@@ -68,6 +68,42 @@ async function insertDatacustomer(dataToInsertcustomer) {
     throw new Error('Error:', error);
   }
 }
+app.post('/attandance_entry', (req, res) => {
+  const { dataToInsertcustomer } = req.body;
+
+  // Assuming 'emp_code' and 'inDate' form a unique key in your table
+  const sql = `
+    INSERT INTO attendance
+    SET ?
+    ON DUPLICATE KEY UPDATE
+      first_name = VALUES(first_name),
+      inDate = VALUES(inDate),
+      shiftType = VALUES(shiftType),
+      check_in = VALUES(check_in),
+      lunch_out = VALUES(lunch_out),
+      lunch_in = VALUES(lunch_in),
+      check_out = VALUES(check_out),
+      latecheck_in = VALUES(latecheck_in),
+      late_lunch = VALUES(late_lunch),
+      earlycheck_out = VALUES(earlycheck_out),
+      req_time = VALUES(req_time),
+      act_time = VALUES(act_time),
+      salary = VALUES(salary),
+      salaryType = VALUES(salaryType),
+      monthly_salary = VALUES(monthly_salary),
+      remark = VALUES(remark)
+  `;
+
+  db.query(sql, dataToInsertcustomer, (err, result) => {
+    if (err) {
+      console.error('Error inserting/updating data:', err);
+      res.status(500).json({ error: 'Error inserting/updating data' });
+    } else {
+      console.log('Data inserted/updated successfully');
+      res.status(200).json({ message: 'Data inserted/updated successfully' });
+    }
+  });
+});
 
 async function fetchUnitEntriesGeneral() {
   try {
@@ -711,6 +747,62 @@ app.get('/fetch_company_details', (req, res) => {
       } else {
         res.status(404).send('Company not found');
       }
+    }
+  });
+});
+app.put('/shift_update_tvs:id', (req, res) => {
+  const { id } = req.params;
+  const { shiftType } = req.body;
+  const { startTime } = req.body;
+  const { endTime } = req.body;
+
+  const sql = 'UPDATE shift SET shiftType = ? , startTime = ? , endTime = ?  WHERE id = ?'; // SQL query to update the itemGroup
+  const values = [shiftType, startTime, endTime, id]; // Values to replace the placeholders (?)
+
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error updating data:', err);
+      res.status(500).json({ error: 'Error updating data' });
+    } else {
+      res.status(200).json({ message: 'Data updated successfully' });
+    }
+  });
+});
+app.put('/time_update_tvs/:id', (req, res) => {
+  const { id } = req.params;
+  const { shiftType, checkin_start, checkin_end, checkout_start, checkout_end,
+          lunchout_start, lunchout_end, lunchin_start, lunchin_end } = req.body;
+
+  const sql = `
+    UPDATE time
+    SET
+      shiftType = ?,
+      checkin_start = ?,
+      checkin_end = ?,
+      checkout_start = ?,
+      checkout_end = ?,
+      lunchout_start = ?,
+      lunchout_end = ?,
+      lunchin_start = ?,
+      lunchin_end = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    shiftType,
+    checkin_start, checkin_end,
+    checkout_start, checkout_end,
+    lunchout_start, lunchout_end,
+    lunchin_start, lunchin_end,
+    id
+  ];
+
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error updating data:', err);
+      res.status(500).json({ error: 'Error updating data' });
+    } else {
+      res.status(200).json({ message: 'Data updated successfully' });
     }
   });
 });

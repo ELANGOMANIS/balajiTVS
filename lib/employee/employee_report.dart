@@ -667,6 +667,7 @@ class _YourDataTableSource extends DataTableSource {
 
             IconButton(
               onPressed: (){
+
                 String fathername=row["fatherName"] ?? "";
                 String fatherMobile=row["fatherMobile"]?? "";
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> EmployeeReportPdf(
@@ -709,6 +710,7 @@ class _YourDataTableSource extends DataTableSource {
             //     showDeleteConfirmationDialog(context, id);
             //   },
             // ),
+
 
           ],),
 
