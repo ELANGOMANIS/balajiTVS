@@ -68,6 +68,42 @@ async function insertDatacustomer(dataToInsertcustomer) {
     throw new Error('Error:', error);
   }
 }
+app.post('/attandance_entry', (req, res) => {
+  const { dataToInsertcustomer } = req.body;
+
+  // Assuming 'emp_code' and 'inDate' form a unique key in your table
+  const sql = `
+    INSERT INTO attendance
+    SET ?
+    ON DUPLICATE KEY UPDATE
+      first_name = VALUES(first_name),
+      inDate = VALUES(inDate),
+      shiftType = VALUES(shiftType),
+      check_in = VALUES(check_in),
+      lunch_out = VALUES(lunch_out),
+      lunch_in = VALUES(lunch_in),
+      check_out = VALUES(check_out),
+      latecheck_in = VALUES(latecheck_in),
+      late_lunch = VALUES(late_lunch),
+      earlycheck_out = VALUES(earlycheck_out),
+      req_time = VALUES(req_time),
+      act_time = VALUES(act_time),
+      salary = VALUES(salary),
+      salaryType = VALUES(salaryType),
+      monthly_salary = VALUES(monthly_salary),
+      remark = VALUES(remark)
+  `;
+
+  db.query(sql, dataToInsertcustomer, (err, result) => {
+    if (err) {
+      console.error('Error inserting/updating data:', err);
+      res.status(500).json({ error: 'Error inserting/updating data' });
+    } else {
+      console.log('Data inserted/updated successfully');
+      res.status(200).json({ message: 'Data inserted/updated successfully' });
+    }
+  });
+});
 
 async function fetchUnitEntriesGeneral() {
   try {
