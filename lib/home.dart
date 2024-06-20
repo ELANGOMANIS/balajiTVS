@@ -390,6 +390,7 @@ class Utils {
     var line = '';
     var lineCount = 0;
 
+
     for (var word in words) {
       if ((line + word).length > 100) {
         if (lineCount == 1) {

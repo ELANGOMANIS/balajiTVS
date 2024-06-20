@@ -58,20 +58,25 @@ class _LoginPageState extends State<LoginPage> {
   List<Map<String, dynamic>> company= [];
 
 
-  Future<void> getcompanyData() async {
+  Future<void> fetchData() async {
     try {
-      final response = await http.get(Uri.parse('http://localhost:3309/gettvscompany'));
+      final url = Uri.parse('http://localhost:3309/company_fetch/');
+      final response = await http.get(url);
+
       if (response.statusCode == 200) {
-        final List<dynamic> jsonData = jsonDecode(response.body);
-        print(jsonData);
+        final responseData = json.decode(response.body);
+        final List<dynamic> itemGroups = responseData;
         setState(() {
-          company = jsonData.cast<Map<String, dynamic>>();
+          data = itemGroups.cast<Map<String, dynamic>>();
         });
-        print("Statuss ----------${company[0]['status']}");
-      }
-      else {
+        data[0]['companyName'].toString();
+        print('Data767657: $data');
+      } else {
+        print('Error: ${response.statusCode}');
       }
     } catch (error) {
+      // Handle any other errors, e.g., network issues
+      print('Error: $error');
     }
   }
 
@@ -92,20 +97,30 @@ class _LoginPageState extends State<LoginPage> {
         if (username.text == "admin" && password.text == "admin") {
           // Fetch UID from server
           try {
-            var response = await http.get(Uri.parse('http://localhost:3309/gettvscompany'));
+            var response = await http.get(Uri.parse('http://localhost:3309/company_fetch'));
             if (response.statusCode == 200) {
               var data = json.decode(response.body);
-              if (data[0]['uid'] == null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Profile()),
-                );
-              }
-              else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Home()),
-                );
+              if (data is List && data.isNotEmpty) {
+                if (data[0]['uid'] == null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Profile()),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Home()),
+                  );
+                }
+              } else {
+                setState(() {
+                  showWarning = true;
+                 // warningMessage = "No data found";
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Profile()),
+                  );
+                });
               }
             } else {
               setState(() {
@@ -129,9 +144,10 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
+
   @override
   void initState() {
-    getcompanyData();
+    fetchData();
     super.initState();
     barrierDismissible: false;
   }

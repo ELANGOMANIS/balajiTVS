@@ -164,7 +164,14 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       }),
     );
     if (response.statusCode == 200) {
-      showDialog(
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: Text("Employee Updated"),
+        ),
+      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => EmployeeProfileUpdate()));
+     /* showDialog(
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
@@ -182,7 +189,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
             ],
           );
         },
-      );
+      );*/
       print('Employee updated successfully');
     } else {
       throw Exception('Failed to update employee');
@@ -303,7 +310,13 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
       );
       if (response.statusCode == 200) {
         print('TableData inserted successfully');
-        showSuccessDialog();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.green,
+            content: Text("Employee Added"),
+          ),
+        );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => EmployeeProfileUpdate()));
       } else {
         print('Failed to Table insert data');
         throw Exception('Failed to Table insert data');
@@ -314,27 +327,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
     }
   }
 
-  void showSuccessDialog() {
-    showDialog(
-      context: context, // Make sure to have access to the BuildContext
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Employee'),
-          content: Text('Save Successfully'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                empId.clear();
-                empName.clear();
-                Navigator.push(context, MaterialPageRoute(builder: (context) => EmployeeProfileUpdate()));
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
 
   Future<void> customerDataToDatabase() async {
     List<Future<void>> insertFutures = [];
@@ -1196,28 +1189,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                           spacing: 36.0, // Set the horizontal spacing between the children
                           runSpacing: 20.0,
                           children: [
-                            SizedBox(
-                              width: 200, height: 70,
-                              child: TextFormField(
-                                  controller: acNumber,
-                                  style: (
-                                      TextStyle(fontSize: 13)),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: <TextInputFormatter>[
-                                    LengthLimitingTextInputFormatter(16),
-                                    FilteringTextInputFormatter.digitsOnly,
-                                  ],
-                                  decoration: InputDecoration(
-                                    labelText: "Account Number",
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          8.0),
-                                    ),
-                                  )
-                              ),
-                            ),
+
 
 
                             SizedBox(
@@ -1253,7 +1225,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                     setState(() {
                                       maritalstatus = newValue!;
                                     });},),),),
-                            if (maritalstatus == 'Married')
 
                               if (maritalstatus == 'Married')
                               ///Spouse Name
@@ -1283,8 +1254,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                     ),
                                   ),
                                 ),
-                            if (maritalstatus == 'Married')
-
                             ///Spouse Mobile Number
                               if (maritalstatus == 'Married')
                                 SizedBox(
@@ -1310,8 +1279,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                     ],
                                   ),
                                 ),
-                            if(maritalstatus == 'Unmarried'|| maritalstatus =="Marital Status")
-
                               if(maritalstatus == 'Unmarried'|| maritalstatus =="Marital Status")
                               ///Father Name
                                 SizedBox(
@@ -1340,8 +1307,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                     ),
                                   ),
                                 ),
-                            if(maritalstatus == 'Unmarried'|| maritalstatus =="Marital Status")
-
                               if(maritalstatus == 'Unmarried'|| maritalstatus =="Marital Status")
                               ///Father Mobile
                                 SizedBox(
@@ -1367,33 +1332,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                     ],
                                   ),
                                 ),
-                            ///Department Name
-                            // SizedBox(
-                            //   width: 200, height: 70,
-                            //   child: TextFormField(
-                            //       controller: depName,
-                            //       onChanged: (value) {
-                            //         String capitalizedValue = capitalizeFirstLetter(
-                            //             value);
-                            //         depName.value =
-                            //             depName.value.copyWith(
-                            //               text: capitalizedValue,
-                            //               selection: TextSelection.collapsed(
-                            //                   offset: capitalizedValue.length),
-                            //             );
-                            //       },
-                            //       style: TextStyle(fontSize: 13),
-                            //       decoration: InputDecoration(
-                            //         filled: true,
-                            //         fillColor: Colors.white,
-                            //         labelText: "Department Name",
-                            //         border: OutlineInputBorder(
-                            //           borderRadius: BorderRadius.circular(
-                            //               8.0),
-                            //         ),
-                            //       )
-                            //   ),
-                            // ),
                             SizedBox(
                               width: 200, height: 70,
                               child: TextFormField(
@@ -1415,15 +1353,6 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                   )
                               ),
                             ),
-
-
-
-                          ],
-                        ),
-                        Wrap(
-                          spacing: 36.0, // Set the horizontal spacing between the children
-                          runSpacing: 20.0,
-                          children: [
                             SizedBox(
                               width: 200, height: 70,
                               child: TextFormField(
@@ -1451,6 +1380,35 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                         10,),
                                     )
                                 ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Wrap(
+                          spacing: 36.0, // Set the horizontal spacing between the children
+                          runSpacing: 20.0,
+                          children: [
+
+                            SizedBox(
+                              width: 200, height: 70,
+                              child: TextFormField(
+                                  controller: acNumber,
+                                  style: (
+                                      TextStyle(fontSize: 13)),
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[
+                                    LengthLimitingTextInputFormatter(16),
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: InputDecoration(
+                                    labelText: "Account Number",
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          8.0),
+                                    ),
+                                  )
                               ),
                             ),
                             SizedBox(
@@ -1596,7 +1554,7 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                       errorMessage = "* Enter a Employee Mobile ";
                                     });
                                   }
-                                  else if (empMobile.text.length != 10) {
+                                  else if (empMobile.text.length < 10) {
                                     setState(() {
                                       errorMessage = '* Mobile number should be 10 digits';
                                     });
@@ -1624,6 +1582,11 @@ class _EmployeeProfileUpdateState extends State<EmployeeProfileUpdate> {
                                   else if(daySalary.text.isEmpty){
                                     setState(() {
                                       errorMessage ="* Enter  a Salary";
+                                    });
+                                  }
+                                  else if (int.parse(age.text) < 18) {
+                                    setState(() {
+                                      errorMessage = '* You must be at least 18 years old';
                                     });
                                   }
                                   // else if(aadhar.text.isNotEmpty){

@@ -32,7 +32,7 @@ const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
    password: 'root',
-   database: 'vkcones',
+   database: 'balajitvs',
 });
 // Connect to MySQL
 db.connect((err) => {
@@ -127,7 +127,6 @@ async function fetchUnitEntriesGeneral() {
 
 app.get('/attendance_view_general', (req, res) => {
     const currentDate = new Date().toISOString().split('T')[0]; // Get current date in 'YYYY-MM-DD' format
-
     const sql = `
         SELECT
             e.emp_code,
@@ -557,6 +556,7 @@ app.get('/getemployeename', (req, res) => {
     }
   });
 });
+
 app.get('/getemployee', (req, res) => {
   const sql = 'select * from personnel_employee'; // Modify to your table name
 
@@ -908,6 +908,7 @@ app.post('/shift_insert_tvs', (req, res) => {
     }
   });
 });
+
 app.get('/shift_tvs', (req, res) => {
   const sql = 'select * from shift'; // Modify to your table name
 
@@ -932,6 +933,25 @@ app.delete('/shift_tvs_delete/:id', (req, res) => {
       res.status(500).json({ error: 'Error deleting data' });
     } else {
       res.status(200).json({ message: 'Data deleted successfully' });
+    }
+  });
+});
+
+app.put('/shift_update_tvs:id', (req, res) => {
+  const { id } = req.params;
+  const { shiftType } = req.body;
+  const { startTime } = req.body;
+  const { endTime } = req.body;
+
+  const sql = 'UPDATE shift SET shiftType = ? , startTime = ? , endTime = ?  WHERE id = ?'; // SQL query to update the itemGroup
+  const values = [shiftType, startTime, endTime, id]; // Values to replace the placeholders (?)
+
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error updating data:', err);
+      res.status(500).json({ error: 'Error updating data' });
+    } else {
+      res.status(200).json({ message: 'Data updated successfully' });
     }
   });
 });
@@ -998,6 +1018,46 @@ app.post('/company_update', async (req, res) => {
       res.status(500).send('Internal Server Error');
     } else {
       res.send('Purchase entry updated successfully');
+    }
+  });
+});
+
+//update time
+app.put('/time_update_tvs/:id', (req, res) => {
+  const { id } = req.params;
+  const { shiftType, checkin_start, checkin_end, checkout_start, checkout_end,
+          lunchout_start, lunchout_end, lunchin_start, lunchin_end } = req.body;
+
+  const sql = `
+    UPDATE time
+    SET
+      shiftType = ?,
+      checkin_start = ?,
+      checkin_end = ?,
+      checkout_start = ?,
+      checkout_end = ?,
+      lunchout_start = ?,
+      lunchout_end = ?,
+      lunchin_start = ?,
+      lunchin_end = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    shiftType,
+    checkin_start, checkin_end,
+    checkout_start, checkout_end,
+    lunchout_start, lunchout_end,
+    lunchin_start, lunchin_end,
+    id
+  ];
+
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error updating data:', err);
+      res.status(500).json({ error: 'Error updating data' });
+    } else {
+      res.status(200).json({ message: 'Data updated successfully' });
     }
   });
 });

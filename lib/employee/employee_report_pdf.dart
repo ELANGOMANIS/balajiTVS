@@ -11,6 +11,8 @@ import 'package:printing/printing.dart';
 
 import 'package:http/http.dart' as http;
 
+import '../home.dart';
+
 
 class EmployeeReportPDF extends StatefulWidget {
   final List<Map<String, dynamic>> customerData;
@@ -92,59 +94,37 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
     int serialNumber=1;
     final companyData = await fetchCompanyData(); // Fetch company data
     pw.Widget createHeader(String companyName, String address, String contact) {
+      String formattedAddress = Utils.formatAddress(address);
       return pw.Container(
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                // pw.Container(
-                //   height: 70,
-                //   width: 70,
-                //   child: pw.Image(image), // Replace 'image' with your Image widget
-                // ),
-                pw.Padding(
-                  padding: pw.EdgeInsets.only(right: 10),
-                  child: pw.Column(
-                    children: [
-                      pw.Text(
-                        "${companyData['companyName']}",
-                        style: pw.TextStyle(
-                          font: ttf,
-                          fontSize: 20,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      )
-                      // pw.SizedBox(height: 5),
-                      // pw.Text(
-                      //   "(Manufactures of : QUALITY PAPER CONES)",
-                      //   style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-                      // ),
-                      // pw.SizedBox(height: 5),
-                      // pw.Container(
-                      //   constraints: const pw.BoxConstraints(
-                      //     maxWidth: 300,
-                      //   ),
-                      //   child: pw.Text(
-                      //     "5/624-I5,SOWDESWARI \n"
-                      //         "NAGAR,VEPPADAI,ELANTHAKUTTAI(PO)TIRUCHENGODE(T.K)\n"
-                      //         "NAMAKKAL-638008 ",
-                      //     style: const pw.TextStyle(fontSize: 7),
-                      //     textAlign: pw.TextAlign.center,
-                      //   ),
-                      // ),
-                    ],
-                  ),
+            pw.Text(
+              "${companyData['companyName']}",
+              style: pw.TextStyle(
+                // font: ttf,
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+                "$formattedAddress",
+                style: pw.TextStyle(
+                  //font: ttf,
+                  fontSize: 10,
+                  // fontWeight: pw.FontWeight.bold,
                 ),
-                // pw.Container(
-                //   height: 70,
-                //   width: 70,
-                //   child: pw.Container(
-                //     child: pw.Image(image1), // Replace 'image1' with your Image widget
-                //   ),
-                // ),
-              ],
+                textAlign: pw.TextAlign.center
+            ),
+            pw.SizedBox(height: 4),
+            pw.Text(
+              "Contact - ${companyData['contact']}",
+              style: pw.TextStyle(
+                //font: ttf,
+                fontSize: 10,
+                // fontWeight: pw.FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -223,7 +203,7 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
                                   pw.Container(
                                       padding: pw.EdgeInsets.all(8.0),
                                       child: pw.Center(
-                                        child: pw.Text('Salary \n per Day',
+                                        child: pw.Text('Salary',
                                             style: pw.TextStyle(fontSize: 8,font:font,
                                                 fontWeight: pw.FontWeight.bold)),)
                                   ),
