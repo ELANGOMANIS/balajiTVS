@@ -413,7 +413,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                       ),
                                     ),
                                     suggestionsCallback: (pattern) async {
-                                      return getSuggestions('first_name', pattern);
+                                      List<String> suggestions = [];
+                                      if (pattern.isNotEmpty) {
+                                        suggestions = await Utils.getSuggestions();
+                                      }
+                                      return suggestions;
                                     },
                                     itemBuilder: (context, suggestion) {
                                       return ListTile(
@@ -549,11 +553,11 @@ class AttendanceDataSource extends DataTableSource {
         DataCell(Center(child: Text(attendance['first_name'] + ' - ' + attendance['emp_code'] ?? '')),),
         DataCell(Center(child: Text(attendance['shiftType'] ?? ''))),
         DataCell(Center(child: Text(attendance['check_in'] ?? ''))),
-        DataCell(Center(child: Text(attendance['check_out'] ?? ''))),
+        DataCell(Center(child: Text( attendance['check_out'] == '00:00:00' ? '-' : attendance['check_out'] ))),
         DataCell(Center(child: Text(formatDuration(attendance['latecheck_in'] ?? '')))),
         DataCell(Center(child: Text(formatDuration(attendance['earlycheck_out'] ?? '')))),
-        DataCell(Center(child: Text(attendance['req_time'] ?? ''))),
-        DataCell(Center(child: Text(attendance['act_time'] ?? ''))),
+        DataCell(Center(child: Text(formatDuration(attendance['req_time'] ?? '')))),
+        DataCell(Center(child: Text(formatDuration(attendance['act_time'] ?? '')))),
         DataCell(Center(child: Text(attendance['remark'] ?? ''))),
       ],
     );
