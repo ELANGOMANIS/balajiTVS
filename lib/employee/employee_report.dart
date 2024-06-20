@@ -200,20 +200,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
                               children: [
                                 Row(
                                   children: [
-                                    IconButton(
-                                      icon: Icon(Icons.arrow_back),
-                                      onPressed: () {
-                                        // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: Icon(Icons.refresh),
-                                      onPressed: () {
-                                        Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReport()));
-                                      },
-                                    ),
-
                                     Icon(Icons.report,),
                                     SizedBox(width:10,),
                                     Text(
@@ -226,90 +212,101 @@ class _EmployeeReportState extends State<EmployeeReport> {
                                   ],
                                 ),
                                 SizedBox(height: 10,),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        SizedBox(
-                                          width: 220,
-                                          height: 70,
-                                          child: TypeAheadFormField<String>(
-                                            textFieldConfiguration: TextFieldConfiguration(
-                                              controller: searchController,
-                                              onChanged: (value) {
-                                                String capitalizedValue = capitalizeFirstLetter(value);
-                                                searchController.value = searchController.value.copyWith(
-                                                  text: capitalizedValue,
-                                                  selection: TextSelection.collapsed(offset: capitalizedValue.length),
-                                                );
-                                              },
-                                              style: const TextStyle(fontSize: 13),
-                                              decoration: InputDecoration(
-                                                suffixIcon: Icon(Icons.search),
-                                                fillColor: Colors.white,
-                                                filled: true,
-                                                labelText: "Employee Name or ID", // Update label
-                                                labelStyle: TextStyle(fontSize: 13, color: Colors.black),
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                              ),
-                                            ),
-                                            suggestionsCallback: (pattern) async {
-                                              if (pattern.isEmpty) {
-                                                return [];
-                                              }
-                                              List<String> suggestions = data
-                                                  .where((item) {
-                                                String empName = item['first_name']?.toString()?.toLowerCase() ?? '';
-                                                String empID = item['emp_code']?.toString()?.toLowerCase() ?? '';
-                                                return empName.contains(pattern.toLowerCase()) || empID.contains(pattern.toLowerCase());
-                                              })
-                                                  .map<String>((item) =>
-                                              '${item['first_name']} (${item['emp_code']})') // Modify this line to match your data structure
-                                                  .toSet() // Remove duplicates using a Set
-                                                  .toList();
-
-                                              return suggestions;
-                                            },
-                                            itemBuilder: (context, suggestion) {
-                                              return ListTile(
-                                                title: Text(suggestion),
+                                Row(children: [
+                                  Flexible(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 20.0),
+                                      child: SizedBox(
+                                        width: 220,
+                                        height: 70,
+                                        child: TypeAheadFormField<String>(
+                                          textFieldConfiguration: TextFieldConfiguration(
+                                            controller: searchController,
+                                            onChanged: (value) {
+                                              String capitalizedValue = capitalizeFirstLetter(value);
+                                              searchController.value = searchController.value.copyWith(
+                                                text: capitalizedValue,
+                                                selection: TextSelection.collapsed(offset: capitalizedValue.length),
                                               );
                                             },
-                                            onSuggestionSelected: (suggestion) {
-                                              String selectedEmpName = suggestion.split(' ')[0];
-                                              String selectedEmpID = suggestion.split('(')[1].split(')')[0];
-                                              setState(() {
-                                                selectedCustomer = selectedEmpID;
-                                                // Use selectedEmpID as needed
-                                                searchController.text = selectedEmpID;
-
-                                              });
-                                              print('Selected Customer: $selectedCustomer, ID: $selectedEmpID');
-                                            },
+                                            style: const TextStyle(fontSize: 13),
+                                            decoration: InputDecoration(
+                                              suffixIcon: Icon(Icons.search),
+                                              fillColor: Colors.white,
+                                              filled: true,
+                                              labelText: "Employee Name or ID", // Update label
+                                              labelStyle: TextStyle(fontSize: 13, color: Colors.black),
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
+                                          suggestionsCallback: (pattern) async {
+                                            if (pattern.isEmpty) {
+                                              return [];
+                                            }
+                                            List<String> suggestions = data
+                                                .where((item) {
+                                              String empName = item['first_name']?.toString()?.toLowerCase() ?? '';
+                                              String empID = item['emp_code']?.toString()?.toLowerCase() ?? '';
+                                              return empName.contains(pattern.toLowerCase()) || empID.contains(pattern.toLowerCase());
+                                            })
+                                                .map<String>((item) =>
+                                            '${item['first_name']} (${item['emp_code']})') // Modify this line to match your data structure
+                                                .toSet() // Remove duplicates using a Set
+                                                .toList();
+                                            return suggestions;
+                                          },
+                                          itemBuilder: (context, suggestion) {
+                                            return ListTile(
+                                              title: Text(suggestion),
+                                            );
+                                          },
+                                          onSuggestionSelected: (suggestion) {
+                                            String selectedEmpName = suggestion.split(' ')[0];
+                                            String selectedEmpID = suggestion.split('(')[1].split(')')[0];
+                                            setState(() {
+                                              selectedCustomer = selectedEmpID;
+                                              // Use selectedEmpID as needed
+                                              searchController.text = selectedEmpID;
 
-                                      IconButton(
+                                            });
+                                            print('Selected Customer: $selectedCustomer, ID: $selectedEmpID');
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Row(children: [
+                                    Card(
+                                      child: IconButton(
+                                          icon: Icon(Icons.file_download),
+                                          onPressed: (){
+                                            Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReportPDF(
+                                              customerData : filteredData,
+                                            )));
+                                          }
+                                      ),
+                                    ),
+                                    Card(
+                                      child: IconButton(
                                         icon: Icon(Icons.refresh),
                                         onPressed: () {
                                           Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReport()));
                                         },
                                       ),
-                                      IconButton(
+                                    ),
+                                    Card(
+                                      child: IconButton(
                                         icon: Icon(Icons.arrow_back),
                                         onPressed: () {
-                                          // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
                                           Navigator.pop(context);
                                         },
                                       ),
-                                  ],
-                                ),
+                                    ),
+                                  ],),
+                                ],),
+
                               ],
                             ),
                           ],
@@ -349,17 +346,16 @@ class _EmployeeReportState extends State<EmployeeReport> {
                                 child: SizedBox(
                                   width:1200,
                                   child: PaginatedDataTable(
-                                    columnSpacing:90.0,
+                                    columnSpacing:50.0,
                                     rowsPerPage:25,
                                     columns:   const [
-                                      DataColumn(label: Center(child: Text("    S.No",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                      DataColumn(label: Center(child: Text("  Emp ID",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                      DataColumn(label: Center(child: Text("   Employee Name",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                      DataColumn(label: Center(child: Text("      Mobile",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                      DataColumn(label: Center(child: Text("    Position",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                      DataColumn(label: Center(child: Text("    Salary",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                      //DataColumn(label: Center(child: Text("    Status",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                      DataColumn(label: Center(child: Text("    Action",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                      DataColumn(label: Text("S.No",style: TextStyle(fontWeight: FontWeight.bold),)),
+                                      DataColumn(label: Text("Emp ID",style: TextStyle(fontWeight: FontWeight.bold),)),
+                                      DataColumn(label: Text("Employee Name",style: TextStyle(fontWeight: FontWeight.bold),)),
+                                      DataColumn(label: Text("Mobile",style: TextStyle(fontWeight: FontWeight.bold),)),
+                                      DataColumn(label: Text("Position",style: TextStyle(fontWeight: FontWeight.bold),)),
+                                      DataColumn(label: Text("Salary",style: TextStyle(fontWeight: FontWeight.bold),)),
+                                      DataColumn(label: Text("Action",style: TextStyle(fontWeight: FontWeight.bold),)),
                                     ],
                                     source: _YourDataTableSource(filteredData,context,generatedButton,onDelete),
                                   ),
@@ -372,59 +368,6 @@ class _EmployeeReportState extends State<EmployeeReport> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15.0,right: 15.0),
-                        child: MaterialButton(
-                          color: Colors.green.shade600,
-                          height: 40,
-                          onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeReportPDF(
-                              customerData : filteredData,
-                            )));
-                          },child: const Text("PRINT",style: TextStyle(color: Colors.white),),),
-                      ),
-                      SizedBox(height: 20,),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15.0,right: 15.0),
-                        child: MaterialButton(
-                          shape:  RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                          color: Colors.red,
-                          onPressed: (){
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Confirmation'),
-                                  content: const Text('Do you want to cancel?'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      child: const Text('Yes'),
-                                      onPressed: () {
-                                        Navigator.push(context,
-                                            MaterialPageRoute(builder: (context) =>const Home()));// Close the alert box
-                                      },
-                                    ),
-                                    TextButton(
-                                      child: const Text('No'),
-                                      onPressed: () {
-                                        Navigator.of(context).pop(); // Close the alert box
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: const Text("CANCEL",style: TextStyle(color: Colors.white),),),
-                      ),
-                    ],
-                  ),
-                )
               ],
             ),
           ),
@@ -438,6 +381,7 @@ class _YourDataTableSource extends DataTableSource {
   final Function(int) onDelete;
   final BuildContext context;
   final bool generatedButton;
+
   _YourDataTableSource(this.data,this.context, this.generatedButton,this.onDelete);
   Future<void> updateEmployeeStatus(String emp_code, String Status) async {
     try {
@@ -488,12 +432,12 @@ class _YourDataTableSource extends DataTableSource {
 
     return DataRow(
       cells: [
-        DataCell(Center(child: Text("${index + 1}"))),
-        DataCell(Center(child: Text("${row["emp_code"]}"))),
-        DataCell(Center(child: Text("${row["first_name"]}"))),
-        DataCell(Center(child: Text("${row["empMobile"]}"))),
-        DataCell(Center(child: Text("${row["empPosition"]}"))),
-        DataCell(Center(child: Text("${row["salary"]}"))),
+        DataCell(Text("${index + 1}")),
+        DataCell(Text("${row["emp_code"]}")),
+        DataCell(Text("${row["first_name"]}")),
+        DataCell(Text("${row["empMobile"]}")),
+        DataCell(Text("${row["empPosition"]}")),
+        DataCell(Text("${row["salary"]}")),
         // DataCell(Center(child:
         // Row(children: [
         //   Visibility(visible:(row["Status"]=="Active") ,
@@ -624,96 +568,42 @@ class _YourDataTableSource extends DataTableSource {
         // ],)
         // )
         // ),
-        DataCell(Container(
-          child: Row(children: [
-            // IconButton(
-            //   onPressed: (){
-            //     String fathername=row["fatherName"];
-            //     String fatherMobile=row["fatherMobile"];
-            //     Navigator.push(context, MaterialPageRoute(builder: (context)=>EmployeeDetails(
-            //       // empPhoto:row["empPhoto"],
-            //       empID:row["emp_code"].toString(),
-            //       empName:row["first_name"].toString(),
-            //       empAddress :row["empAddress"].toString(),
-            //       pincode: (row["pincode"] ?? "-").toString(),
-            //       empMobile:row["empMobile"].toString(),
-            //       dob:row["dob"],
-            //       age:row["age"].toString(),
-            //       bloodgroup:row["bloodgroup"].toString(),
-            //       gender:row["gender"].toString(),
-            //       maritalStatus:row["maritalStatus"].toString(),
-            //       gaurdian: fathername.isEmpty? row["spouseName"]??"":fathername,
-            //       gaurdianmobile:fatherMobile.isEmpty?row["spouseMobile"]??"":fatherMobile,
-            //       education:row["education"].toString(),
-            //       doj:row["doj"],
-            //       end:row["endingDate"],
-            //       deptName:row["deptName"].toString(),
-            //       empPosition:row["empPosition"].toString(),
-            //       salary:row["salaryType"].toString(),
-            //       daySalary:row["salary"].toString(),
-            //       shift:row["shift"].toString(),
-            //       acNumber:row["acNumber"].toString(),
-            //       acHoldername:row["acHoldername"].toString(),
-            //       bank:row["bank"].toString(),
-            //       branch:row["branch"].toString(),
-            //       ifsc:row["ifsc"].toString(),
-            //       pan:row["pan"].toString(),
-            //       aadhar:row["aadhar"].toString(),
-            //     )
-            //     ));
-            //   },icon:const Icon(Icons.remove_red_eye_outlined),
-            //   color: Colors.blue.shade600,
-            // ),
-
-            IconButton(
-              onPressed: (){
-
-                String fathername=row["fatherName"] ?? "";
-                String fatherMobile=row["fatherMobile"]?? "";
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> EmployeeReportPdf(
-                  empID:row["emp_code"],
-                  empName:row["first_name"],
-                  empAddress :row["empAddress"],
-                  pincode :row["pincode"],
-                  empMobile:row["empMobile"],
-                  dob:row["dob"],
-                  age:row["age"],
-                  bloodgroup:row["bloodgroup"],
-                  gender:row["gender"],
-                  maritalStatus:row["maritalStatus"],
-                  gaurdian: fathername.isEmpty? row["spouseName"]??"":fathername,
-                  gaurdianmobile:fatherMobile.isEmpty?row["spouseMobile"]??"":fatherMobile,
-                  education:row["education"],
-                  doj:row["doj"],
-                  end:row["endingDate"],
-                  deptName:row["deptName"],
-                  empPosition:row["empPosition"],
-                  salary:row["salaryType"],
-                  shift:row["shift"],
-                  daySalary:row["salary"],
-                  acNumber:row["acNumber"],
-                  acHoldername:row["acHoldername"],
-                  bank:row["bank"],
-                  branch:row["branch"],
-                  ifsc:row["ifsc"],
-                  pan:row["pan"],
-                  aadhar:row["aadhar"],
-                )
-                ));
-              },icon: Icon(Icons.print,),
-              color: Colors.blue.shade600,
-            ),
-
-            // IconButton(
-            //   icon: Icon(Icons.delete, color: Colors.red),
-            //   onPressed: () {
-            //     showDeleteConfirmationDialog(context, id);
-            //   },
-            // ),
-
-
-          ],),
-
+        DataCell(IconButton(
+          onPressed: (){
+            String fathername=row["fatherName"] ?? "";
+            String fatherMobile=row["fatherMobile"]?? "";
+            Navigator.push(context, MaterialPageRoute(builder: (context)=> EmployeeReportPdf(
+              empID:row["emp_code"],
+              empName:row["first_name"],
+              empAddress :row["empAddress"],
+              pincode :row["pincode"],
+              empMobile:row["empMobile"],
+              dob:row["dob"],
+              age:row["age"],
+              bloodgroup:row["bloodgroup"],
+              gender:row["gender"],
+              maritalStatus:row["maritalStatus"],
+              gaurdian: fathername.isEmpty? row["spouseName"]??"":fathername,
+              gaurdianmobile:fatherMobile.isEmpty?row["spouseMobile"]??"":fatherMobile,
+              education:row["education"],
+              doj:row["doj"],
+              end:row["endingDate"],
+              deptName:row["deptName"],
+              empPosition:row["empPosition"],
+              salary:row["salaryType"],
+              shift:row["shift"],
+              daySalary:row["salary"],
+              acNumber:row["acNumber"],
+              acHoldername:row["acHoldername"],
+              bank:row["bank"],
+              branch:row["branch"],
+              ifsc:row["ifsc"],
+              pan:row["pan"],
+              aadhar:row["aadhar"],
+            )
+            ));
+          },icon: Icon(Icons.print,),
+          color: Colors.blue.shade600,
         )),
       ],
     );

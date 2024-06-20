@@ -104,37 +104,12 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
                 //   width: 70,
                 //   child: pw.Image(image), // Replace 'image' with your Image widget
                 // ),
-                pw.Padding(
-                  padding: pw.EdgeInsets.only(right: 10),
-                  child: pw.Column(
-                    children: [
-                      pw.Text(
-                        "${companyData['companyName']}",
-                        style: pw.TextStyle(
-                          font: ttf,
-                          fontSize: 20,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      )
-                      // pw.SizedBox(height: 5),
-                      // pw.Text(
-                      //   "(Manufactures of : QUALITY PAPER CONES)",
-                      //   style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-                      // ),
-                      // pw.SizedBox(height: 5),
-                      // pw.Container(
-                      //   constraints: const pw.BoxConstraints(
-                      //     maxWidth: 300,
-                      //   ),
-                      //   child: pw.Text(
-                      //     "5/624-I5,SOWDESWARI \n"
-                      //         "NAGAR,VEPPADAI,ELANTHAKUTTAI(PO)TIRUCHENGODE(T.K)\n"
-                      //         "NAMAKKAL-638008 ",
-                      //     style: const pw.TextStyle(fontSize: 7),
-                      //     textAlign: pw.TextAlign.center,
-                      //   ),
-                      // ),
-                    ],
+                pw.Text(
+                  "${companyData['companyName']}",
+                  style: pw.TextStyle(
+                    font: ttf,
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
                   ),
                 ),
                 // pw.Container(
@@ -145,6 +120,21 @@ class _EmployeeReportPDFState extends State<EmployeeReportPDF> {
                 //   ),
                 // ),
               ],
+            ),
+            pw.Text(
+              "${companyData['address']}",
+              style: pw.TextStyle(
+                fontSize: 12,
+               fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+
+            pw.Text(
+              "Contact - ${companyData['contact']}",
+              style: pw.TextStyle(
+                fontSize: 12,
+                fontWeight: pw.FontWeight.bold,
+              ),
             ),
           ],
         ),

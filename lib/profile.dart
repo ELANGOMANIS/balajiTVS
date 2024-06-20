@@ -32,6 +32,7 @@ class _ProfileState extends State<Profile> {
   TextEditingController uid =TextEditingController();
   String selectedCompany = '';
   Map<String,dynamic> profileData ={};
+  bool uidIsDuplicate = false;
 
   Future<void> insert(Map<String,dynamic> profileData) async{
     const String apiUrl = 'http://localhost:3309/company_profile';
@@ -43,26 +44,13 @@ class _ProfileState extends State<Profile> {
         body:jsonEncode({'profileData': profileData }),
       );
       if (response.statusCode == 200) {
-        showDialog(
-          barrierDismissible: false,
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: const Text('Saved Successfully'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Profile()),
-                    );
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text("Profile Saved"),
+          ),
         );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Profile()));
       } else {
         print('Failed to Table insert data');
         throw Exception('Failed to Table insert data');
@@ -222,7 +210,14 @@ class _ProfileState extends State<Profile> {
 
     if (response.statusCode == 200) {
       print("Update Successful");
-      showDialog(
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text("Profile Updated"),
+        ),
+      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Profile()));
+    /*  showDialog(
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
@@ -244,7 +239,7 @@ class _ProfileState extends State<Profile> {
             ],
           );
         },
-      );
+      );*/
     } else {
       print('Failed to update. Status code: ${response.statusCode}');
       throw Exception('Failed to update purchase entry');
@@ -659,41 +654,40 @@ class _ProfileState extends State<Profile> {
                           Wrap(
                             // mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              MaterialButton(
-                                color:Colors.green,onPressed: () async {
-                                if (_formKey.currentState?.validate() ?? false) {
-                                  String enteredUid = uid.text;
-                                  bool uidIsDuplicate = await checkForDuplicateCompany(
-                                      enteredUid);
-                                  if (uidIsDuplicate) {
-                                    updateCompany(
-                                      uid.text,
-                                      companyName.text,
-                                      address.text,
-                                      contact.text,
-                                      mailId.text,
-                                      gstNo.text,
-                                      tinNo.text,
-                                      cstNo.text,
-                                      bankName.text,
-                                      accNo.text,
-                                      branch.text,
-                                      ifscCode.text,
-                                    );
-                                  }
-                                  else {
-                                    personalDataInsert();
-                                  }
-                                }
-                              },child: Text("Submit",style: TextStyle(color: Colors.white),),),
+
                               SizedBox(width: 15,),
 
                               MaterialButton(
-                                color: Colors.red.shade600,
-                                onPressed: (){
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) =>Profile()));
-                                },child: Text("Cancel",style: TextStyle(color: Colors.white),),)
+                                color: Colors.green,
+                                onPressed: () async {
+                                  if (_formKey.currentState?.validate() ?? false) {
+                                    String enteredUid = uid.text;
+                                    bool uidIsDuplicate = await checkForDuplicateCompany(enteredUid);
+                                    if (uidIsDuplicate) {
+                                      updateCompany(
+                                        uid.text,
+                                        companyName.text,
+                                        address.text,
+                                        contact.text,
+                                        mailId.text,
+                                        gstNo.text,
+                                        tinNo.text,
+                                        cstNo.text,
+                                        bankName.text,
+                                        accNo.text,
+                                        branch.text,
+                                        ifscCode.text,
+                                      );
+                                    } else {
+                                      personalDataInsert();
+                                    }
+                                  }
+                                },
+                                child: Text(
+                                  uidIsDuplicate ? "Submit" : "Update",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              )
                             ],
                           ),
                           SizedBox(height: 15,),
