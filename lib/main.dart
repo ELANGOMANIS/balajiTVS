@@ -52,10 +52,10 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Vinayaga Cones',
-      home: const LoginPage(),
-     // home: const Home(),
-      //home: const SalaryCalculation(),
+      title: 'Sri Balaji TVS',
+     // home: const LoginPage(),
+     home: const Home(),
+    //  home: const CumulativeSalaryCalculation(),
       // initialRoute: 'loginpage',
       //   routes: {'loginpage':(context)=> LoginPAge()},
       theme: ThemeData (
@@ -160,11 +160,10 @@ class _MyScaffoldState extends State<MyScaffold> {
     return Scaffold(
       backgroundColor: widget.backgroundColor,
       appBar: AppBar(
-        title:  Row(
+        title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
-
           children: [
-            Text(
+            const Text(
               "Sri Balaji",
               style: TextStyle(color: Colors.white),
             ),
@@ -173,20 +172,22 @@ class _MyScaffoldState extends State<MyScaffold> {
                 'assets/TVS_Motor_Company-Logo.wine.png',
                 width: 100,
                 height: 50,
-                fit: BoxFit.cover, // Adjust how the image fits into the oval shape
+                fit: BoxFit.cover,
               ),
             ),
           ],
         ),
-        //centerTitle: true,
+        automaticallyImplyLeading: false, // This removes the leading space including the back button area
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 2,
         iconTheme: const IconThemeData(color: Colors.white),
-        leading: SizedBox(),
         actions: [
-          IconButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const Profile()));
-          }, icon: Icon(Icons.person_outline_outlined)),
+          IconButton(
+            onPressed: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const Profile()));
+            },
+            icon: Icon(Icons.person_outline_outlined),
+          ),
           IconButton(
             icon: const Icon(Icons.login_outlined),
             onPressed: () {
@@ -239,6 +240,7 @@ class _MyScaffoldState extends State<MyScaffold> {
           ),
         ),
       ),
+
       body: SingleChildScrollView(
         child: widget.body, // Use widget.body to display the body content
       ),
@@ -280,6 +282,12 @@ class _MyScaffoldState extends State<MyScaffold> {
     setState(() {
       // Reset all hovering states
       _hovering.updateAll((key, value) => false);
+
+      // Reset all clicked states
+      _clicked.updateAll((key, value) => false);
+
+      // Set the clicked state of the tapped button to true
+      _clicked[label] = true;
     });
 
     // Navigate based on the button tapped

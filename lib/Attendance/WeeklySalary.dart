@@ -1,15 +1,16 @@
-import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:vinayaga_project/Attendance/salary.dart';
-import 'package:vinayaga_project/Attendance/salary_weekly_pdf.dart';
-
-
-import '../../home.dart';
-import '../../main.dart';
-
+import '../home.dart';
+import '../main.dart';
 class CumulativeSalaryCalculation extends StatefulWidget {
   const CumulativeSalaryCalculation({Key? key}) : super(key: key);
 
@@ -17,108 +18,44 @@ class CumulativeSalaryCalculation extends StatefulWidget {
   State<CumulativeSalaryCalculation> createState() =>
       _CumulativeSalaryCalculationState();
 }
-
-class _CumulativeSalaryCalculationState
-    extends State<CumulativeSalaryCalculation> {
+class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculation> {
   String? selectedShiftType;
   DateTime? fromDate;
   DateTime? toDate;
   bool isCardVisible = false;
-  Future<List<String>> getSuggestions(String field, String pattern) async {
-    final List<String> suggestions = [];
 
-    try {
-      final response = await http.get(
-        Uri.http('localhost:3309', '/get_shift_type', {'field': field, 'pattern': pattern}),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        data.forEach((item) {
-          suggestions.add(item[field]);
-        });
-      } else {
-        throw Exception('Failed to fetch suggestions');
-      }
-    } catch (error) {
-      print('Error fetching suggestions: $error');
-      throw Exception('Failed to fetch suggestions');
-    }
-
-    return suggestions;
-  }
   List<Map<String, dynamic>> reportData = [];
-  Future<void> fetchReport() async {
-    if (fromDate == null || toDate == null) {
-      print("Please select both From Date and To Date");
-      return;
-    }
-    final formattedFromDate = DateFormat('yyyy-MM-dd').format(fromDate!);
-    final formattedToDate = DateFormat('yyyy-MM-dd').format(toDate!);
-    final url = Uri.parse('http://localhost:3309/get_cumulative_salary?fromDate=$formattedFromDate&toDate=$formattedToDate&shiftType=$selectedShiftType');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        // Handle successful response
-        print('Report fetched successfully');
-        final List<dynamic> responseData = json.decode(response.body);
-        setState(() {
-          reportData = responseData.cast<Map<String, dynamic>>();
-        });
-        reportData.forEach((data) {
-          int totalLate = int.parse(data['total_late'].toString());
-          double totalSalary = double.parse(data['total_salary'].toString());
-          double salary = totalSalary;
-          String shiftType = data['shift_type'].toString();
-        });
-        print('Report Data: $reportData'); // Print the list of data with updated salaries
-      } else {
-        print('Failed to fetch report. Status Code: ${response.statusCode}');
-      }
-    } catch (error) {
-      // Handle errors
-      print('Error fetching report: $error');
-    }
-  }
-/*
-  Future<void> fetchReport() async {
-    if (fromDate == null || toDate == null) {
-      print("Please select both From Date and To Date");
-      return;
-    }
-    final formattedFromDate = DateFormat('yyyy-MM-dd').format(fromDate!);
-    final formattedToDate = DateFormat('yyyy-MM-dd').format(toDate!);
-    final url = Uri.parse('http://localhost:3309/get_cumulative_salary?fromDate=$formattedFromDate&toDate=$formattedToDate&shiftType=$selectedShiftType');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        // Handle successful response
-        print('Report fetched successfully');
-        final List<dynamic> responseData = json.decode(response.body);
-        setState(() {
-          reportData = responseData.cast<Map<String, dynamic>>();
-        });
-        reportData.forEach((data) {
-          int totalLate = int.parse(data['total_late'].toString());
-          double totalSalary = double.parse(data['total_salary'].toString());
-          double salary = totalSalary; // Assuming the salary is not changed initially
-        });
-        print('Report Data: $reportData'); // Print the list of data with updated salaries
-      } else {
-        print('Failed to fetch report. Status Code: ${response.statusCode}');
-      }
-    } catch (error) {
-      // Handle errors
-      print('Error fetching report: $error');
-    }
-  }
-*/
+  final List<String> _shiftTypes = [];
   final TextEditingController _typeAheadController = TextEditingController();
+  Future<void> fetchReport() async {
+    if (fromDate == null || toDate == null) {
+      print("Please select both From Date and To Date");
+      return;
+    }
+    final formattedFromDate = DateFormat('yyyy-MM-dd').format(fromDate!);
+    final formattedToDate = DateFormat('yyyy-MM-dd').format(toDate!);
+    final url = Uri.parse('http://localhost:3309/get_cumulative_salary?fromDate=$formattedFromDate&toDate=$formattedToDate&shiftType=$selectedShiftType');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        print('Report fetched successfully');
+        final List<dynamic> responseData = json.decode(response.body);
+        setState(() {
+          reportData = responseData.cast<Map<String, dynamic>>();
+        });
+      } else {
+        print('Failed to fetch report. Status Code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching report: $error');
+    }
+  }
   @override
   void dispose() {
     _typeAheadController.dispose();
     super.dispose();
   }
+
   double calculateTotalExtraProduction(List<Map<String, dynamic>> filteredData) {
     double totalExtraProduction = 0;
     for (var row in filteredData) {
@@ -155,6 +92,104 @@ class _CumulativeSalaryCalculationState
     }
   }
 
+  Future<void> _generatePdfAndDownload() async {
+    final pdf = pw.Document();
+    final companyData = await Utils.fetchCompanyData(); // Fetch company data
+
+    pw.Widget createHeader(String companyName, String address, String contact) {
+      return pw.Container(
+        padding: pw.EdgeInsets.all(10),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              companyName,
+              style: pw.TextStyle(
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              address,
+              style: pw.TextStyle(
+                fontSize: 10,
+              ),
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              contact,
+              style: pw.TextStyle(
+                fontSize: 10,
+              ),
+            ),
+            pw.Divider(thickness: 1),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              'Employee Salary Report',
+              style: pw.TextStyle(
+                fontSize: 14,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final headers = ['S.No', 'Employee', 'No of Work Days', 'Total Req Time', 'Total Act Time', 'Monthly Salary', 'Deduction Salary', 'Total Salary'];
+    const int rowsPerPage = 20;
+    int totalPages = (reportData.length / rowsPerPage).ceil();
+
+    for (int page = 0; page < totalPages; page++) {
+      final startRow = page * rowsPerPage;
+      final endRow = (startRow + rowsPerPage) > reportData.length ? reportData.length : (startRow + rowsPerPage);
+      final pageData = reportData.sublist(startRow, endRow);
+
+      pdf.addPage(
+        pw.MultiPage(
+          header: (pw.Context context) {
+            return createHeader(
+              companyData['companyName'],
+              companyData['address'],
+              companyData['contact'],
+            );
+          },
+          build: (pw.Context context) {
+            return [
+              pw.Table.fromTextArray(
+                headers: headers,
+                cellStyle: pw.TextStyle(fontSize: 6),
+                headerStyle: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold),
+                data: pageData.map((data) {
+                  return [
+                    '${reportData.indexOf(data) + 1}',
+                    data['employee'] ?? '',
+                    data['no_of_work_days']?.toString() ?? '',
+                    formatDuration(data['total_req_time']?.toString()) ?? '',
+                    formatDuration(data['total_act_time']?.toString()) ?? '',
+                    '${data['monthly_salary']?.toString() ?? ''}',
+                    '${data['deduction_salary']?.toString() ?? ''}',
+                    '${data['total_salary']?.toString() ?? ''}',
+                  ];
+                }).toList(),
+              ),
+            ];
+          },
+        ),
+      );
+    }
+
+    final Uint8List bytes = await pdf.save();
+    await Printing.sharePdf(bytes: bytes, filename: 'employee_salary_report.pdf');
+  }
+
+  String formatDuration(String? duration) {
+    // Implement duration formatting logic here
+    return duration ?? '';
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final formattedFromDate = DateFormat('dd-MM-yyyy (EEEE)').format(fromDate ?? DateTime.now());
@@ -180,7 +215,8 @@ class _CumulativeSalaryCalculationState
                       ),
                       child: Column(
                         children: [
-                           Row(
+
+                          Wrap(
                             children: [
                               Icon(Icons.report),
                               SizedBox(width: 10),
@@ -193,153 +229,147 @@ class _CumulativeSalaryCalculationState
                               ),
                               SizedBox(width: 10),
                               MaterialButton(onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (Context) => const SalaryCalculation()));
-                              }, child: Text('Individual', style: TextStyle(color: Colors.blue),)),
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SalaryCalculation(),
+                                  ),
+                                );
+                              },
+                                child: Text('Individual',style: TextStyle(color: Colors.blue),),
+                              ),
                             ],
                           ),
                           Padding(
                             padding: const EdgeInsets.only(right: 15),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                SizedBox(
-                                  width: 180,
-                                  height: 34,
-                                  child: TextFormField(
-                                    style: const TextStyle(fontSize: 13),
-                                    readOnly: true,
-                                    onTap: () async {
-                                      await _selectFromDate(context);
-                                    },
-                                    controller: fromDate != null
-                                        ? TextEditingController(
-                                        text: DateFormat('yyyy-MM-dd')
-                                            .format(fromDate!))
-                                        : TextEditingController(),
-                                    decoration: const InputDecoration(
-                                      suffixIcon: Icon(Icons.calendar_month),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      labelText: "From Date",
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                SizedBox(
-                                  width: 180,
-                                  height: 34,
-                                  child: TextFormField(
-                                    style: TextStyle(fontSize: 13),
-                                    readOnly: true,
-                                    onTap: () async {
-                                      await _selectToDate(context);
-                                    },
-                                    controller: toDate != null
-                                        ? TextEditingController(
-                                        text: DateFormat('yyyy-MM-dd')
-                                            .format(toDate!))
-                                        : TextEditingController(),
-                                    decoration: const InputDecoration(
-                                      suffixIcon: Icon(Icons.calendar_month),
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      labelText: "To Date",
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                SizedBox(
-                                  width: 180,
-                                  height: 34,
-                                  child: TypeAheadFormField(
-                                    textFieldConfiguration: TextFieldConfiguration(
-                                      controller: _typeAheadController,
-                                      decoration: InputDecoration(labelText: 'Shift',                                      labelStyle: TextStyle(fontSize: 12),
+                                Flexible(
+                                  child: SizedBox(
+                                    height:50,
+                                    width: 240,
+                                    child: TextFormField(
+                                      style: const TextStyle(fontSize: 13),
+                                      readOnly: true,
+                                      onTap: () async {
+                                        await _selectFromDate(context);
+                                      },
+                                      controller: fromDate != null
+                                          ? TextEditingController(
+                                          text: DateFormat('yyyy-MM-dd')
+                                              .format(fromDate!))
+                                          : TextEditingController(),
+                                      decoration: const InputDecoration(
+                                        suffixIcon: Icon(Icons.calendar_month),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        labelText: "From Date",
+                                        labelStyle: TextStyle(fontSize: 12),
                                       ),
                                     ),
-                                    suggestionsCallback: (pattern) async {
-                                      return getSuggestions('shiftType', pattern);
-                                    },
-                                    itemBuilder: (context, suggestion) {
-                                      return ListTile(
-                                        title: Text(suggestion),
-                                      );
-                                    },
-                                    onSuggestionSelected: (suggestion) {
-                                      _typeAheadController.text = suggestion;
-                                    },
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: MaterialButton(
-                                    color: Colors.green.shade500,
-                                    height: 40,
+                                Flexible(
+                                  child: SizedBox(
+                                    height:50,
+                                    width: 240,
+                                    child: TextFormField(
+                                      style: TextStyle(fontSize: 13),
+                                      readOnly: true,
+                                      onTap: () async {
+                                        await _selectToDate(context);
+                                      },
+                                      controller: toDate != null
+                                          ? TextEditingController(
+                                          text: DateFormat('yyyy-MM-dd')
+                                              .format(toDate!))
+                                          : TextEditingController(),
+                                      decoration: const InputDecoration(
+                                        suffixIcon: Icon(Icons.calendar_month),
+                                        fillColor: Colors.white,
+                                        filled: true,
+                                        labelText: "To Date",
+                                        labelStyle: TextStyle(fontSize: 12),
+                                        isDense: true,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Flexible(
+                                  child: SizedBox(
+                                    height:50,
+                                    width: 240,
+                                    child: TypeAheadFormField(
+                                      textFieldConfiguration: TextFieldConfiguration(
+                                        controller: _typeAheadController, // Use the controller here.
+                                        decoration: const InputDecoration(
+                                          labelText: 'Shift Type',
+                                          labelStyle: TextStyle(fontSize: 12),
+                                          suffixIcon: Icon(Icons.arrow_drop_down),
+                                        ),
+                                      ),
+                                      suggestionsCallback: (pattern) async {
+                                        List<String> suggestions = [];
+                                        if (pattern.isNotEmpty) {
+                                          suggestions = await Utils.getSuggestions();
+                                        }
+                                        return suggestions;
+                                      },
+                                      itemBuilder: (context, suggestion) {
+                                        return ListTile(
+                                          title: Text(suggestion.toString()),
+                                        );
+                                      },
+                                      onSuggestionSelected: (suggestion) {
+                                        setState(() {
+                                          selectedShiftType = suggestion.toString();
+                                          _typeAheadController.text = selectedShiftType!; // Update the controller text when an item is selected.
+                                        });
+                                      },
+                                      validator: (value) {
+                                        if (value!.isEmpty) {
+                                          return 'Please select a shift type';
+                                        }
+                                        return null;
+                                      },
+                                      onSaved: (value) => selectedShiftType = value,
+                                    ),
+                                  ),
+                                ),
+                                Card(
+                                  child: IconButton(
+                                    icon: Icon(Icons.search),
                                     onPressed: () {
                                       fetchReport();
                                       setState(() {
                                         isCardVisible = true;
                                       });
                                     },
-                                    child: const Text(
-                                      "Calculate",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 15.0,right: 15.0),
-                                  child: MaterialButton(
-                                    color: Colors.green.shade600,
-                                    height: 40,
+                                Card(
+                                  child: IconButton(
+                                    icon: Icon(Icons.file_download),
                                     onPressed: (){
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => SalaryWeeklyPdf(customerData: reportData, fromDate: fromDate, toDate: toDate,),
-                                        ),
-                                      );
-
-                                    },child: const Text("PRINT",style: TextStyle(color: Colors.white),),),
+                                      _generatePdfAndDownload();
+                                    },                                  ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 15.0,right: 15.0),
-                                  child: MaterialButton(
-                                    color: Colors.red.shade600,
-                                    height: 40,
-                                    onPressed: (){
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (context) =>const Home()));
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text('Confirmation'),
-                                            content: const Text('Do you want to cancel?'),
-                                            actions: <Widget>[
-
-                                              TextButton(
-                                                child: const Text('Yes'),
-                                                onPressed: () {
-                                                  Navigator.push(context,
-                                                      MaterialPageRoute(builder: (context) =>const Home()));// Close the alert box
-                                                },
-                                              ),
-                                              TextButton(
-                                                child: const Text('No'),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop(); // Close the alert box
-                                                },
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
+                                Card(
+                                  child: IconButton(
+                                    icon: Icon(Icons.refresh),
+                                    onPressed: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>CumulativeSalaryCalculation()));
                                     },
-                                    child: const Text("Cancel",style: TextStyle(color: Colors.white),),),
+                                  ),
+                                ),
+                                Card(
+                                  child: IconButton(
+                                    icon: Icon(Icons.arrow_back),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
                                 ),
                               ],
                             ),
@@ -359,7 +389,6 @@ class _CumulativeSalaryCalculationState
                     decoration: BoxDecoration(
                       color: Colors.blue.shade50,
                       border: Border.all(color: Colors.grey),
-                      // borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -387,7 +416,6 @@ class _CumulativeSalaryCalculationState
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 20,),
                           PaginatedDataTable(
                             columnSpacing: 65.0,
@@ -395,13 +423,11 @@ class _CumulativeSalaryCalculationState
                             columns: const [
                               DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Employee/code", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("No of Days\nPresent", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Required\nTime", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Actual\nTime", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Late", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Salary per Day", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Extra\nProduction", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("No of Days", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Deduction Amount", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
                             ],
                             source: _DataSource(reportData, fromDate, toDate),
@@ -412,7 +438,6 @@ class _CumulativeSalaryCalculationState
                   ),
                 ),
               ),
-
             ],
           ),
         ),
@@ -420,160 +445,68 @@ class _CumulativeSalaryCalculationState
     );
   }
 }
-
 class _DataSource extends DataTableSource {
-  final List<Map<String, dynamic>> _data;
-  final DateTime? _fromDate;
-  final DateTime? _toDate;
+  final List<Map<String, dynamic>> reportData;
+  final DateTime? fromDate;
+  final DateTime? toDate;
 
-  _DataSource(this._data, this._fromDate, this._toDate);
+  _DataSource(this.reportData, this.fromDate, this.toDate);
 
   @override
-  DataRow? getRow(int index) {
-    if (index >= _data.length) {
-      return null;
-    }
-    final data = _data[index];
-    String shiftType = data['shift_type'].toString();
-    double totalWorkSalary = calculateSalary(data) + double.parse(data['calculated_extraproduction'].toString());
-
-    return DataRow(cells: [
-      DataCell(Text((index + 1).toString())),
-      DataCell(Text(data['employee'])),
-      // DataCell(Text(_fromDate != null ? DateFormat('yyyy-MM-dd').format(_fromDate!) : '')),
-      // DataCell(Text(_toDate != null ? DateFormat('yyyy-MM-dd').format(_toDate!) : '')),
-      //DataCell(Text(shiftType)),
-      DataCell(Text((data['no_of_work_days'].toString()))),
-      DataCell(Text(formatDuration(data['total_req_time'].toString()))),
-      DataCell(Text(formatDuration(data['total_act_time'].toString()))),
-      DataCell(Text(formatDuration(data['total_late'].toString()))),
-      DataCell(Text('\u20B9 ${data['perDaySalary']}')), // Display per day salary with rupee symbol
-      DataCell(Text(calculateSalary(data).toString())),
-      DataCell(Text(double.parse(data['calculated_extraproduction']).toInt().toString())),
-      DataCell(Text(totalWorkSalary.toStringAsFixed(2))), // Display total work salary with two decimal places
-// Display the calculated extra production without decimal places
+  DataRow getRow(int index) {
+    if (index >= reportData.length) return null!;
+    final data = reportData[index];
+    return DataRow.byIndex(index: index, cells: [
+      DataCell(Center(child: Text((index + 1).toString()))),
+      DataCell(Center(child: Text(data['employee'] ?? ''))),
+      DataCell(Center(child: Text(data['no_of_work_days']?.toString() ?? ''))),
+      DataCell(Center(child: Text(formatDuration(data['total_req_time']!.toString()) ?? ''))),
+      DataCell(Center(child: Text(formatDuration(data['total_act_time']!.toString()) ?? ''))),
+      DataCell(Center(child: Text('₹ ${data['monthly_salary']?.toString() ?? ''}'))),
+      DataCell(Center(child: Text('₹ ${data['deduction_salary']?.toString() ?? ''}'))),
+      DataCell(Center(child: Text('₹ ${data['total_salary']?.toString() ?? ''}'))),
     ]);
   }
-
 
   @override
   bool get isRowCountApproximate => false;
 
   @override
-  int get rowCount => _data.length;
+  int get rowCount => reportData.length;
 
   @override
   int get selectedRowCount => 0;
+
+
 }
-double calculateSalary(Map<String, dynamic> data) {
-  double totalSalary = double.parse(data['total_salary'].toString());
-  double perDaySalary = double.parse(data['perDaySalary'].toString());
-  double totalLate = double.parse(data['total_late'].toString());
-  String shiftType = data['shift_type'].toString();
-
-  double salary = totalSalary; // Assuming the salary is not changed initially
-
-  // Apply deduction logic based on shift type and late arrival time
-  if (shiftType == 'Morning') {
-    if (totalLate < 5.75 * 60) {
-      salary = totalSalary;
-    } else if (totalLate >= 5.75 * 60 && totalLate < 11.5 * 60) {
-      salary = totalSalary - (perDaySalary / 2);
-    } else if (totalLate >= 11.5 * 60 && totalLate < 17.25 * 60) {
-      salary = totalSalary - perDaySalary;
-    } else if (totalLate >= 17.25 * 60 && totalLate < 23 * 60) {
-      salary = totalSalary - (2.5 * perDaySalary);
-    } else if (totalLate >= 23 * 60 && totalLate < 28.75 * 60) {
-      salary = totalSalary - (3 * perDaySalary);
-    } else if (totalLate >= 28.75 * 60 && totalLate < 34.5 * 60) {
-      salary = totalSalary - (3.5 * perDaySalary);
-    } else if (totalLate >= 34.5 * 60 && totalLate < 40.25 * 60) {
-      salary = totalSalary - (4 * perDaySalary);
-    } else if (totalLate >= 40.25 * 60 && totalLate < 46 * 60) {
-      salary = totalSalary - (4.5 * perDaySalary);
-    } else if (totalLate >= 46 * 60 && totalLate < 51.75 * 60) {
-      salary = totalSalary - (5 * perDaySalary);
-    } else if (totalLate >= 51.75 * 60 && totalLate < 57.5 * 60) {
-      salary = totalSalary - (5.5 * perDaySalary);
-    }
-  }
-  else if (shiftType == 'General') {
-    if (totalLate < 4.25 * 60) {
-      salary = totalSalary;
-    } else if (totalLate >= 4.25 * 60 && totalLate < 8.5 * 60) {
-      salary = totalSalary - (perDaySalary / 2);
-    } else if (totalLate >= 8.5 * 60 && totalLate < 12.75 * 60) {
-      salary = totalSalary - perDaySalary;
-    } else if (totalLate >= 12.75 * 60 && totalLate < 17 * 60) {
-      salary = totalSalary - (2.5 * perDaySalary);
-    } else if (totalLate >= 17 * 60 && totalLate < 21.25 * 60) {
-      salary = totalSalary - (3 * perDaySalary);
-    } else if (totalLate >= 21.25 * 60 && totalLate < 25.5 * 60) {
-      salary = totalSalary - (3.5 * perDaySalary);
-    } else if (totalLate >= 25.5 * 60 && totalLate < 29.75 * 60) {
-      salary = totalSalary - (4 * perDaySalary);
-    } else if (totalLate >= 29.75 * 60 && totalLate < 34 * 60) {
-      salary = totalSalary - (4.5 * perDaySalary);
-    } else if (totalLate >= 34 * 60 && totalLate < 38.25 * 60) {
-      salary = totalSalary - (5 * perDaySalary);
-    } else if (totalLate >= 38.25 * 60 && totalLate < 42.5 * 60) {
-      salary = totalSalary - (5.5 * perDaySalary);
-    }
-  }
-  else if (shiftType == 'Night') {
-    if (totalLate < 6 * 60) {
-      salary = totalSalary;
-    } else if (totalLate >= 6 * 60 && totalLate < 12 * 60) {
-      salary = totalSalary - (perDaySalary / 2);
-    } else if (totalLate >= 12 * 60 && totalLate < 18 * 60) {
-      salary = totalSalary - perDaySalary;
-    } else if (totalLate >= 18 * 60 && totalLate < 24 * 60) {
-      salary = totalSalary - (2.5 * perDaySalary);
-    } else if (totalLate >= 24 * 60 && totalLate < 30 * 60) {
-      salary = totalSalary - (3 * perDaySalary);
-    } else if (totalLate >= 30 * 60 && totalLate < 36 * 60) {
-      salary = totalSalary - (3.5 * perDaySalary);
-    } else if (totalLate >= 36 * 60 && totalLate < 42 * 60) {
-      salary = totalSalary - (4 * perDaySalary);
-    } else if (totalLate >= 42 * 60 && totalLate < 48 * 60) {
-      salary = totalSalary - (4.5 * perDaySalary);
-    } else if (totalLate >= 48 * 60 && totalLate < 54 * 60) {
-      salary = totalSalary - (5 * perDaySalary);
-    } else if (totalLate >= 54 * 60 && totalLate < 60 * 60) {
-      salary = totalSalary - (5.5 * perDaySalary);
-    }
-  }
-
-  if (salary < 0) {
-    salary = 0; // Ensure salary does not go below 0
-  }
-
-  return salary;
-}
-
 String formatDuration(String durationInMinutes) {
-  if (durationInMinutes != null) {
-    int minutes = int.parse(durationInMinutes);
-    Duration duration = Duration(minutes: minutes);
+  try {
+    if (durationInMinutes != null) {
+      int minutes = int.tryParse(durationInMinutes) ?? 0; // Use int.tryParse with a fallback value of 0
+      Duration duration = Duration(minutes: minutes);
 
-    int hours = duration.inHours;
-    int remainingMinutes = duration.inMinutes.remainder(60);
+      int hours = duration.inHours;
+      int remainingMinutes = duration.inMinutes.remainder(60);
 
-    String formattedDuration = '';
+      String formattedDuration = '';
 
-    if (hours > 0) {
-      formattedDuration += '$hours h';
-    }
-
-    if (remainingMinutes > 0) {
       if (hours > 0) {
-        formattedDuration += ' ';
+        formattedDuration += '$hours h';
       }
-      formattedDuration += '$remainingMinutes m';
-    }
 
-    return formattedDuration.trim();
+      if (remainingMinutes > 0) {
+        if (hours > 0) {
+          formattedDuration += ' ';
+        }
+        formattedDuration += '$remainingMinutes m';
+      }
+
+      return formattedDuration.trim();
+    }
+  } catch (e) {
+    // Handle the exception, e.g., log the error or return a default value
+    print('Error formatting duration: $e');
   }
 
-  return "";
+  return ""; // Return a default value if there's an error
 }

@@ -10,6 +10,8 @@ import '../../main.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;
 import 'package:pdf/widgets.dart' as pw;
+
+import '../home.dart';
 class AttendanceBalaji extends StatefulWidget {
   const AttendanceBalaji({Key? key}) : super(key: key);
 
@@ -22,6 +24,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
   final TextEditingController toDateController = TextEditingController();
   final TextEditingController empCodeController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController shiftController = TextEditingController();
   String selectedSuggestion = ''; // Track selected suggestion
   @override
   void initState() {
@@ -35,9 +38,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
         toDate: toDateController.text,
         empCode: empCodeController.text,
         firstName: firstNameController.text,
+        shiftType: shiftController.text,
       );
     });
   }
+/*
   Future<List<Map<String, dynamic>>> fetchAttendanceBalaji({String? fromDate, String? toDate, String? empCode, String? firstName,}) async {
     try {
       final queryParameters = {
@@ -45,6 +50,45 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
         if (toDate != null) 'toDate': toDate,
         if (empCode != null) 'emp_code': empCode,
         if (firstName != null) 'first_name': firstName,
+      };
+
+      final uri = Uri.http(
+        'localhost:3309',
+        '/get_attendance_overall',
+        queryParameters,
+      );
+
+      final response = await http.get(uri);
+      print("response ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load attendance summary');
+      }
+    } catch (error) {
+      print('Error fetching attendance summary: $error');
+      throw Exception('Failed to load attendance summary');
+    }
+  }
+*/
+
+
+  Future<List<Map<String, dynamic>>> fetchAttendanceBalaji({
+    String? fromDate,
+    String? toDate,
+    String? empCode,
+    String? firstName,
+    String? shiftType, // Add shiftType parameter
+  }) async {
+    try {
+      final queryParameters = {
+        if (fromDate != null) 'fromDate': fromDate,
+        if (toDate != null) 'toDate': toDate,
+        if (empCode != null) 'emp_code': empCode,
+        if (firstName != null) 'first_name': firstName,
+        if (shiftType != null) 'shiftType': shiftType, // Add shiftType to query parameters
       };
 
       final uri = Uri.http(
@@ -95,6 +139,49 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
+    final companyData = await Utils.fetchCompanyData();
+    pw.Widget createHeader(String companyName, String address, String contact) {
+      return pw.Container(
+        padding: pw.EdgeInsets.all(10),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              companyName,
+              style: pw.TextStyle(
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              address,
+              style: pw.TextStyle(
+                fontSize: 10,
+              ),
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              contact,
+              style: pw.TextStyle(
+                fontSize: 10,
+              ),
+            ),
+            pw.Divider(thickness: 1),
+            pw.SizedBox(height: 5),
+            pw.Text(
+              'Employee Salary Report',
+              style: pw.TextStyle(
+                fontSize: 14,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+// Fetch company data
+
     final columnWidths = <int, pw.TableColumnWidth>{
       0: pw.FixedColumnWidth(40),
       1: pw.FixedColumnWidth(90),
@@ -124,27 +211,10 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
       pdf.addPage(
         pw.MultiPage(
           header: (pw.Context context) {
-            return pw.Container(
-                alignment: pw.Alignment.center,
-                padding: pw.EdgeInsets.all(10),
-                child: pw.Column(
-                  children: [
-                    pw.Row(
-                      children: [
-                        pw.Text('Attendance Report', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                        pw.Spacer(),
-                        //  pw.Image(pw.MemoryImage(imageBytes), width: 50, height: 50)
-
-
-                      ],
-
-                    ),
-
-                    pw.Divider(),
-                  ],
-
-                )
-
+            return createHeader(
+              companyData['companyName'],
+              companyData['address'],
+              companyData['contact'],
             );
           },
           build: (pw.Context context) {
@@ -215,8 +285,23 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                       ),
                       child: Column(
                         children: [
-                          const Row(
+                           Row(
                             children: [
+                              IconButton(
+                                icon: Icon(Icons.arrow_back),
+                                onPressed: () {
+                                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.refresh),
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>AttendanceBalaji()));
+                                },
+                              ),
+
+                              SizedBox(width: 20,),
                               Icon(Icons.report),
                               SizedBox(width: 10),
                               Text(
@@ -236,9 +321,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 child: SizedBox(
                                   height:50,
                                   width: 240,
-
                                   child: TextFormField(
-
                                     controller: fromDateController,
                                     onTap: () {
                                       showDatePicker(
@@ -257,22 +340,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                     decoration: InputDecoration(
                                       labelText: 'From Date (YYYY-MM-DD)',
                                       labelStyle: TextStyle(fontSize: 12),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(Icons.date_range),
-                                        onPressed: () async {
-                                          final DateTime? picked = await showDatePicker(
-                                            context: context,
-                                            initialDate: DateTime.now(),
-                                            firstDate: DateTime(2015, 8),
-                                            lastDate: DateTime(2101),
-                                          );
-                                          if (picked != null && picked != DateTime.parse(fromDateController.text)) {
-                                            setState(() {
-                                              fromDateController.text = DateFormat('yyyy-MM-dd').format(picked);
-                                            });
-                                          }
-                                        },
-                                      ),
+                                      suffixIcon: Icon(Icons.date_range),
                                     ),
                                   ),
                                 ),
@@ -300,53 +368,11 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                     decoration: InputDecoration(
                                       labelText: 'To Date (YYYY-MM-DD)',
                                       labelStyle: TextStyle(fontSize: 12),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(Icons.date_range),
-                                        onPressed: () async {
-                                          final DateTime? picked = await showDatePicker(
-                                            context: context,
-                                            initialDate: DateTime.now(),
-                                            firstDate: DateTime(2015, 8),
-                                            lastDate: DateTime(2101),
-                                          );
-                                          if (picked != null && picked != DateTime.parse(toDateController.text)) {
-                                            setState(() {
-                                              toDateController.text = DateFormat('yyyy-MM-dd').format(picked);
-                                            });
-                                          }
-                                        },
-                                      ),
+                                      suffixIcon: Icon(Icons.date_range),
                                     ),
                                   ),
                                 ),
                               ),
-                              /*   Flexible(
-                                child: SizedBox(
-                                  height:50,
-                                  width: 240,
-                                  child: TypeAheadFormField(
-                                    textFieldConfiguration: TextFieldConfiguration(
-                                      controller: empCodeController,
-                                      decoration: InputDecoration(labelText: 'Employee Code',                                      labelStyle: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                    suggestionsCallback: (pattern) async {
-                                      return getSuggestions('emp_code', pattern);
-                                    },
-                                    itemBuilder: (context, suggestion) {
-                                      return ListTile(
-                                        title: Text(suggestion),
-                                      );
-                                    },
-                                    onSuggestionSelected: (suggestion) {
-                                      setState(() {
-                                        selectedSuggestion = suggestion;
-                                        empCodeController.text = extractEmpCode(suggestion); // Set empCodeController
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),*/
                               Flexible(
                                 child: SizedBox(
                                   height:50,
@@ -376,65 +402,65 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 ),
                               ),
                               Flexible(
-                                child: ElevatedButton(
+                                child: SizedBox(
+                                  height:50,
+                                  width: 240,
+                                  child: TypeAheadFormField(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                      controller: shiftController,
+                                      decoration: InputDecoration(labelText: 'Shift',
+                                        labelStyle: TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                    suggestionsCallback: (pattern) async {
+                                      return getSuggestions('first_name', pattern);
+                                    },
+                                    itemBuilder: (context, suggestion) {
+                                      return ListTile(
+                                        title: Text(suggestion),
+                                      );
+                                    },
+                                    onSuggestionSelected: (suggestion) {
+                                      shiftController.text = suggestion;
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Card(
+                                child: IconButton(
+                                  icon: Icon(Icons.search),
                                   onPressed: _applyFilters,
-                                  style: ElevatedButton.styleFrom(
-                                    foregroundColor: Colors.white, backgroundColor: Colors.blue, // text color
-                                    // padding: EdgeInsets.symmetric(vertical: 1, horizontal: 40),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    textStyle: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.filter_alt_outlined), // Optional: Add an icon
-                                      SizedBox(width: 10), // Optional: Add space between icon and text
-                                      Text('Apply Filters'),
-                                    ],
-                                  ),
+                                ),
+                              ),
+                              Card(
+                                child: IconButton(
+                                  icon: Icon(Icons.file_download),
+                                  onPressed: () async {
+                                    final data = await attendanceDetailsFuture;
+                                    await _generatePdfAndDownload(data);
+                                  },
+                                ),
+                              ),
+                              Card(
+                                child: IconButton(
+                                  icon: Icon(Icons.refresh),
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context)=>AttendanceBalaji()));
+                                  },
+                                ),
+                              ),
+                              Card(
+                                child: IconButton(
+                                  icon: Icon(Icons.arrow_back),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
                                 ),
                               ),
 
                             ],
                           ),
-                          SizedBox(height: 10,),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Flexible(
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    final data = await attendanceDetailsFuture;
-                                    await _generatePdfAndDownload(data);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    foregroundColor: Colors.white, backgroundColor: Colors.red, // text color
-                                    // padding: EdgeInsets.symmetric(vertical: 1, horizontal: 40),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    textStyle: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.download), // Optional: Add an icon
-                                      SizedBox(width: 10), // Optional: Add space between icon and text
-                                      Text('pdf'),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                         
                         ],
                       ),
                     ),
@@ -475,8 +501,8 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 DataColumn(label: Center(child: Text("Check-out", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("latecheck-in", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("earlycheck-out", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("req_time", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Remark", style: TextStyle(fontWeight: FontWeight.bold),))),
                               ],
                               source: AttendanceDataSource(snapshot.data!),
@@ -495,6 +521,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
     );
   }
 }
+
 class AttendanceDataSource extends DataTableSource {
   final List<Map<String, dynamic>> _data;
 

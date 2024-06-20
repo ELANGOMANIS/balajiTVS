@@ -32,7 +32,7 @@ const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
    password: 'root',
-   database: 'balajitvs',
+   database: 'vkcones',
 });
 // Connect to MySQL
 db.connect((err) => {

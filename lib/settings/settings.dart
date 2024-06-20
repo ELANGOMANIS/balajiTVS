@@ -144,6 +144,8 @@ class _SettingsState extends State<Settings> {
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             addShift();
+                            fetchShifts();
+                            timeFetch(selectedShiftType!);
                             Navigator.of(context).pop();
                           }
                         },
@@ -187,6 +189,7 @@ class _SettingsState extends State<Settings> {
           content: Text(responseData['message']),
         ),
       );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const Settings()));
       // Clear text fields after successful addition
       _shiftTypeController.clear();
       _startTimeController.clear();
@@ -379,7 +382,27 @@ class _SettingsState extends State<Settings> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          Text("Settings", style: TextStyle(fontSize: 18)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryCalculation()));
+                  Navigator.pop(context);
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.refresh),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Settings()));
+                },
+              ),
+
+              SizedBox(width: 20,),
+              Text("Settings", style: TextStyle(fontSize: 18)),
+            ],
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(

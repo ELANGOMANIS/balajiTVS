@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:vinayaga_project/main.dart';
 import 'package:http/http.dart' as http;
+import 'package:vinayaga_project/profile.dart';
 import 'home.dart';
 
 class LoginPage extends StatefulWidget {
@@ -54,10 +55,83 @@ class _LoginPageState extends State<LoginPage> {
     // }
   }
 
+  List<Map<String, dynamic>> company= [];
 
 
+  Future<void> getcompanyData() async {
+    try {
+      final response = await http.get(Uri.parse('http://localhost:3309/gettvscompany'));
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        print(jsonData);
+        setState(() {
+          company = jsonData.cast<Map<String, dynamic>>();
+        });
+        print("Statuss ----------${company[0]['status']}");
+      }
+      else {
+      }
+    } catch (error) {
+    }
+  }
+
+
+  Future<void> handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      if (username.text.isEmpty) {
+        setState(() {
+          showWarning = true;
+          warningMessage = "Enter a username";
+        });
+      } else if (password.text.isEmpty) {
+        setState(() {
+          showWarning = true;
+          warningMessage = "Enter a password";
+        });
+      } else if (username.text.isNotEmpty && password.text.isNotEmpty) {
+        if (username.text == "admin" && password.text == "admin") {
+          // Fetch UID from server
+          try {
+            var response = await http.get(Uri.parse('http://localhost:3309/gettvscompany'));
+            if (response.statusCode == 200) {
+              var data = json.decode(response.body);
+              if (data[0]['uid'] == null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Profile()),
+                );
+              }
+              else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Home()),
+                );
+              }
+            } else {
+              setState(() {
+                showWarning = true;
+                warningMessage = "Error fetching data from server";
+              });
+            }
+          } catch (e) {
+            setState(() {
+              showWarning = true;
+              warningMessage = "Error: $e";
+              print(warningMessage);
+            });
+          }
+        } else {
+          setState(() {
+            showWarning = true;
+            warningMessage = "Incorrect username or password";
+          });
+        }
+      }
+    }
+  }
   @override
   void initState() {
+    getcompanyData();
     super.initState();
     barrierDismissible: false;
   }
@@ -65,15 +139,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.indigo,
-      appBar: AppBar(
-        title: Center(
-          child: Text('',style: TextStyle(color: Colors.white),
-              ),
-        ),
-        backgroundColor: Colors.indigo,
-        // Customize the AppBar as needed
-      ),
-     // route: "loginpage",
+
+      // route: "loginpage",
       body: Stack(
         children: [
           Form(
@@ -85,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Center(
                     child: Container(
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 70.0),
+                        padding: const EdgeInsets.only(top: 100.0),
                         child: Container(
                           width: 400,
                           decoration: BoxDecoration(
@@ -163,8 +230,15 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               SizedBox(height: 10,),
-
                               MaterialButton(
+                                color: Colors.blueAccent.shade400,
+                                onPressed: handleLogin,
+                                child: const Text(
+                                  "LOGIN",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                              /*    MaterialButton(
                                 color: Colors.blueAccent.shade400,
                                 onPressed: () {
                                   if(_formKey.currentState!.validate()){
@@ -189,38 +263,36 @@ class _LoginPageState extends State<LoginPage> {
                                         //showWarning = true;
                                         warningMessage = "Incorrect username or password";
                                       });
-
                                     }
-
                                   }
-                                /*  else if (username.text == "admin" && password.text == "admin") {
+                                else if (username.text == "admin" && password.text == "admin") {
                                         Navigator.push(
                                       context,
                                       MaterialPageRoute(builder: (context) => Home()),
                                     );
-                                  }*/
-                                 /* else {
+                                  }
+                                  else {
                                     setState(() {
                                      // showWarning = true;
                                       warningMessage = "Incorrect username or password";
                                     });
-                                  }*/}
+                                  }}
                                 },
                                 child: Text(
                                   "LOGIN",
                                   style: TextStyle(color: Colors.white),
                                 ),
-                              ),
+                              ),*/
 
                               SizedBox(height: 10,),
-                           //   if (showWarning)
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(warningMessage??"",
-                                //    "* The username or password is incorrect.",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
+                              //   if (showWarning)
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(warningMessage??"",
+                                  //    "* The username or password is incorrect.",
+                                  style: TextStyle(color: Colors.red),
                                 ),
+                              ),
                             ],
                           ),
                         ),
