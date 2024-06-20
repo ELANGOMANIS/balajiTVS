@@ -240,10 +240,11 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                               ),
                             ],
                           ),
+                          SizedBox(height: 15,),
+
                           Padding(
                             padding: const EdgeInsets.only(right: 15),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            child: Wrap(
                               children: [
                                 Flexible(
                                   child: SizedBox(
@@ -270,6 +271,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                                     ),
                                   ),
                                 ),
+                                SizedBox(width: 20,),
                                 Flexible(
                                   child: SizedBox(
                                     height:50,
@@ -296,6 +298,8 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                                     ),
                                   ),
                                 ),
+                                SizedBox(width: 20,),
+
                                 Flexible(
                                   child: SizedBox(
                                     height:50,
@@ -306,7 +310,6 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                                         decoration: const InputDecoration(
                                           labelText: 'Shift Type',
                                           labelStyle: TextStyle(fontSize: 12),
-                                          suffixIcon: Icon(Icons.arrow_drop_down),
                                         ),
                                       ),
                                       suggestionsCallback: (pattern) async {
