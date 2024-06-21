@@ -91,6 +91,8 @@ app.post('/attandance_entry', (req, res) => {
       salary = VALUES(salary),
       salaryType = VALUES(salaryType),
       monthly_salary = VALUES(monthly_salary),
+      act_salary = VALUES(act_salary),
+      diff_salary = VALUES(diff_salary),
       remark = VALUES(remark)
   `;
 
@@ -245,7 +247,13 @@ cron.schedule('*/1 * * * *', async () => {
             let dailySalary = monthlySalary / daysInMonthCount;
 
             // Custom rounding logic - include decimal values
-            dailySalary = dailySalary.toFixed(2); // to ensure it keeps the decimal places
+            dailySalary = parseFloat(dailySalary.toFixed(2));
+             // Calculate actual salary
+            const perMinuteSalary = dailySalary / reqTimeMinutes;
+            const act_salary = (perMinuteSalary * actTimeMinutes).toFixed(2);
+             // Calculate the difference salary
+            const diff_salary = parseFloat((dailySalary - act_salary).toFixed(2));
+
 
             // Prepare data for insertion
             console.log('checkInTime:', checkInTime ? checkInTime.format('HH:mm:ss') : 'null');
@@ -256,12 +264,16 @@ cron.schedule('*/1 * * * *', async () => {
             console.log('reqTimeMinutes:', reqTimeMinutes);
             console.log('actTimeMinutes:', actTimeMinutes);
             console.log('dailySalary:', dailySalary);
+            console.log('act_salary:', act_salary);
+             console.log('diff_salary:', diff_salary);
 
             const dataToInsertcustomer = {
                 "emp_code": empEntry[0],
                 "first_name": empData[0]['first_name'].toString(),
                 "monthly_salary": empData[0]['salary'].toString(),
                 "salary": dailySalary, // Added daily salary
+                'act_salary': act_salary, // Added actual salary
+                'diff_salary': diff_salary.toFixed(2),
                 'inDate': checkInTime ? checkInTime.format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
                 'shiftType': empData[0]['shiftType'],
                 'check_in': checkInTime && checkInTime.isValid() ? checkInTime.format('HH:mm:ss') : '',
@@ -470,10 +482,10 @@ app.get('/get_attendance_overall', (req, res) => {
                     } else if (attendance.check_in && attendance.check_out && attendance.check_out !== '00:00:00') {
                       const checkInTime = new Date(`1970-01-01T${attendance.check_in}:00`);
                       const checkOutTime = new Date(`1970-01-01T${attendance.check_out}:00`);
-                      const totalTime = (checkOutTime - checkInTime) / (1000 * 60); // total time in minutes
-                      const requiredTime = attendance.req_time ? parseInt(attendance.req_time, 10) : 0;
+                      const actualTime = parseFloat(attendance.act_time);
+                      const requiredTime = parseFloat(attendance.req_time);
 
-                      if (totalTime < requiredTime / 2) {
+                      if (actualTime < requiredTime / 2) {
                         remark = 'H'; // Halfday
                       } else {
                         remark = 'P'; // Present
@@ -660,6 +672,8 @@ app.get('/get_cumulative_salary', (req, res) => {
       SUM(req_time) AS total_req_time,
       SUM(act_time) AS total_act_time,
       SUM(salary) AS total_salary,
+      SUM(act_salary) AS total_act_salary,
+      SUM(diff_salary) AS total_diff_salary,
       ROUND(SUM(req_time) - SUM(act_time), 2) AS total_late,
       CASE
         WHEN monthly_salary > SUM(salary) THEN monthly_salary - SUM(salary)

@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:vinayaga_project/main.dart';
 import 'package:http/http.dart' as http;
 import '../../home.dart';
-import 'Attendance/attandance_pdf.dart';
+
 
 
 class Home extends StatefulWidget {
@@ -392,7 +392,7 @@ class Utils {
 
 
     for (var word in words) {
-      if ((line + word).length > 100) {
+      if ((line + word).length > 40) {
         if (lineCount == 1) {
           break;
         }

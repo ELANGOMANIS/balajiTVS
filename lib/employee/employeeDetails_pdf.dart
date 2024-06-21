@@ -69,7 +69,6 @@ class EmployeeReportPdf extends StatefulWidget {
     required this.pan,
     required this.aadhar
     //required this.customerData,
-
   });
 
   @override
@@ -171,7 +170,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
               ),
               textAlign: pw.TextAlign.center
             ),
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 5),
             pw.Text(
               "Contact - ${companyData['contact']}",
               style: pw.TextStyle(
@@ -201,7 +200,7 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
               pw.SizedBox(height: 1),
               pw.Divider(),
               pw.Text(
-                'Employee Report',
+                'Employee Profile',
                 style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 8),
@@ -242,219 +241,204 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                             ),
                           ],
                         ),
+
+                        pw.SizedBox(height: 15),
                         pw.Row(
                             children:[
                               pw.Row(
                                 mainAxisAlignment: pw.MainAxisAlignment.start,
                                 children: [
-                                  pw.Padding(
-                                    padding: pw.EdgeInsets.all(3.0),
-                                    child: pw.Column(
-                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                      children: [
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Gender",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
+                                  pw.Column(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Contact",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
                                         ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Contact",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
+                                      ),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Gender",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
                                         ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "DOB",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
-                                        ),pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "AGE",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
+                                      ),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "DOB",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
                                         ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Blood Group",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
+                                      ),pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "AGE",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
                                         ),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(
-                                          "Marital Status",
-                                          style: pw.TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: pw.FontWeight.bold,
-                                          ),
+                                      ),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Blood Group",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Marital Status",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  pw.Padding(
-                                    padding: pw.EdgeInsets.only(bottom:3,left:60,right:3,top:3),
-                                    child: pw.Column(
-                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                      children: [
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        // pw.SizedBox(height: 7),
-                                      ],
-                                    ),
+                                  pw.SizedBox(width: 10),
+                                  pw.Column(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      // pw.SizedBox(height: 7),
+                                    ],
                                   ),
-                                  pw.Padding(
-                                    padding: pw.EdgeInsets.all(4.0),
-                                    child: pw.Column(
-                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                      children: [
-                                        pw.Text(widget.gender.toString(), style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height: 7),
-                                        pw.Text(widget.empMobile.toString(), style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height:7),
-                                        pw.Text(
-                                          widget.dob != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.dob!)) : "-",
-                                          style: pw.TextStyle(fontSize: 10),
-                                        ),
-                                        pw.SizedBox(height:7),
-                                        pw.Text(widget.age.toString(), style: pw.TextStyle(fontSize: 10,)),
-                                        pw.SizedBox(height:7),
-                                        pw.Text(widget.bloodgroup.toString() != "Blood Group" ? widget.bloodgroup.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                        pw.SizedBox(height:7),
-                                        pw.Text(widget.maritalStatus.toString() != "Marital Status" ? widget.maritalStatus.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                      ],
-                                    ),
+                                  pw.SizedBox(width: 15),
+                                  pw.Column(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(widget.empMobile.toString(), style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(widget.gender.toString(), style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height:7),
+                                      pw.Text(
+                                        widget.dob != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.dob!)) : "-",
+                                        style: pw.TextStyle(fontSize: 10),
+                                      ),
+                                      pw.SizedBox(height:7),
+                                      pw.Text(widget.age.toString(), style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height:7),
+                                      pw.Text(widget.bloodgroup.toString() != "Blood Group" ? widget.bloodgroup.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                      pw.SizedBox(height:7),
+                                      pw.Text(widget.maritalStatus.toString() != "Marital Status" ? widget.maritalStatus.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                    ],
                                   ),
                                 ],
                               ),
                               pw.SizedBox(width: 50),
-                              pw.Padding(
-                                padding:pw.EdgeInsets.only(bottom:10),
-                                child:
-                                pw.Row(
-                                  mainAxisAlignment: pw.MainAxisAlignment.start,
-                                  children: [
-                                    pw.SizedBox(height: 7),
-                                    pw.Padding(
-                                      padding: pw.EdgeInsets.all(3.0),
-                                      child: pw.Column(
-                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                        children: [
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Date of Join",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-
-                                          pw.Text(
-                                            "Employee Position",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Employee Department",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Salary",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Spouse Name/Father Name",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Spouse Name/Father MobileNo",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
+                              pw.Row(
+                                mainAxisAlignment: pw.MainAxisAlignment.start,
+                                children: [
+                                  pw.Column(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Date of Join",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    pw.SizedBox(width:15),
-                                    pw.Padding(
-                                      padding: pw.EdgeInsets.all(3.0),
-                                      child: pw.Column(
-                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                        children: [
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                        ],
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Employee Position",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    pw.Padding(
-                                      padding: pw.EdgeInsets.all(4.0),
-                                      child: pw.Column(
-                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                        children: [
-                                          pw.Text(
-                                            widget.doj != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.doj!)) : "-",
-                                            style: pw.TextStyle(fontSize: 10),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.empPosition.toString() != "" ? widget.empPosition.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.deptName.toString() != "" ? widget.deptName.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.daySalary.toString() != "" ? widget.daySalary.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.gaurdian.toString() != "" ? widget.gaurdian.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.gaurdianmobile.toString() != "" ? widget.gaurdianmobile.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                        ],
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Employee Department",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Salary",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
+                                      ),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Spouse Name/Father Name",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
+                                      ),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        "Spouse Name/Father MobileNo",
+                                        style: pw.TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  pw.SizedBox(width: 20),
+                                  pw.Column(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                    ],
+                                  ),
+                                  pw.SizedBox(width: 20),
+                                  pw.Column(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(
+                                        widget.doj != null ? DateFormat('dd-MM-yyyy').format(DateTime.parse(widget.doj!)) : "-",
+                                        style: pw.TextStyle(fontSize: 10),
+                                      ),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(widget.empPosition.toString() != "" ? widget.empPosition.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(widget.deptName.toString() != "" ? widget.deptName.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(widget.daySalary.toString() != "" ? widget.daySalary.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(widget.gaurdian.toString() != "" ? widget.gaurdian.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                      pw.SizedBox(height: 7),
+                                      pw.Text(widget.gaurdianmobile.toString() != "" ? widget.gaurdianmobile.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ]
                         ),
@@ -475,138 +459,145 @@ class _EmployeeReportPdfState extends State<EmployeeReportPdf> {
                                 child:
                                 pw.Row(
                                   mainAxisAlignment: pw.MainAxisAlignment.start,
-
                                   children: [
-
-                                    pw.Padding(
-                                      padding: pw.EdgeInsets.only(top:10,left:3,right:3,bottom:3),
-                                      child: pw.Column(
-                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                        children: [
-                                          pw.Text(
-                                            "Adhaar No",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
+                                    pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text(
+                                          "Adhaar No",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
                                           ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Account No",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
+                                        ),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "Account No",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
                                           ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Holder Name",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
+                                        ),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "Holder Name",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
                                           ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Bank",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
+                                        ),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "Bank",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
                                           ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Branch",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "IFSC Code",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "Pancard No",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: pw.FontWeight.bold,
-                                            ),
-                                          ),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(
-                                            "",
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
+                                        ),
+                                        pw.SizedBox(height: 7),
+                                      ],
                                     ),
-                                    pw.Padding(
-                                      padding: pw.EdgeInsets.only(top:10,left:35,right:3,bottom:3),
-                                      child: pw.Column(
-                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                        children: [
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text("", style: pw.TextStyle(fontSize: 10,),),
-                                        ],
-                                      ),
+                                    pw.SizedBox(width: 15),
+                                    pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                      ],
                                     ),
-                                    pw.Padding(
-                                      padding: pw.EdgeInsets.only(top:10,left:3,right:3,bottom:3),
-                                      child: pw.Column(
-                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                        children: [
-                                          pw.Text(widget.aadhar.toString() != "" ? widget.aadhar.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.acNumber.toString() != "" ? widget.acNumber.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.acHoldername.toString() != "" ? widget.acHoldername.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.bank.toString() != "" ? widget.bank.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.branch.toString() != "" ? widget.branch.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.ifsc.toString() != "" ? widget.ifsc.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text(widget.pan.toString() != "" ? widget.pan.toString() : "-", style: pw.TextStyle(fontSize: 10)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text("", style: pw.TextStyle(fontSize: 10,)),
-                                          pw.SizedBox(height: 7),
-                                          pw.Text("", style: pw.TextStyle(fontSize: 10,)),
-                                        ],
-                                      ),
+                                    pw.SizedBox(width: 15),
+                                    pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text(widget.aadhar.toString() != "" ? widget.aadhar.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(widget.acNumber.toString() != "" ? widget.acNumber.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(widget.acHoldername.toString() != "" ? widget.acHoldername.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(widget.bank.toString() != "" ? widget.bank.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                        pw.SizedBox(height: 7),
+                                      ],
                                     ),
                                   ],
                                 ),
+                              ),
+                              pw.SizedBox(width: 50),
+                              pw.Row(
+                                mainAxisAlignment: pw.MainAxisAlignment.start,
+                                children: [
+                                    pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text(
+                                          "Branch",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "IFSC Code",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "Pancard No",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(
+                                          "",
+                                          style: pw.TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),
+                                        pw.SizedBox(height: 20),
+                                      ],
+                                    ),
+                                  pw.SizedBox(width: 30),
+                                    pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(":", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text("", style: pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 20),
+                                      ],
+                                    ),
+                                    pw.SizedBox(width: 30),
+                                    pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text(widget.branch.toString() != "" ? widget.branch.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(widget.ifsc.toString() != "" ? widget.ifsc.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text(widget.pan.toString() != "" ? widget.pan.toString() : "-", style: pw.TextStyle(fontSize: 10)),
+                                        pw.SizedBox(height: 7),
+                                        pw.Text("", style: const pw.TextStyle(fontSize: 10,)),
+                                        pw.SizedBox(height: 20),
+                                      ],
+                                    ),
+                                ],
                               ),
                             ]
                         ),
