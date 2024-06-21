@@ -660,6 +660,7 @@ app.get('/get_cumulative_salary', (req, res) => {
       SUM(req_time) AS total_req_time,
       SUM(act_time) AS total_act_time,
       SUM(salary) AS total_salary,
+      SUM(act_salary) AS total_act_salary,
       ROUND(SUM(req_time) - SUM(act_time), 2) AS total_late,
       CASE
         WHEN monthly_salary > SUM(salary) THEN monthly_salary - SUM(salary)

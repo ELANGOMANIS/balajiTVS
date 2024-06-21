@@ -1,12 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:vinayaga_project/Attendance/Attendance.dart';
 import 'package:vinayaga_project/profile.dart';
 import 'package:vinayaga_project/settings/settings.dart';
-import 'Attendance/Attendance_reportBalaji.dart';
+import 'Attendance/Attendance_report.dart';
 import 'Attendance/WeeklySalary.dart';
-import 'Attendance/employee_profile_update.dart';
+import 'employee/employee_profile_update.dart';
 import 'employee/employee_report.dart';
 import 'Attendance/salary.dart';
 import 'home.dart';

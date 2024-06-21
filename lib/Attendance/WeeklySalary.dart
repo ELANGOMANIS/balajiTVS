@@ -426,7 +426,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
                         children: [
-                          Wrap(
+                          Row(
                             children: [
                               const Text("Report Details", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                               const Spacer(),
@@ -453,7 +453,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                           ),
                           const SizedBox(height: 20,),
                           PaginatedDataTable(
-                            columnSpacing: 65.0,
+                            columnSpacing: 50.0,
                             rowsPerPage: 25,
                             columns: const [
                               DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold)))),
@@ -461,12 +461,15 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                               DataColumn(label: Center(child: Text("Present/Absent", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Shortage Hrs", style: TextStyle(fontWeight: FontWeight.bold)))),
                               DataColumn(label: Center(child: Text("Monthly Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Deduction Amount", style: TextStyle(fontWeight: FontWeight.bold)))),
-                              DataColumn(label: Center(child: Text("Total Salary", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              // DataColumn(label: Center(child: Text("Deduction Amount", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Total Salary\n(With Deduction)", style: TextStyle(fontWeight: FontWeight.bold)))),
+                              DataColumn(label: Center(child: Text("Total Salary\n(Without Deduction)", style: TextStyle(fontWeight: FontWeight.bold)))),
                             ],
                             source: _DataSource(reportData, fromDate, toDate),
                           ),
+
                         ],
                       ),
                     ),
@@ -497,8 +500,10 @@ class _DataSource extends DataTableSource {
       DataCell(Center(child: Text("${data['no_of_work_days']?.toString() ?? ''}${data['no_of_absent_days']?.toString() ?? ''}"))),
       DataCell(Center(child: Text(formatDuration(data['total_req_time']!.toString()) ?? ''))),
       DataCell(Center(child: Text(formatDuration(data['total_act_time']!.toString()) ?? ''))),
+      DataCell(Center(child: Text(formatDuration(data['total_late']!.toString()) ?? ''))),
       DataCell(Center(child: Text('₹ ${data['monthly_salary']?.toString() ?? ''}'))),
-      DataCell(Center(child: Text('₹ ${data['deduction_salary']?.toString() ?? ''}'))),
+      //DataCell(Center(child: Text('₹ ${data['deduction_salary']?.toString() ?? ''}'))),
+      DataCell(Center(child: Text('₹ ${data['total_act_salary']?.toString() ?? ''}'))),
       DataCell(Center(child: Text('₹ ${data['total_salary']?.toString() ?? ''}'))),
     ]);
   }
