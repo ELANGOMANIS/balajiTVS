@@ -461,7 +461,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
                         children: [
-                          Wrap(
+                          Row(
                             children: [
                               const Text("Report Details", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                               const Spacer(),
@@ -488,7 +488,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                           ),
                           const SizedBox(height: 20,),
                           PaginatedDataTable(
-                            columnSpacing: 65.0,
+                            columnSpacing: 50.0,
                             rowsPerPage: 25,
                             columns: const [
                               DataColumn(label: Center(child: Text("S.No", style: TextStyle(fontWeight: FontWeight.bold)))),
@@ -504,6 +504,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                             ],
                             source: _DataSource(reportData, fromDate, toDate),
                           ),
+
                         ],
                       ),
                     ),

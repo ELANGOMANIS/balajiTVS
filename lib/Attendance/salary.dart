@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
-import 'package:vinayaga_project/Attendance/salarypdf.dart';
 import 'package:vinayaga_project/main.dart';
 import 'package:http/http.dart' as http;
 import '../../home.dart';
@@ -832,65 +831,6 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15.0,right: 15.0),
-                        child: MaterialButton(
-                          color: Colors.green.shade600,
-                          height: 40,
-                          onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>SalaryPdf(
-                              customerData : filteredData,
-                            )));
-                          },child: const Text("PRINT",style: TextStyle(color: Colors.white),),),
-
-
-                      ),
-                      SizedBox(height: 20,),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15.0,right: 15.0),
-                        child: MaterialButton(
-                          color: Colors.red.shade600,
-                          height: 40,
-                          onPressed: (){
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) =>const Home()));
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Confirmation'),
-                                  content: const Text('Do you want to cancel?'),
-                                  actions: <Widget>[
-
-                                    TextButton(
-                                      child: const Text('Yes'),
-                                      onPressed: () {
-                                        Navigator.push(context,
-                                            MaterialPageRoute(builder: (context) =>const Home()));// Close the alert box
-                                      },
-                                    ),
-                                    TextButton(
-                                      child: const Text('No'),
-                                      onPressed: () {
-                                        Navigator.of(context).pop(); // Close the alert box
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: const Text("Cancel",style: TextStyle(color: Colors.white),),),
-                      ),
-
-                    ],
-                  ),
-                )
               ],
             ),
           ),
