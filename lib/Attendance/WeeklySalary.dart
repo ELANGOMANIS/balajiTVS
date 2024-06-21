@@ -143,7 +143,7 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
       );
     }
 
-    final headers = ['S.No', 'Employee', 'No of Work Days', 'Total Req Time', 'Total Act Time', 'Monthly Salary', 'Deduction Salary', 'Total Salary'];
+    final headers = ['S.No', 'Employee', 'P/A', 'Total\nHrs', 'Worked\nHrs','Shortage\nHrs','Monthly\nSalary', 'Total Salary\n(Without Deduction)', 'Deduction\nAmt', 'Total Salary\n(With Deduction)'];
     const int rowsPerPage = 20;
     int totalPages = (reportData.length / rowsPerPage).ceil();
 
@@ -173,14 +173,16 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                 cellStyle: pw.TextStyle(fontSize: 7),
                 cellHeight: 16,
                 columnWidths: {
-                  0: pw.FixedColumnWidth(20),
+                  0: pw.FixedColumnWidth(25),
                   1: pw.FixedColumnWidth(55),
-                  2: pw.FixedColumnWidth(50),
-                  3: pw.FixedColumnWidth(60),
+                  2: pw.FixedColumnWidth(25),
+                  3: pw.FixedColumnWidth(40),
                   4: pw.FixedColumnWidth(50),
-                  5: pw.FixedColumnWidth(40),
-                  6: pw.FixedColumnWidth(40),
-                  7: pw.FixedColumnWidth(40),
+                  5: pw.FixedColumnWidth(70),
+                  6: pw.FixedColumnWidth(70),
+                  7: pw.FixedColumnWidth(70),
+                  8: pw.FixedColumnWidth(70),
+                  9: pw.FixedColumnWidth(70),
 
                 },
                 cellAlignments: {
@@ -192,18 +194,23 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
                   5: pw.Alignment.center,
                   6: pw.Alignment.center,
                   7: pw.Alignment.center,
+                  8: pw.Alignment.center,
+                  9: pw.Alignment.center,
 
                 },
                 data: pageData.map((data) {
                   return [
                     '${reportData.indexOf(data) + 1}',
                     data['employee'] ?? '',
-                    data['no_of_work_days']?.toString() ?? '',
-                    formatDuration(data['total_req_time']?.toString()) ?? '',
-                    formatDuration(data['total_act_time']?.toString()) ?? '',
+                    "${data['no_of_work_days']?.toString() ?? ''}${data['no_of_absent_days']?.toString() ?? ''}",
+                    formatDuration(data['total_req_time']!.toString()) ?? '',
+                    formatDuration(data['total_act_time']!.toString()) ?? '',
+                    formatDuration(data['total_late']!.toString()) ?? '',
                     '${data['monthly_salary']?.toString() ?? ''}',
-                    '${data['deduction_salary']?.toString() ?? ''}',
                     '${data['total_salary']?.toString() ?? ''}',
+                    '${data['total_diff_salary']?.toString() ?? ''}',
+                    '${data['total_act_salary']?.toString() ?? ''}',
+
                   ];
                 }).toList(),
               ),
@@ -217,9 +224,37 @@ class _CumulativeSalaryCalculationState extends State<CumulativeSalaryCalculatio
     await Printing.sharePdf(bytes: bytes, filename: 'Employee_salary_report.pdf');
   }
 
-  String formatDuration(String? duration) {
-    // Implement duration formatting logic here
-    return duration ?? '';
+
+  String formatDuration(String durationInMinutes) {
+    try {
+      if (durationInMinutes != null) {
+        int minutes = int.tryParse(durationInMinutes) ?? 0; // Use int.tryParse with a fallback value of 0
+        Duration duration = Duration(minutes: minutes);
+
+        int hours = duration.inHours;
+        int remainingMinutes = duration.inMinutes.remainder(60);
+
+        String formattedDuration = '';
+
+        if (hours > 0) {
+          formattedDuration += '$hours h';
+        }
+
+        if (remainingMinutes > 0) {
+          if (hours > 0) {
+            formattedDuration += ' ';
+          }
+          formattedDuration += '$remainingMinutes m';
+        }
+
+        return formattedDuration.trim();
+      }
+    } catch (e) {
+      // Handle the exception, e.g., log the error or return a default value
+      print('Error formatting duration: $e');
+    }
+
+    return ""; // Return a default value if there's an error
   }
 
 

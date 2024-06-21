@@ -185,6 +185,20 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
     }
     return totalWorkTime;
   }
+  double calculateTotalSalaryDeduction(List<Map<String, dynamic>> filteredData) {
+    double totalWorkTime = 0;
+    for (var row in filteredData) {
+      totalWorkTime += double.parse(row['diff_salary'] ?? '0');
+    }
+    return totalWorkTime;
+  }
+  double calculateTotalActSalary(List<Map<String, dynamic>> filteredData) {
+    double totalWorkTime = 0;
+    for (var row in filteredData) {
+      totalWorkTime += double.parse(row['act_salary'] ?? '0');
+    }
+    return totalWorkTime;
+  }
   int calculateAbsentDays(List<Map<String, dynamic>> filteredData, DateTime fromDate, DateTime toDate) {
     int totalDaysInRange = calculateTotalDaysInRange(fromDate, toDate);
     int presentDays = calculateTotalDays(filteredData);
@@ -224,6 +238,8 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
 
   double totalWorkTime = 0;
   double totalWorkSalary = 0;
+  double totalWorkSalaryDeduction = 0;
+  double totalWorkActSalary = 0;
   double reqWorkTime = 0;
   double totalLate = 0;
 
@@ -265,6 +281,8 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
 
       totalWorkTime = calculateTotalWorkTime(filteredData) as double;
       totalWorkSalary = calculateTotalSalary(filteredData);
+      totalWorkSalaryDeduction = calculateTotalSalaryDeduction(filteredData);
+      totalWorkActSalary = calculateTotalActSalary(filteredData);
       reqWorkTime = calculateReqWorkTime(filteredData) as double;
       totalLate = calculateTotalLate(filteredData);
     });
@@ -294,9 +312,12 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
       'Date',
       'Name',
       'Shift',
-      'Req Time',
-      'Late',
+      'Total Hrs',
+      'Shortage',
       'Worked Time',
+      'Salary\n (Without Deduction)',
+      'Deduction Amt',
+      'Salary\n (With Deduction)',
     ];
 
     pw.Widget createHeader(String companyName, String address, String contact) {
@@ -366,14 +387,17 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
               cellStyle: pw.TextStyle(fontSize: 7),
               cellHeight: 16,
               columnWidths: {
-                0: pw.FixedColumnWidth(20),
+                0: pw.FixedColumnWidth(40),
                 1: pw.FixedColumnWidth(55),
                 2: pw.FixedColumnWidth(50),
-                3: pw.FixedColumnWidth(60),
+                3: pw.FixedColumnWidth(40),
                 4: pw.FixedColumnWidth(50),
-                5: pw.FixedColumnWidth(40),
-                6: pw.FixedColumnWidth(40),
-                7: pw.FixedColumnWidth(40),
+                5: pw.FixedColumnWidth(60),
+                6: pw.FixedColumnWidth(60),
+                7: pw.FixedColumnWidth(80),
+                8: pw.FixedColumnWidth(80),
+                9: pw.FixedColumnWidth(80),
+                10: pw.FixedColumnWidth(80),
 
               },
               cellAlignments: {
@@ -385,6 +409,9 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                 5: pw.Alignment.center,
                 6: pw.Alignment.center,
                 7: pw.Alignment.center,
+                8: pw.Alignment.center,
+                9: pw.Alignment.center,
+                10: pw.Alignment.center,
 
               },
               data: filteredData.map((row) {
@@ -401,6 +428,9 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                   row["check_out"] != "00:00:00"
                       ? formatDuration(double.parse(row['act_time'] ?? '0'))
                       : "",
+                    '${row["salary"]}',
+                  '${row["diff_salary"]}',
+                  '${row["act_salary"]}',
                 ];
               }).toList(),
             ),
@@ -421,14 +451,21 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
               "Shortage: ${formatDuration(calculateTotalLate(filteredData))}",
               style: pw.TextStyle(fontSize: 12, color: PdfColors.red),
             ),
-
             pw.Text(
               "Work Time: ${calculateTotalWorkTime(filteredData)}",
               style: pw.TextStyle(fontSize: 12),
             ),
             pw.Text(
-              "Total Salary: ${calculateTotalSalary(filteredData)}",
+              "Total Salary (Without Deduction): ${calculateTotalSalary(filteredData)}",
               style: pw.TextStyle(fontSize: 12),
+            ), pw.Text(
+              "Total Deduction : ${calculateTotalSalaryDeduction(filteredData)}",
+              style: pw.TextStyle(fontSize: 12),
+            ),
+
+            pw.Text(
+              "Total Salary (With Deduction): ${calculateTotalActSalary(filteredData)}",
+              style: const pw.TextStyle(fontSize: 12),
             ),
           ];
         },
@@ -687,12 +724,18 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                                 "Shortage: ${formatDuration(calculateTotalLate(filteredData))}",
                                                 style: const TextStyle(fontSize: 13, color: Colors.red),
                                               ),
-                                              SizedBox(height: 10),
                                               Text(
                                                 "Work Time: ${calculateTotalWorkTime(filteredData)}",
                                                 style: const TextStyle(fontSize: 13, color: Colors.black),
                                               ), Text(
-                                                "Total Salary: ${calculateTotalSalary(filteredData)}",
+                                                "Total Salary (Without Deduction): ${calculateTotalSalary(filteredData)}",
+                                                style: const TextStyle(fontSize: 13, color: Colors.black),
+                                              ), Text(
+                                                "Total Deduction: ${calculateTotalSalaryDeduction(filteredData)}",
+                                                style: const TextStyle(fontSize: 13, color: Colors.black),
+                                              ),
+                                              Text(
+                                                "Total Salary (With Deduction): ${calculateTotalActSalary(filteredData)}",
                                                 style: const TextStyle(fontSize: 13, color: Colors.black),
                                               ),
 
@@ -768,7 +811,9 @@ class _SalaryCalculationState extends State<SalaryCalculation> {
                                   DataColumn(label: Center(child: Text("Total Hrs",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   DataColumn(label: Center(child: Text("Shortage",style: TextStyle(fontWeight: FontWeight.bold),))),
                                   DataColumn(label: Center(child: Text("Worked Time",style: TextStyle(fontWeight: FontWeight.bold),))),
-                                  // DataColumn(label: Center(child: Text("Daily Salary",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                   DataColumn(label: Center(child: Text("Salary\n (Without Deduction)",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                   DataColumn(label: Center(child: Text("Deduction Amt",style: TextStyle(fontWeight: FontWeight.bold),))),
+                                   DataColumn(label: Center(child: Text("Salary\n (With Deduction)",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 ],
                                 source: _YourDataTableSource(
                                   filteredData,
@@ -856,6 +901,9 @@ class _YourDataTableSource extends DataTableSource {
         DataCell(Center(child: Text(formatDuration(row["req_time"])))),
         DataCell(Center(child: Text(row["check_out"] != "00:00:00" ? formatDuration(differentTime.toString()) : ""))),
         DataCell(Center(child: Text(formatDuration(row["act_time"])))),
+        DataCell(Center(child: Text("${row["salary"]}"))),
+        DataCell(Center(child: Text("${row["diff_salary"]}"))),
+        DataCell(Center(child: Text("${row["act_salary"]}"))),
 
       ],
     );
