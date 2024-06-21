@@ -9,7 +9,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-import 'package:vinayaga_project/Attendance/salary.dart';
+import 'package:balajitvs/Attendance/salary.dart';
 import '../home.dart';
 import '../main.dart';
 class CumulativeSalaryCalculation extends StatefulWidget {

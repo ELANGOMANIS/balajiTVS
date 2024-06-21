@@ -4,7 +4,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'dart:convert';
-import 'package:vinayaga_project/main.dart';
+import 'package:balajitvs/main.dart';
 import '../home.dart';
 import 'package:image_picker/image_picker.dart';
 

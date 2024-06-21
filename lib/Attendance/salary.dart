@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
-import 'package:vinayaga_project/main.dart';
+import 'package:balajitvs/main.dart';
 import 'package:http/http.dart' as http;
 import '../../home.dart';
 import 'package:flutter/services.dart' show ByteData, Uint8List, rootBundle;

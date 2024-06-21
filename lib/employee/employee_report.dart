@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
-import 'package:vinayaga_project/main.dart';
+import 'package:balajitvs/main.dart';
 import 'package:http/http.dart' as http;
 import '../home.dart';
 import 'employeeDetails_pdf.dart';

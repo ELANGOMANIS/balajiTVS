@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:vinayaga_project/profile.dart';
-import 'package:vinayaga_project/settings/settings.dart';
+import 'package:balajitvs/profile.dart';
+import 'package:balajitvs/settings/settings.dart';
 import 'Attendance/Attendance_report.dart';
 import 'Attendance/WeeklySalary.dart';
 import 'employee/employee_profile_update.dart';

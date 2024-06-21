@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:vinayaga_project/main.dart';
+import 'package:balajitvs/main.dart';
 import 'package:http/http.dart' as http;
-import 'package:vinayaga_project/profile.dart';
+import 'package:balajitvs/profile.dart';
 import 'home.dart';
 
 class LoginPage extends StatefulWidget {
