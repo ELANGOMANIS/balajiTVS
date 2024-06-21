@@ -52,12 +52,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Sri Balaji TVS',
-     // home: const LoginPage(),
-     //home: const Home(),
-     home: const SalaryCalculation(),
-    //  home: const CumulativeSalaryCalculation(),
-      // initialRoute: 'loginpage',
-      //   routes: {'loginpage':(context)=> LoginPAge()},
+
+     home: const LoginPage(),
+
       theme: ThemeData (
         primaryColor: Colors.deepOrangeAccent,
         hintColor: Colors.indigoAccent,
