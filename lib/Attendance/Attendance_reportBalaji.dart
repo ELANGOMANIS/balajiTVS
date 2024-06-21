@@ -138,27 +138,6 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
     return suggestions;
   }
-  String formatDuration(double durationInMinutes) {
-    Duration duration = Duration(minutes: durationInMinutes.round());
-
-    int hours = duration.inHours;
-    int remainingMinutes = duration.inMinutes.remainder(60);
-
-    String formattedDuration = '';
-
-    if (hours > 0) {
-      formattedDuration += '$hours h';
-    }
-
-    if (remainingMinutes > 0) {
-      if (hours > 0) {
-        formattedDuration += ' ';
-      }
-      formattedDuration += '$remainingMinutes m';
-    }
-
-    return formattedDuration.trim();
-  }
 
   Future<void> _generatePdfAndDownload(List<Map<String, dynamic>> data) async {
     final pdf = pw.Document();
@@ -218,7 +197,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
             pw.Divider(thickness: 1),
             pw.SizedBox(height: 8),
             pw.Text(
-              'Employee Salary Report',
+              'Attendance Report',
               style: pw.TextStyle(
                 fontSize: 14,
                 fontWeight: pw.FontWeight.bold,
@@ -233,7 +212,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
     // final imageData = await rootBundle.load('TVS_Motor_Company-Logo.wine.png');
     // final imageBytes = imageData.buffer.asUint8List();
 
-    final headers = ['S.No', 'In Date', 'Emp Code', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Shortage', 'Total\nTime', 'Worked Hrs', 'Remark'];
+    final headers = ['S.No', 'Date', 'Name', 'Shift', 'Check\nin', 'Check\nout', 'Shortage', 'Total\nTime', 'Worked Hrs', 'Status'];
 
 
     const int rowsPerPage = 20; // Define the number of rows per page
@@ -258,7 +237,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
               pw.Table.fromTextArray(
                 headers: headers,
                 headerStyle: pw.TextStyle(
-                  fontSize: 8,
+                  fontSize: 7,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.black,
                 ),
@@ -276,8 +255,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                   7: pw.FixedColumnWidth(40),
                   8: pw.FixedColumnWidth(40),
                   9: pw.FixedColumnWidth(50),
-                  10: pw.FixedColumnWidth(50),
-                  11: pw.FixedColumnWidth(42),
+
                 },
                 cellAlignments: {
                   0: pw.Alignment.center,
@@ -290,8 +268,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                   7: pw.Alignment.center,
                   8: pw.Alignment.center,
                   9: pw.Alignment.center,
-                  10: pw.Alignment.center,
-                  11: pw.Alignment.center,
+
                 },
                 data: pageData.map((attendance) {
                   int totalTime = int.tryParse(attendance['req_time'] ?? '0') ?? 0;
@@ -302,20 +279,14 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                     attendance["inDate"] != null
                         ? DateFormat('dd-MM-yyyy').format(DateTime.parse("${attendance["inDate"]}").toLocal())
                         : "",
-                    attendance['emp_code'] ?? '',
-                    attendance['first_name'] ?? '',
+                    '${attendance['first_name'] ?? ''} - ${attendance['emp_code'] ?? ''}',
                     attendance['shiftType'] ?? '',
                     attendance['check_in'] ?? '',
-                    attendance['check_out'] ?? '',
-                    formatDuration(differentTime.toDouble()),
+                    attendance['check_out'] == '00:00:00' ? '-' : attendance['check_out'],
+                    attendance["check_out"] != "00:00:00" ? formatDuration(differentTime.toString()) : "",
                     formatDuration(attendance['req_time'] ?? ''),
-                    attendance["check_out"] != "00:00:00"
-                        ? formatDuration(double.parse(attendance['act_time'] ?? '0'))
-                        : "",
-
-                    attendance['req_time'] ?? '',
-                    attendance['act_time'] ?? '',
-                    attendance['remark'] ?? '',
+                    formatDuration(attendance['act_time'] ?? ''),
+                    attendance['remark'] ?? ''
                   ];
                 }).toList(),
               ),
@@ -362,19 +333,19 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                       ),
                       child: Column(
                         children: [
-                            Wrap(
-                             children: [
-                               Icon(Icons.report),
-                               SizedBox(width:10,),
-                               Text(
-                                 'Attendance Report',
-                                 style: TextStyle(
-                                   fontSize:20,
-                                   fontWeight: FontWeight.bold,
-                                 ),
-                               ),
-                             ],
-                           ),
+                          Wrap(
+                            children: [
+                              Icon(Icons.report),
+                              SizedBox(width:10,),
+                              Text(
+                                'Attendance Report',
+                                style: TextStyle(
+                                  fontSize:20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                           SizedBox(height: 15,),
                           Wrap(
                             children: [
@@ -526,7 +497,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
 
                             ],
                           ),
-                         
+
                         ],
                       ),
                     ),
@@ -568,7 +539,7 @@ class _AttendanceBalajiState extends State<AttendanceBalaji> {
                                 DataColumn(label: Center(child: Text("Shortage",style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Total Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
                                 DataColumn(label: Center(child: Text("Worked Hrs", style: TextStyle(fontWeight: FontWeight.bold),))),
-                                DataColumn(label: Center(child: Text("Remark", style: TextStyle(fontWeight: FontWeight.bold),))),
+                                DataColumn(label: Center(child: Text("Status", style: TextStyle(fontWeight: FontWeight.bold),))),
                               ],
                               source: AttendanceDataSource(snapshot.data!),
                             );
@@ -639,32 +610,29 @@ class AttendanceDataSource extends DataTableSource {
 
 String formatDuration(String durationInMinutes) {
   try {
-    if (durationInMinutes != null) {
-      int minutes = int.tryParse(durationInMinutes) ?? 0; // Use int.tryParse with a fallback value of 0
-      Duration duration = Duration(minutes: minutes);
+    int minutes = int.tryParse(durationInMinutes) ?? 0;
+    Duration duration = Duration(minutes: minutes);
 
-      int hours = duration.inHours;
-      int remainingMinutes = duration.inMinutes.remainder(60);
+    int hours = duration.inHours;
+    int remainingMinutes = duration.inMinutes.remainder(60);
 
-      String formattedDuration = '';
+    String formattedDuration = '';
 
-      if (hours > 0) {
-        formattedDuration += '$hours h';
-      }
-
-      if (remainingMinutes > 0) {
-        if (hours > 0) {
-          formattedDuration += ' ';
-        }
-        formattedDuration += '$remainingMinutes m';
-      }
-
-      return formattedDuration.trim();
+    if (hours > 0) {
+      formattedDuration += '$hours h';
     }
+
+    if (remainingMinutes > 0) {
+      if (hours > 0) {
+        formattedDuration += ' ';
+      }
+      formattedDuration += '$remainingMinutes m';
+    }
+
+    return formattedDuration.trim();
   } catch (e) {
-    // Handle the exception, e.g., log the error or return a default value
     print('Error formatting duration: $e');
   }
 
-  return ""; // Return a default value if there's an error
+  return "";
 }
